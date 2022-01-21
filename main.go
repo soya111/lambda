@@ -29,6 +29,13 @@ var (
 	rootURL       = "https://www.hinatazaka46.com"
 )
 
+type ScraperInterface interface {
+	getLatestDiaries() []*Diary
+}
+
+type Scraper struct {
+}
+
 type Diary struct {
 	Url        string `dynamodbav:"url" json:"url"`
 	Title      string `dynamodbav:"title" json:"title"`
@@ -171,7 +178,7 @@ func getIdFromHref(href string) int {
 }
 
 // DynamoからGET
-func getDiaryFromDynamoDB(memberName string, diaryId int) (*Diary, error) {
+func getDiary(memberName string, diaryId int) (*Diary, error) {
 	sess, err := session.NewSession()
 	if err != nil {
 		return nil, err
@@ -207,7 +214,7 @@ func getDiaryFromDynamoDB(memberName string, diaryId int) (*Diary, error) {
 }
 
 // DynamoにPOST
-func postDiaryFromDynamoDB(diary *Diary) error {
+func postDiary(diary *Diary) error {
 	sess, err := session.NewSession()
 	if err != nil {
 		return err
@@ -234,7 +241,7 @@ func postDiaryFromDynamoDB(diary *Diary) error {
 }
 
 // 最新のblogを調べる
-func getLatestDiaries() []*Diary {
+func (s *Scraper) getLatestDiaries() []*Diary {
 	url := "https://www.hinatazaka46.com/s/official/diary/member/list?ima=0000"
 	document, err := getDocumentFromURL(url)
 	if err != nil {
@@ -257,7 +264,7 @@ func getLatestDiaries() []*Diary {
 		name := strings.TrimSpace(s.Find(".c-blog-article__name").Text())
 		diaryId := getIdFromHref(href)
 
-		diary, err := getDiaryFromDynamoDB(name, diaryId)
+		diary, err := getDiary(name, diaryId)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return
@@ -267,7 +274,7 @@ func getLatestDiaries() []*Diary {
 		if diary.Id == 0 {
 			fmt.Printf("%s %s %s\n%s\n", updateAt.Format("2006.1.2 15:04 (MST)"), title, name, rootURL+href)
 			newDiary := NewDiary(rootURL+href, title, name, updateAt, diaryId)
-			if err := postDiaryFromDynamoDB(newDiary); err != nil {
+			if err := postDiary(newDiary); err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				return
 			}
@@ -286,15 +293,19 @@ func reverse(a []*Diary) []*Diary {
 	return a
 }
 
-func excuteFunction() {
+func excute(s ScraperInterface) {
 	to := []string{os.Getenv("ME")}
-	latestDiaries := getLatestDiaries()
+	latestDiaries := s.getLatestDiaries()
 	for _, diary := range reverse(latestDiaries) {
 		images := getImagesFromDiary(diary)
 		text := fmt.Sprintf("%s %s %s\n%s", diary.Date, diary.Title, diary.MemberName, diary.Url)
 		pushTextMessages(to, []*linebot.TextMessage{linebot.NewTextMessage(text)}...)
 		pushFlexImagesMessage(to, images)
 	}
+}
+
+func excuteFunction() {
+	excute(&Scraper{})
 }
 
 func init() {

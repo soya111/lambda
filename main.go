@@ -41,8 +41,7 @@ func NewDiary(url string, title string, memberName string, date time.Time, id in
 	return &Diary{url, title, memberName, date.Format("2006.1.2 15:04 (MST)"), id}
 }
 
-// line送信
-func pushImageMessages(to []string, messages ...*linebot.ImageMessage) {
+func newBot() *linebot.Client {
 	bot, err := linebot.New(
 		os.Getenv("CHANNEL_SECRET"),
 		os.Getenv("CHANNEL_TOKEN"),
@@ -50,7 +49,12 @@ func pushImageMessages(to []string, messages ...*linebot.ImageMessage) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	return bot
+}
 
+// line送信
+func pushTextMessages(to []string, messages ...*linebot.TextMessage) {
+	bot := newBot()
 	for _, message := range messages {
 		for _, to := range to {
 			if _, err := bot.PushMessage(to, message).Do(); err != nil {
@@ -60,20 +64,40 @@ func pushImageMessages(to []string, messages ...*linebot.ImageMessage) {
 	}
 }
 
-func pushTextMessages(to []string, messages ...*linebot.TextMessage) {
-	bot, err := linebot.New(
-		os.Getenv("CHANNEL_SECRET"),
-		os.Getenv("CHANNEL_TOKEN"),
-	)
-	if err != nil {
-		log.Fatal(err)
+func pushFlexImagesMessage(to []string, urls []string) {
+	bot := newBot()
+	contents := []*linebot.BubbleContainer{}
+	for _, url := range urls {
+		content := &linebot.BubbleContainer{
+			Type: linebot.FlexContainerTypeBubble,
+			Size: linebot.FlexBubbleSizeTypeMicro,
+			Body: &linebot.BoxComponent{
+				Type:       linebot.FlexComponentTypeImage,
+				Layout:     linebot.FlexBoxLayoutTypeVertical,
+				PaddingAll: linebot.FlexComponentPaddingTypeNone,
+				Contents: []linebot.FlexComponent{
+					&linebot.ImageComponent{
+						Type:   linebot.FlexComponentTypeImage,
+						URL:    url,
+						Margin: linebot.FlexComponentMarginTypeNone,
+					},
+				},
+				Action: &linebot.URIAction{
+					URI: url,
+				},
+			},
+		}
+		contents = append(contents, content)
 	}
 
-	for _, message := range messages {
-		for _, to := range to {
-			if _, err := bot.PushMessage(to, message).Do(); err != nil {
-				fmt.Fprintln(os.Stderr, err)
-			}
+	container := &linebot.CarouselContainer{
+		Type:     linebot.FlexContainerTypeCarousel,
+		Contents: contents,
+	}
+
+	for _, to := range to {
+		if _, err := bot.PushMessage(to, linebot.NewFlexMessage("message", container)).Do(); err != nil {
+			fmt.Fprintln(os.Stderr, err)
 		}
 	}
 }
@@ -263,14 +287,13 @@ func reverse(a []*Diary) []*Diary {
 }
 
 func excuteFunction() {
-	to := []string{os.Getenv("ME"), os.Getenv("KNPT")}
+	to := []string{os.Getenv("ME")}
 	latestDiaries := getLatestDiaries()
 	for _, diary := range reverse(latestDiaries) {
 		images := getImagesFromDiary(diary)
 		text := fmt.Sprintf("%s %s %s\n%s", diary.Date, diary.Title, diary.MemberName, diary.Url)
 		pushTextMessages(to, []*linebot.TextMessage{linebot.NewTextMessage(text)}...)
-		messages := makeImageMessages(images)
-		pushImageMessages(to, messages...)
+		pushFlexImagesMessage(to, images)
 	}
 }
 

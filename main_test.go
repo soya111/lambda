@@ -1,6 +1,7 @@
 package main
 
 import (
+	"main/blog"
 	"testing"
 	"time"
 
@@ -10,9 +11,9 @@ import (
 type ScraperMock struct {
 }
 
-func (s *ScraperMock) getLatestDiaries() []*Diary {
-	return []*Diary{
-		NewDiary("https://www.hinatazaka46.com/s/official/diary/detail/20317", "ニャー0( =^ ・_・^)= 〇", "加藤 史帆", time.Now(), 20317),
+func (s *ScraperMock) GetLatestDiaries() []*blog.Diary {
+	return []*blog.Diary{
+		blog.NewDiary("https://www.hinatazaka46.com/s/official/diary/detail/20317", "ニャー0( =^ ・_・^)= 〇", "加藤 史帆", time.Now(), 20317),
 	}
 }
 

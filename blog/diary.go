@@ -33,7 +33,7 @@ func NewDiary(url string, title string, memberName string, date time.Time, id in
 }
 
 // 最新のblogを調べる
-func (s *Scraper) GetLatestDiaries() []*Diary {
+func (s *Executor) GetLatestDiaries() []*Diary {
 	url := "https://www.hinatazaka46.com/s/official/diary/member/list?ima=0000"
 	document, err := GetDocumentFromURL(url)
 	if err != nil {

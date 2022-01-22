@@ -12,11 +12,11 @@ import (
 	"golang.org/x/net/html/charset"
 )
 
-type ScraperInterface interface {
+type ExecutorInterface interface {
 	GetLatestDiaries() []*Diary
 }
 
-type Scraper struct {
+type Executor struct {
 }
 
 // Document structを返す

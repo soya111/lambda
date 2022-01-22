@@ -5,14 +5,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/aws/aws-lambda-go/lambda"
-
 	"main/blog"
+	"main/database"
 	"main/line"
+
+	"github.com/aws/aws-lambda-go/lambda"
 )
 
-func excute(s blog.ScraperInterface) {
-	to := []string{os.Getenv("ME")}
+func excute(s blog.ExecutorInterface, to []string) {
 	latestDiaries := s.GetLatestDiaries()
 	for _, diary := range latestDiaries {
 		images := diary.GetImages()
@@ -23,7 +23,12 @@ func excute(s blog.ScraperInterface) {
 }
 
 func excuteFunction() {
-	excute(&blog.Scraper{})
+	to, err := database.GetDestination()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
+	}
+	excute(&blog.Executor{}, to)
 }
 
 func init() {

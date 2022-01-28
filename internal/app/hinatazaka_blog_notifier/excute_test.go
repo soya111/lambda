@@ -1,10 +1,11 @@
-package main
+package notifier
 
 import (
-	"main/blog"
 	"os"
 	"testing"
 	"time"
+
+	"notify/internal/pkg/blog"
 
 	"github.com/joho/godotenv"
 )

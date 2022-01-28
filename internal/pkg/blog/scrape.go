@@ -12,13 +12,6 @@ import (
 	"golang.org/x/net/html/charset"
 )
 
-type ExecutorInterface interface {
-	GetLatestDiaries() []*Diary
-}
-
-type Executor struct {
-}
-
 // Document structを返す
 func GetDocumentFromURL(url string) (*goquery.Document, error) {
 	res, err := http.Get(url)

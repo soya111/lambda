@@ -62,7 +62,7 @@ func PushFlexImagesMessage(to []string, urls []string) {
 	}
 
 	for _, to := range to {
-		if _, err := bot.PushMessage(to, linebot.NewFlexMessage("message", container)).Do(); err != nil {
+		if _, err := bot.PushMessage(to, linebot.NewFlexMessage("新着ブログがあります", container)).Do(); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 		}
 	}

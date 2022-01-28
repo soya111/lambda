@@ -10,16 +10,21 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type ExecutorMock struct {
+type ScraperMock struct {
 }
 
-func (s *ExecutorMock) GetLatestDiaries() []*blog.Diary {
+func (*ScraperMock) GetAndPostLatestDiaries() []*blog.Diary {
 	return []*blog.Diary{
 		blog.NewDiary("https://www.hinatazaka46.com/s/official/diary/detail/20317", "ニャー0( =^ ・_・^)= 〇", "加藤 史帆", time.Now(), 20317),
 	}
 }
 
+func (*ScraperMock) GetImages(diary *blog.Diary) []string {
+	var s = &blog.HinatazakaScraper{}
+	return s.GetImages(diary)
+}
+
 func TestExcute(t *testing.T) {
-	godotenv.Load(".env")
-	excute(&ExecutorMock{}, []string{os.Getenv("ME")})
+	godotenv.Load("../.env")
+	Excute(&ScraperMock{}, []string{os.Getenv("ME")})
 }

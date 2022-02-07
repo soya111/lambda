@@ -21,10 +21,11 @@ type Diary struct {
 	MemberName string `dynamodbav:"member_name" json:"member_name"`
 	Date       string `dynamodbav:"date" json:"date"`
 	Id         int    `dynamodbav:"diary_id" json:"diary_id"`
+	Images     []string
 }
 
 func NewDiary(url string, title string, memberName string, date time.Time, id int) *Diary {
-	return &Diary{url, title, memberName, date.Format("2006.1.2 15:04 (MST)"), id}
+	return &Diary{url, title, memberName, date.Format("2006.1.2 15:04 (MST)"), id, []string{}}
 }
 
 func reverse(a []*Diary) []*Diary {

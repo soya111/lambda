@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-hinatazaka:
-    name: Build
+    name: Build Hinatazaka
     runs-on: ubuntu-latest
 
     steps:
@@ -35,7 +35,7 @@ jobs:
           zip_file: handler.zip
 
   build-sakurazaka:
-    name: Build
+    name: Build Sakurazaka
     runs-on: ubuntu-latest
 
     steps:
@@ -61,4 +61,33 @@ jobs:
           aws_secret_access_key: ${{ secrets.AWS_SECRET_KEY }}
           aws_region: ${{ secrets.AWS_REGION }}
           function_name: sakurazaka_blog
+          zip_file: handler.zip
+
+  build-nogizaka:
+    name: Build Nogizaka
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v2
+
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Get Dependencies
+        run: go mod download
+
+      - name: Build
+        run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o handler ./cmd/nogizaka_blog_notifier/main.go
+
+      - name: Zip
+        run: zip handler.zip handler
+
+      - name: Deploy
+        uses: appleboy/lambda-action@master
+        with:
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_KEY }}
+          aws_region: ${{ secrets.AWS_REGION }}
+          function_name: nogizaka_blog
           zip_file: handler.zip

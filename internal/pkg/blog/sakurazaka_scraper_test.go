@@ -6,11 +6,11 @@ import (
 	"time"
 )
 
-func TestGetLatestDiaries(t *testing.T) {
-	s := &SakurazakaScraper{}
-	d := s.getLatestDiaries()
-	fmt.Printf("%#v\n", d[0])
-}
+// func TestGetLatestDiaries(t *testing.T) {
+// 	s := &SakurazakaScraper{}
+// 	d := s.getLatestDiaries()
+// 	fmt.Printf("%#v\n", d[0])
+// }
 
 func TestGetImages(t *testing.T) {
 	s := &SakurazakaScraper{}

@@ -67,3 +67,11 @@ func PushFlexImagesMessage(to []string, urls []string) {
 		}
 	}
 }
+
+func ReplyTextMessages(token string, message string) error {
+	bot := newBot()
+	if _, err := bot.ReplyMessage(token, linebot.NewTextMessage(message)).Do(); err != nil {
+		return err
+	}
+	return nil
+}

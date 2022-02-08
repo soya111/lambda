@@ -1,7 +1,6 @@
 package notifier
 
 import (
-	"os"
 	"testing"
 	"time"
 
@@ -26,5 +25,5 @@ func (*ScraperMock) GetImages(diary *blog.Diary) []string {
 
 func TestExcute(t *testing.T) {
 	godotenv.Load("../.env")
-	Excute(&ScraperMock{}, []string{os.Getenv("ME")})
+	Excute(&ScraperMock{})
 }

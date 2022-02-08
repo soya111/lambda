@@ -19,23 +19,44 @@ import (
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
+var (
+	memberList = []string{
+		"潮紗理菜",
+		"影山優佳",
+		"加藤史帆",
+		"齊藤京子",
+		"佐々木久美",
+		"佐々木美玲",
+		"高瀬愛奈",
+		"高本彩花",
+		"東村芽依",
+		"金村美玖",
+		"河田陽菜",
+		"小坂菜緒",
+		"富田鈴花",
+		"丹生明里",
+		"濱岸ひより",
+		"松田好花",
+		"宮田愛萌",
+		"渡邉美穂",
+		"上村ひなの",
+		"髙橋未来虹",
+		"森本茉莉",
+		"山口陽世",
+	}
+)
+
 func HandleTextMessage(t string, event *linebot.Event) {
 	text := strings.Split(t, " ")
 	switch {
-	case text[0] == "reg":
-		switch {
-		case event.Source.Type == linebot.EventSourceTypeUser:
-			registerUser(event)
-		case event.Source.Type == linebot.EventSourceTypeGroup:
-			registerGroup(event)
-		}
-	case text[0] == "unreg":
-		switch {
-		case event.Source.Type == linebot.EventSourceTypeUser:
-			unregisterUser(event)
-		case event.Source.Type == linebot.EventSourceTypeGroup:
-			unregisterGroup(event)
-		}
+	case text[0] == "reg" && isMember(text[1]):
+		member := text[1]
+		registerMember(member, event)
+	case text[0] == "unreg" && isMember(text[1]):
+		member := text[1]
+		unregisterMember(member, event)
+	case text[0] == "reg" && text[1] == "list":
+		showSubscribeList(event)
 	case text[0] == "whoami":
 		switch {
 		case event.Source.Type == linebot.EventSourceTypeUser:
@@ -47,7 +68,21 @@ func HandleTextMessage(t string, event *linebot.Event) {
 	}
 }
 
-func registerUser(event *linebot.Event) {
+func isMember(text string) bool {
+	for _, v := range memberList {
+		if text == v {
+			return true
+		}
+	}
+	return false
+}
+
+type Subscriber struct {
+	MemberName string `dynamodbav:"member_name" json:"member_name"`
+	UserId     string `json:"user_id" dynamodbav:"user_id"`
+}
+
+func registerMember(member string, event *linebot.Event) {
 	err := godotenv.Load(".env")
 
 	bot, err := linebot.New(
@@ -58,9 +93,19 @@ func registerUser(event *linebot.Event) {
 		log.Fatal(err)
 	}
 
-	userId := event.Source.UserID
-	userProfile, _ := getUserProfile(userId)
-	err = postUser(&User{userId, userProfile.DisplayName})
+	var id string
+
+	if event.Source.Type == linebot.EventSourceTypeUser {
+		// user名調査
+		userId := event.Source.UserID
+		userProfile, _ := getUserProfile(userId)
+		_ = postUser(&User{userId, userProfile.DisplayName})
+		id = userId
+	} else if event.Source.Type == linebot.EventSourceTypeGroup {
+		id = event.Source.GroupID
+	}
+
+	err = postSubscriber(&Subscriber{member, id})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("error")).Do(); err != nil {
@@ -69,13 +114,15 @@ func registerUser(event *linebot.Event) {
 		}
 		return
 	}
-	if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("registered")).Do(); err != nil {
+
+	message := fmt.Sprintf("registered %s", member)
+	if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(message)).Do(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
 }
 
-func registerGroup(event *linebot.Event) {
+func unregisterMember(member string, event *linebot.Event) {
 	err := godotenv.Load(".env")
 
 	bot, err := linebot.New(
@@ -86,7 +133,15 @@ func registerGroup(event *linebot.Event) {
 		log.Fatal(err)
 	}
 
-	err = postUser(&User{event.Source.GroupID, ""})
+	var id string
+
+	if event.Source.Type == linebot.EventSourceTypeUser {
+		id = event.Source.UserID
+	} else if event.Source.Type == linebot.EventSourceTypeGroup {
+		id = event.Source.GroupID
+	}
+
+	err = deleteSubscriber(member, id)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("error")).Do(); err != nil {
@@ -95,13 +150,15 @@ func registerGroup(event *linebot.Event) {
 		}
 		return
 	}
-	if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("registered")).Do(); err != nil {
+
+	message := fmt.Sprintf("unregistered %s", member)
+	if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(message)).Do(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
 }
 
-func unregisterUser(event *linebot.Event) {
+func showSubscribeList(event *linebot.Event) {
 	err := godotenv.Load(".env")
 
 	bot, err := linebot.New(
@@ -112,7 +169,15 @@ func unregisterUser(event *linebot.Event) {
 		log.Fatal(err)
 	}
 
-	err = deleteUser(event.Source.UserID)
+	var id string
+
+	if event.Source.Type == linebot.EventSourceTypeUser {
+		id = event.Source.UserID
+	} else if event.Source.Type == linebot.EventSourceTypeGroup {
+		id = event.Source.GroupID
+	}
+
+	list, err := getSubscribeList(id)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("error")).Do(); err != nil {
@@ -121,35 +186,103 @@ func unregisterUser(event *linebot.Event) {
 		}
 		return
 	}
-	if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("unregistered")).Do(); err != nil {
+
+	message := "登録リスト\n"
+	for _, v := range list {
+		message += fmt.Sprintf("\n%s", v.MemberName)
+	}
+	if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(message)).Do(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
 }
 
-func unregisterGroup(event *linebot.Event) {
-	err := godotenv.Load(".env")
+func postSubscriber(subscriber *Subscriber) error {
+	sess, err := session.NewSession()
+	if err != nil {
+		return err
+	}
+	db := dynamodb.New(sess)
 
-	bot, err := linebot.New(
-		os.Getenv("CHANNEL_SECRET"),
-		os.Getenv("CHANNEL_TOKEN"),
-	)
+	// attribute value作成
+	inputAV, err := dynamodbattribute.MarshalMap(subscriber)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	err = deleteUser(event.Source.GroupID)
+
+	input := &dynamodb.PutItemInput{
+		TableName: aws.String("Subscriber"),
+		Item:      inputAV,
+	}
+
+	_, err = db.PutItem(input)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("error")).Do(); err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			return
-		}
-		return
+		return err
 	}
-	if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("unregistered")).Do(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return
+
+	return nil
+}
+
+func deleteSubscriber(memberName, userId string) error {
+	sess, err := session.NewSession()
+	if err != nil {
+		return err
 	}
+	db := dynamodb.New(sess)
+
+	params := &dynamodb.DeleteItemInput{
+		TableName: aws.String("Subscriber"),
+		Key: map[string]*dynamodb.AttributeValue{
+			"member_name": {
+				S: aws.String(memberName),
+			},
+			"user_id": {
+				S: aws.String(userId),
+			},
+		},
+	}
+
+	_, err = db.DeleteItem(params)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getSubscribeList(id string) ([]Subscriber, error) {
+	sess, err := session.NewSession()
+	if err != nil {
+		return nil, err
+	}
+	db := dynamodb.New(sess)
+
+	params := &dynamodb.QueryInput{
+		TableName:              aws.String("Subscriber"),
+		IndexName:              aws.String("user_id-index"),
+		KeyConditionExpression: aws.String("#user_id = :user_id"),
+		ExpressionAttributeNames: map[string]*string{
+			"#user_id": aws.String("user_id"),
+		},
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":user_id": {
+				S: aws.String(id),
+			},
+		},
+	}
+
+	result, err := db.Query(params)
+	if err != nil {
+		return nil, err
+	}
+
+	memberList := []Subscriber{}
+	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &memberList)
+	if err != nil {
+		return nil, err
+	}
+
+	return memberList, nil
 }
 
 func sendUserId(event *linebot.Event) {
@@ -186,30 +319,6 @@ func postUser(user *User) error {
 	}
 
 	_, err = db.PutItem(input)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func deleteUser(id string) error {
-	sess, err := session.NewSession()
-	if err != nil {
-		return err
-	}
-	db := dynamodb.New(sess)
-
-	params := &dynamodb.DeleteItemInput{
-		TableName: aws.String("User"),
-		Key: map[string]*dynamodb.AttributeValue{
-			"user_id": {
-				S: aws.String(id),
-			},
-		},
-	}
-
-	_, err = db.DeleteItem(params)
 	if err != nil {
 		return err
 	}

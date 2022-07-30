@@ -12,13 +12,20 @@ type Subscriber struct {
 	UserId     string `json:"user_id" dynamodbav:"user_id"`
 }
 
-func GetDestination(memberName string) ([]string, error) {
+type Dynamo struct {
+	db *dynamodb.DynamoDB
+}
+
+func NewDynamo() (*Dynamo, error) {
 	sess, err := session.NewSession()
 	if err != nil {
 		return nil, err
 	}
 	db := dynamodb.New(sess)
+	return &Dynamo{db}, nil
+}
 
+func (d *Dynamo) GetDestination(memberName string) ([]string, error) {
 	params := &dynamodb.QueryInput{
 		TableName:              aws.String("Subscriber"),
 		KeyConditionExpression: aws.String("#member_name = :member_name"),
@@ -32,7 +39,7 @@ func GetDestination(memberName string) ([]string, error) {
 		},
 	}
 
-	result, err := db.Query(params)
+	result, err := d.db.Query(params)
 	if err != nil {
 		return nil, err
 	}

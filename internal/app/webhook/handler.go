@@ -260,12 +260,12 @@ func getSubscribeList(id string) ([]Subscriber, error) {
 
 func sendUserId(event *linebot.Event) {
 	message := fmt.Sprintf("User id is \"%s\"", event.Source.UserID)
-	line.ReplyTextMessages(event.ReplyToken, message)
+	line.NewLinebot().ReplyTextMessages(event.ReplyToken, message)
 }
 
 func sendGroupId(event *linebot.Event) {
 	message := fmt.Sprintf("Group id is \"%s\"\nYour user id is \"%s\"", event.Source.GroupID, event.Source.UserID)
-	line.ReplyTextMessages(event.ReplyToken, message)
+	line.NewLinebot().ReplyTextMessages(event.ReplyToken, message)
 }
 
 type User struct {

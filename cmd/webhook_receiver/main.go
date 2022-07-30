@@ -34,11 +34,14 @@ func main() {
 			return
 		}
 		for _, event := range events {
-			if event.Type == linebot.EventTypeMessage {
+			switch event.Type {
+			case linebot.EventTypeMessage:
 				switch message := event.Message.(type) {
 				case *linebot.TextMessage:
 					webhook.HandleTextMessage(message.Text, event)
 				}
+			case linebot.EventTypeLeave:
+				// webhook.HandleEventLeave(event)
 			}
 		}
 		w.WriteHeader(200)

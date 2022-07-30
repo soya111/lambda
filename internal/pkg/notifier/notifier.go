@@ -3,13 +3,12 @@ package notifier
 import (
 	"fmt"
 	"notify/internal/pkg/blog"
-	"notify/internal/pkg/database"
-	"notify/internal/pkg/line"
+	"notify/internal/pkg/infrastructure"
 	"os"
 	"strings"
 )
 
-func Excute(s blog.Scraper) {
+func Excute(s blog.Scraper, client infrastructure.Client, database infrastructure.Database) {
 	latestDiaries := s.GetAndPostLatestDiaries()
 	for _, diary := range latestDiaries {
 		to, err := database.GetDestination(strings.Replace(diary.MemberName, " ", "", 1))
@@ -18,10 +17,10 @@ func Excute(s blog.Scraper) {
 			continue
 		}
 		text := fmt.Sprintf("%s %s %s\n%s", diary.Date, diary.Title, diary.MemberName, diary.Url)
-		line.PushTextMessages(to, text)
+		client.PushTextMessages(to, text)
 		images := s.GetImages(diary)
 		if len(images) > 0 {
-			line.PushFlexImagesMessage(to, images)
+			client.PushFlexImagesMessage(to, images)
 		}
 	}
 }

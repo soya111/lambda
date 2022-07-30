@@ -2,9 +2,15 @@ package notifier
 
 import (
 	"notify/internal/pkg/blog"
+	"notify/internal/pkg/database"
+	"notify/internal/pkg/line"
 	"notify/internal/pkg/notifier"
 )
 
 func ExcuteFunction() {
-	notifier.Excute(&blog.HinatazakaScraper{})
+	db, err := database.NewDynamo()
+	if err != nil {
+		panic(err)
+	}
+	notifier.Excute(&blog.HinatazakaScraper{}, line.NewLinebot(), db)
 }

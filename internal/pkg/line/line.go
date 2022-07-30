@@ -8,7 +8,8 @@ import (
 	"github.com/line/line-bot-sdk-go/linebot"
 )
 
-func newBot() *linebot.Client {
+// 本番用コンストラクタ
+func NewLinebot() *Linebot {
 	bot, err := linebot.New(
 		os.Getenv("CHANNEL_SECRET"),
 		os.Getenv("CHANNEL_TOKEN"),
@@ -16,23 +17,25 @@ func newBot() *linebot.Client {
 	if err != nil {
 		log.Fatal(err)
 	}
-	return bot
+	return &Linebot{bot}
+}
+
+type Linebot struct {
+	client *linebot.Client
 }
 
 // line送信
-func PushTextMessages(to []string, messages ...string) {
-	bot := newBot()
+func (b Linebot) PushTextMessages(to []string, messages ...string) {
 	for _, message := range messages {
 		for _, to := range to {
-			if _, err := bot.PushMessage(to, linebot.NewTextMessage(message)).Do(); err != nil {
+			if _, err := b.client.PushMessage(to, linebot.NewTextMessage(message)).Do(); err != nil {
 				fmt.Fprintln(os.Stderr, err)
 			}
 		}
 	}
 }
 
-func PushFlexImagesMessage(to []string, urls []string) {
-	bot := newBot()
+func (b Linebot) PushFlexImagesMessage(to []string, urls []string) {
 	contents := []*linebot.BubbleContainer{}
 	for _, url := range urls {
 		content := &linebot.BubbleContainer{
@@ -62,15 +65,14 @@ func PushFlexImagesMessage(to []string, urls []string) {
 	}
 
 	for _, to := range to {
-		if _, err := bot.PushMessage(to, linebot.NewFlexMessage("新着ブログがあります", container)).Do(); err != nil {
+		if _, err := b.client.PushMessage(to, linebot.NewFlexMessage("新着ブログがあります", container)).Do(); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 		}
 	}
 }
 
-func ReplyTextMessages(token string, message string) error {
-	bot := newBot()
-	if _, err := bot.ReplyMessage(token, linebot.NewTextMessage(message)).Do(); err != nil {
+func (b Linebot) ReplyTextMessages(token string, message string) error {
+	if _, err := b.client.ReplyMessage(token, linebot.NewTextMessage(message)).Do(); err != nil {
 		return err
 	}
 	return nil

@@ -1,6 +1,7 @@
 package notifier
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -9,8 +10,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type ScraperMock struct {
-}
+type ScraperMock struct{}
 
 func (*ScraperMock) GetAndPostLatestDiaries() []*blog.Diary {
 	return []*blog.Diary{
@@ -23,7 +23,29 @@ func (*ScraperMock) GetImages(diary *blog.Diary) []string {
 	return s.GetImages(diary)
 }
 
+type BotMock struct{}
+
+func (*BotMock) PushTextMessages(to []string, messages ...string) {
+	fmt.Println("PushTextMessages")
+	fmt.Println(to, messages)
+}
+
+func (*BotMock) PushFlexImagesMessage(to []string, urls []string) {
+	fmt.Println("PushFlexImagesMessage")
+	fmt.Println(to, urls)
+}
+
+func (*BotMock) ReplyTextMessages(token string, message string) error {
+	return nil
+}
+
+type DBMock struct{}
+
+func (*DBMock) GetDestination(memberName string) ([]string, error) {
+	return []string{"kosakana"}, nil
+}
+
 func TestExcute(t *testing.T) {
 	godotenv.Load("../.env")
-	Excute(&ScraperMock{})
+	Excute(&ScraperMock{}, &BotMock{}, &DBMock{})
 }

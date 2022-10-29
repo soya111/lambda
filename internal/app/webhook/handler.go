@@ -1,11 +1,7 @@
 package webhook
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	"log"
-	"net/http"
 	"os"
 	"strings"
 
@@ -37,7 +33,8 @@ func HandleTextMessage(t string, event *linebot.Event) {
 		case event.Source.Type == linebot.EventSourceTypeGroup:
 			sendGroupId(event)
 		}
-
+	case isMember(text[0]):
+		// TODO: いつか機能追加
 	}
 }
 
@@ -58,20 +55,14 @@ type Subscriber struct {
 func registerMember(member string, event *linebot.Event) {
 	err := godotenv.Load(".env")
 
-	bot, err := linebot.New(
-		os.Getenv("CHANNEL_SECRET"),
-		os.Getenv("CHANNEL_TOKEN"),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
+	bot := line.NewLinebot()
 
 	var id string
 
 	if event.Source.Type == linebot.EventSourceTypeUser {
 		// user名調査
 		userId := event.Source.UserID
-		userProfile, _ := getUserProfile(userId)
+		userProfile, _ := line.GetUserProfile(userId)
 		_ = postUser(&User{userId, userProfile.DisplayName})
 		id = userId
 	} else if event.Source.Type == linebot.EventSourceTypeGroup {
@@ -81,7 +72,7 @@ func registerMember(member string, event *linebot.Event) {
 	err = postSubscriber(&Subscriber{member, id})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("error")).Do(); err != nil {
+		if err = bot.ReplyTextMessages(event.ReplyToken, "error"); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return
 		}
@@ -89,7 +80,7 @@ func registerMember(member string, event *linebot.Event) {
 	}
 
 	message := fmt.Sprintf("registered %s", member)
-	if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(message)).Do(); err != nil {
+	if err = bot.ReplyTextMessages(event.ReplyToken, message); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
@@ -98,13 +89,7 @@ func registerMember(member string, event *linebot.Event) {
 func unregisterMember(member string, event *linebot.Event) {
 	err := godotenv.Load(".env")
 
-	bot, err := linebot.New(
-		os.Getenv("CHANNEL_SECRET"),
-		os.Getenv("CHANNEL_TOKEN"),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
+	bot := line.NewLinebot()
 
 	var id string
 
@@ -117,7 +102,7 @@ func unregisterMember(member string, event *linebot.Event) {
 	err = deleteSubscriber(member, id)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("error")).Do(); err != nil {
+		if err = bot.ReplyTextMessages(event.ReplyToken, "error"); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return
 		}
@@ -125,7 +110,7 @@ func unregisterMember(member string, event *linebot.Event) {
 	}
 
 	message := fmt.Sprintf("unregistered %s", member)
-	if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(message)).Do(); err != nil {
+	if err = bot.ReplyTextMessages(event.ReplyToken, message); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
@@ -134,13 +119,7 @@ func unregisterMember(member string, event *linebot.Event) {
 func showSubscribeList(event *linebot.Event) {
 	err := godotenv.Load(".env")
 
-	bot, err := linebot.New(
-		os.Getenv("CHANNEL_SECRET"),
-		os.Getenv("CHANNEL_TOKEN"),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
+	bot := line.NewLinebot()
 
 	var id string
 
@@ -153,7 +132,7 @@ func showSubscribeList(event *linebot.Event) {
 	list, err := getSubscribeList(id)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage("error")).Do(); err != nil {
+		if err = bot.ReplyTextMessages(event.ReplyToken, "error"); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return
 		}
@@ -164,7 +143,7 @@ func showSubscribeList(event *linebot.Event) {
 	for _, v := range list {
 		message += fmt.Sprintf("\n%s", v.MemberName)
 	}
-	if _, err = bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(message)).Do(); err != nil {
+	if err = bot.ReplyTextMessages(event.ReplyToken, message); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return
 	}
@@ -297,37 +276,4 @@ func postUser(user *User) error {
 	}
 
 	return nil
-}
-
-type UserProfile struct {
-	UserId        string `json:"userId"`
-	DisplayName   string `json:"displayName"`
-	PictureUrl    string `json:"pictureUrl"`
-	StatusMessage string `json:"statusMessage"`
-	Language      string `json:"language"`
-}
-
-func getUserProfile(userId string) (*UserProfile, error) {
-	err := godotenv.Load("../pkg/.env")
-
-	url := fmt.Sprintf("https://api.line.me/v2/bot/profile/%s", userId)
-	req, err := http.NewRequest("GET", url, nil)
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("CHANNEL_TOKEN")))
-	c := &http.Client{}
-	res, err := c.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	if res.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("status code error: %d %s", res.StatusCode, res.Status))
-	}
-	defer res.Body.Close()
-
-	userProfile := &UserProfile{}
-	err = json.NewDecoder(res.Body).Decode(userProfile)
-	if err != nil {
-		return nil, err
-	}
-
-	return userProfile, nil
 }

@@ -14,6 +14,10 @@ type HinatazakaScraper struct {
 	Scraper
 }
 
+func NewHinatazakaScraper() *HinatazakaScraper {
+	return &HinatazakaScraper{}
+}
+
 // 最新の記事を調べる
 func (s *HinatazakaScraper) GetAndPostLatestDiaries() []*Diary {
 	latestDiaries := s.getLatestDiaries()

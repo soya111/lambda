@@ -2,8 +2,8 @@ package notifier
 
 import (
 	"fmt"
-	"notify/internal/pkg/blog"
-	"notify/internal/pkg/infrastructure"
+	"notify/pkg/blog"
+	"notify/pkg/infrastructure"
 	"os"
 	"strings"
 )

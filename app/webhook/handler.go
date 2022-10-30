@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"notify/internal/pkg/line"
+	"notify/pkg/line"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -51,6 +51,7 @@ func handleTextMessage(t string, event *linebot.Event) {
 		}
 	case isMember(text[0]):
 		// TODO: いつか機能追加
+		// 最新のブログおくるとか
 	}
 }
 

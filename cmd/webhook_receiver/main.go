@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"notify/internal/app/webhook"
+	"notify/app/webhook"
 	"os"
 	"strings"
 	"sync"

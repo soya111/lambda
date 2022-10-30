@@ -8,6 +8,10 @@ import (
 	"github.com/line/line-bot-sdk-go/linebot"
 )
 
+type Linebot struct {
+	client *linebot.Client
+}
+
 // 本番用コンストラクタ
 func NewLinebot() *Linebot {
 	bot, err := linebot.New(
@@ -20,12 +24,8 @@ func NewLinebot() *Linebot {
 	return &Linebot{bot}
 }
 
-type Linebot struct {
-	client *linebot.Client
-}
-
 // line送信
-func (b Linebot) PushTextMessages(to []string, messages ...string) {
+func (b *Linebot) PushTextMessages(to []string, messages ...string) {
 	for _, message := range messages {
 		for _, to := range to {
 			if _, err := b.client.PushMessage(to, linebot.NewTextMessage(message)).Do(); err != nil {
@@ -35,7 +35,7 @@ func (b Linebot) PushTextMessages(to []string, messages ...string) {
 	}
 }
 
-func (b Linebot) PushFlexImagesMessage(to []string, urls []string) {
+func (b *Linebot) PushFlexImagesMessage(to []string, urls []string) {
 	contents := []*linebot.BubbleContainer{}
 	for _, url := range urls {
 		content := &linebot.BubbleContainer{
@@ -71,7 +71,7 @@ func (b Linebot) PushFlexImagesMessage(to []string, urls []string) {
 	}
 }
 
-func (b Linebot) ReplyTextMessages(token string, message string) error {
+func (b *Linebot) ReplyTextMessages(token string, message string) error {
 	if _, err := b.client.ReplyMessage(token, linebot.NewTextMessage(message)).Do(); err != nil {
 		return err
 	}

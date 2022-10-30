@@ -1,8 +1,18 @@
-## build
-GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o handler ./cmd/hinatazaka_blog_notifier/main.go
-GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o handler ./cmd/sakurazaka_blog_notifier/main.go
-GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o handler ./cmd/nogizaka_blog_notifier/main.go
-GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o handler ./cmd/webhook_receiver/main.go
+## Build
+
+Github Actionsで自動化した
+
+## Things to improve on
+
+- dynamoの操作をgureguで
 
 ## zip
+
+Localでzipしたいときはこれ
+
+Windowsでzipするとうごかないこともある
+
+```bash
 build-lambda-zip.exe -output handler.zip handler
+aws lambda update-function-code --function-name {{name}} --zip-file fileb://handler.zip 
+```

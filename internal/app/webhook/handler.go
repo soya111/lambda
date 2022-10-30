@@ -1,6 +1,7 @@
 package webhook
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -15,7 +16,22 @@ import (
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
-func HandleTextMessage(t string, event *linebot.Event) {
+type Handler struct{}
+
+func HandleEvent(ctx context.Context, event *linebot.Event) error {
+	switch event.Type {
+	case linebot.EventTypeMessage:
+		switch message := event.Message.(type) {
+		case *linebot.TextMessage:
+			handleTextMessage(message.Text, event)
+		}
+	case linebot.EventTypeLeave:
+		// webhook.HandleEventLeave(event)
+	}
+	return nil
+}
+
+func handleTextMessage(t string, event *linebot.Event) {
 	text := strings.Split(t, " ")
 	switch {
 	case text[0] == "reg" && isMember(text[1]):
@@ -62,7 +78,7 @@ func registerMember(member string, event *linebot.Event) {
 	if event.Source.Type == linebot.EventSourceTypeUser {
 		// user名調査
 		userId := event.Source.UserID
-		userProfile, _ := line.GetUserProfile(userId)
+		userProfile, _ := bot.Client.GetProfile(userId).Do()
 		_ = postUser(&User{userId, userProfile.DisplayName})
 		id = userId
 	} else if event.Source.Type == linebot.EventSourceTypeGroup {
@@ -91,13 +107,7 @@ func unregisterMember(member string, event *linebot.Event) {
 
 	bot := line.NewLinebot()
 
-	var id string
-
-	if event.Source.Type == linebot.EventSourceTypeUser {
-		id = event.Source.UserID
-	} else if event.Source.Type == linebot.EventSourceTypeGroup {
-		id = event.Source.GroupID
-	}
+	id := extractEventSourceIdentifier(event)
 
 	err = deleteSubscriber(member, id)
 	if err != nil {
@@ -121,13 +131,7 @@ func showSubscribeList(event *linebot.Event) {
 
 	bot := line.NewLinebot()
 
-	var id string
-
-	if event.Source.Type == linebot.EventSourceTypeUser {
-		id = event.Source.UserID
-	} else if event.Source.Type == linebot.EventSourceTypeGroup {
-		id = event.Source.GroupID
-	}
+	id := extractEventSourceIdentifier(event)
 
 	list, err := getSubscribeList(id)
 	if err != nil {
@@ -276,4 +280,18 @@ func postUser(user *User) error {
 	}
 
 	return nil
+}
+
+func extractEventSourceIdentifier(event *linebot.Event) string {
+	var id string
+
+	if event.Source.Type == linebot.EventSourceTypeUser {
+		id = event.Source.UserID
+	} else if event.Source.Type == linebot.EventSourceTypeGroup {
+		id = event.Source.GroupID
+	} else if event.Source.Type == linebot.EventSourceTypeRoom {
+		id = event.Source.RoomID
+	}
+
+	return id
 }

@@ -9,7 +9,7 @@ import (
 )
 
 type Linebot struct {
-	client *linebot.Client
+	Client *linebot.Client
 }
 
 // 本番用コンストラクタ
@@ -28,7 +28,7 @@ func NewLinebot() *Linebot {
 func (b *Linebot) PushTextMessages(to []string, messages ...string) {
 	for _, message := range messages {
 		for _, to := range to {
-			if _, err := b.client.PushMessage(to, linebot.NewTextMessage(message)).Do(); err != nil {
+			if _, err := b.Client.PushMessage(to, linebot.NewTextMessage(message)).Do(); err != nil {
 				fmt.Fprintln(os.Stderr, err)
 			}
 		}
@@ -65,14 +65,14 @@ func (b *Linebot) PushFlexImagesMessage(to []string, urls []string) {
 	}
 
 	for _, to := range to {
-		if _, err := b.client.PushMessage(to, linebot.NewFlexMessage("新着ブログがあります", container)).Do(); err != nil {
+		if _, err := b.Client.PushMessage(to, linebot.NewFlexMessage("新着ブログがあります", container)).Do(); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 		}
 	}
 }
 
 func (b *Linebot) ReplyTextMessages(token string, message string) error {
-	if _, err := b.client.ReplyMessage(token, linebot.NewTextMessage(message)).Do(); err != nil {
+	if _, err := b.Client.ReplyMessage(token, linebot.NewTextMessage(message)).Do(); err != nil {
 		return err
 	}
 	return nil

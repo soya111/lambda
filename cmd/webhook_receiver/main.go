@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"notify/internal/app/webhook"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -63,11 +65,13 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 			}
 		}
 
+		var errs []error
+		var wg sync.WaitGroup
 		for _, event := range events {
 			// 解析用ログ出力
 			fmt.Println(marshal(event))
 
-			var wg sync.WaitGroup
+			// いつか見たい時が来た時ように出しとく
 			wg.Add(3)
 			go func() {
 				defer wg.Done()
@@ -84,20 +88,16 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 				res3, _ := bot.GetGroupMemberProfile(event.Source.GroupID, event.Source.UserID).Do()
 				fmt.Println(marshal(res3))
 			}()
-			wg.Wait()
 
-			switch event.Type {
-			case linebot.EventTypeMessage:
-				switch message := event.Message.(type) {
-				case *linebot.TextMessage:
-					webhook.HandleTextMessage(message.Text, event)
-				}
-			case linebot.EventTypeLeave:
-				// webhook.HandleEventLeave(event)
+			err := webhook.HandleEvent(ctx, event)
+			if err != nil {
+				fmt.Printf("RequestId: %s, Error: %s\n", requestId, err)
+				errs = append(errs, err)
 			}
-
 		}
-		return newResponse(http.StatusOK), nil
+		wg.Wait()
+
+		return newResponse(http.StatusOK), processErrors(errs)
 	default:
 		return newResponse(http.StatusBadRequest), nil
 	}
@@ -121,4 +121,18 @@ func marshal(v interface{}) string {
 		fmt.Printf("marshal: %s\n", err)
 	}
 	return string(b)
+}
+
+func processErrors(errs []error) error {
+	if len(errs) == 0 {
+		return nil
+	} else {
+		errList := []string{}
+
+		for _, err := range errs {
+			errList = append(errList, err.Error())
+		}
+		str := strings.Join(errList, ",")
+		return errors.New(str)
+	}
 }

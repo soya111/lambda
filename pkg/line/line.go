@@ -9,7 +9,7 @@ import (
 )
 
 type Linebot struct {
-	Client *linebot.Client
+	*linebot.Client
 }
 
 // 本番用コンストラクタ

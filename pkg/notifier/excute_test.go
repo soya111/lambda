@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"notify/internal/pkg/blog"
+	"notify/pkg/blog"
 
 	"github.com/joho/godotenv"
 )

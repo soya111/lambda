@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"notify/internal/app/webhook"
+	"notify/app/webhook"
 	"os"
 	"strings"
 	"sync"
@@ -67,6 +67,10 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 		var errs []error
 		var wg sync.WaitGroup
+
+		// ここから正常系の処理をやる
+		handler := webhook.NewHandler(bot)
+
 		for _, event := range events {
 			// 解析用ログ出力
 			fmt.Println(marshal(event))
@@ -89,7 +93,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 				fmt.Println(marshal(res3))
 			}()
 
-			err := webhook.HandleEvent(ctx, event)
+			err := handler.HandleEvent(ctx, event)
 			if err != nil {
 				fmt.Printf("RequestId: %s, Error: %s\n", requestId, err)
 				errs = append(errs, err)

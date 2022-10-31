@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	s "notify/internal/app/sakurazaka_blog_notifier"
+	s "notify/app/sakurazaka_blog_notifier"
 
 	"github.com/aws/aws-lambda-go/lambda"
 )

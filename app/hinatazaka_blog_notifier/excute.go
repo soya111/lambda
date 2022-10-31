@@ -1,10 +1,10 @@
 package notifier
 
 import (
-	"notify/internal/pkg/blog"
-	"notify/internal/pkg/database"
-	"notify/internal/pkg/line"
-	"notify/internal/pkg/notifier"
+	"notify/pkg/blog"
+	"notify/pkg/database"
+	"notify/pkg/line"
+	"notify/pkg/notifier"
 )
 
 func ExcuteFunction() {

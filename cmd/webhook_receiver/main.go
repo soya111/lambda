@@ -68,6 +68,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		var errs []error
 		var wg sync.WaitGroup
 
+		// ここから正常系の処理をやる
 		handler := webhook.NewHandler(bot)
 
 		for _, event := range events {

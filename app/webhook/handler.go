@@ -7,10 +7,6 @@ import (
 
 	"notify/pkg/line"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/guregu/dynamo"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
@@ -104,7 +100,7 @@ func (h *Handler) registerMember(member string, event *linebot.Event) error {
 		// user名調査
 		userId := event.Source.UserID
 		userProfile, _ := h.bot.GetProfile(userId).Do()
-		err := postUser(&User{userId, userProfile.DisplayName})
+		err := h.postUser(User{userId, userProfile.DisplayName})
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -220,27 +216,12 @@ type User struct {
 	Name string `json:"name" dynamodbav:"name"`
 }
 
-func postUser(user *User) error {
-	sess, err := session.NewSession()
-	if err != nil {
-		return err
-	}
-	db := dynamodb.New(sess)
+func (h *Handler) postUser(user User) error {
+	table := h.db.Table("User")
 
-	// attribute value作成
-	inputAV, err := dynamodbattribute.MarshalMap(user)
+	err := table.Put(user).Run()
 	if err != nil {
-		return err
-	}
-
-	input := &dynamodb.PutItemInput{
-		TableName: aws.String("User"),
-		Item:      inputAV,
-	}
-
-	_, err = db.PutItem(input)
-	if err != nil {
-		return err
+		return fmt.Errorf("postUser: %w", err)
 	}
 
 	return nil

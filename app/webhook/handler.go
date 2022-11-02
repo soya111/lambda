@@ -11,15 +11,17 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/guregu/dynamo"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
 type Handler struct {
 	bot *linebot.Client
+	db  *dynamo.DB
 }
 
-func NewHandler(client *linebot.Client) *Handler {
-	return &Handler{client}
+func NewHandler(client *linebot.Client, db *dynamo.DB) *Handler {
+	return &Handler{client, db}
 }
 
 func (h *Handler) HandleEvent(ctx context.Context, event *linebot.Event) error {
@@ -27,9 +29,14 @@ func (h *Handler) HandleEvent(ctx context.Context, event *linebot.Event) error {
 	case linebot.EventTypeMessage:
 		switch message := event.Message.(type) {
 		case *linebot.TextMessage:
-			h.handleTextMessage(message.Text, event)
+			err := h.handleTextMessage(message.Text, event)
+			if err != nil {
+				return fmt.Errorf("HandleEvent: %w", err)
+			}
+			return nil
 		}
 	case linebot.EventTypeLeave:
+		// 退会、ブロック等されたら登録情報削除すべき
 		// webhook.HandleEventLeave(event)
 	}
 	return nil
@@ -85,8 +92,8 @@ func isMember(text string) bool {
 }
 
 type Subscriber struct {
-	MemberName string `dynamodbav:"member_name" json:"member_name"`
-	UserId     string `json:"user_id" dynamodbav:"user_id"`
+	MemberName string `dynamo:"member_name" json:"member_name"  index:"user_id-index,range"`
+	UserId     string `json:"user_id" dynamo:"user_id" index:"user_id-index,hash"`
 }
 
 func (h *Handler) registerMember(member string, event *linebot.Event) error {
@@ -106,7 +113,7 @@ func (h *Handler) registerMember(member string, event *linebot.Event) error {
 		id = event.Source.GroupID
 	}
 
-	err := h.postSubscriber(&Subscriber{member, id})
+	err := h.postSubscriber(Subscriber{member, id})
 	if err != nil {
 		message := "登録できませんでした！"
 		if _, err := h.bot.ReplyMessage(token, linebot.NewTextMessage(message)).Do(); err != nil {
@@ -166,92 +173,36 @@ func (h *Handler) showSubscribeList(event *linebot.Event) error {
 	return nil
 }
 
-func (h *Handler) postSubscriber(subscriber *Subscriber) error {
-	sess, err := session.NewSession()
-	if err != nil {
-		return err
-	}
-	db := dynamodb.New(sess)
+func (h *Handler) postSubscriber(subscriber Subscriber) error {
+	table := h.db.Table("Subscriber")
 
-	// attribute value作成
-	inputAV, err := dynamodbattribute.MarshalMap(subscriber)
-	if err != nil {
-		return err
-	}
-
-	input := &dynamodb.PutItemInput{
-		TableName: aws.String("Subscriber"),
-		Item:      inputAV,
-	}
-
-	_, err = db.PutItem(input)
-	if err != nil {
-		return err
+	if err := table.Put(subscriber).Run(); err != nil {
+		return fmt.Errorf("postSubscriber: %w", err)
 	}
 
 	return nil
 }
 
 func (h *Handler) deleteSubscriber(memberName, userId string) error {
-	sess, err := session.NewSession()
+	table := h.db.Table("Subscriber")
+
+	err := table.Delete("member_name", memberName).Range("user_id", userId).Run()
+
 	if err != nil {
-		return err
+		return fmt.Errorf("deleteSubscriber: %w", err)
 	}
-	db := dynamodb.New(sess)
-
-	params := &dynamodb.DeleteItemInput{
-		TableName: aws.String("Subscriber"),
-		Key: map[string]*dynamodb.AttributeValue{
-			"member_name": {
-				S: aws.String(memberName),
-			},
-			"user_id": {
-				S: aws.String(userId),
-			},
-		},
-	}
-
-	_, err = db.DeleteItem(params)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
 func (h *Handler) getSubscribeList(id string) ([]Subscriber, error) {
-	sess, err := session.NewSession()
+	table := h.db.Table("Subscriber")
+
+	var res []Subscriber
+	err := table.Get("user_id", id).Index("user_id-index").All(&res)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("getSubscribeList: %w", err)
 	}
-	db := dynamodb.New(sess)
-
-	params := &dynamodb.QueryInput{
-		TableName:              aws.String("Subscriber"),
-		IndexName:              aws.String("user_id-index"),
-		KeyConditionExpression: aws.String("#user_id = :user_id"),
-		ExpressionAttributeNames: map[string]*string{
-			"#user_id": aws.String("user_id"),
-		},
-		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-			":user_id": {
-				S: aws.String(id),
-			},
-		},
-	}
-
-	result, err := db.Query(params)
-	if err != nil {
-		return nil, err
-	}
-
-	memberList := []Subscriber{}
-	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &memberList)
-	if err != nil {
-		return nil, err
-	}
-
-	return memberList, nil
+	return res, nil
 }
 
 func (h *Handler) sendUserId(event *linebot.Event) {

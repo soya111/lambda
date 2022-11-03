@@ -1,3 +1,4 @@
 *.env
 handler
 *handler.zip
+*handler.zip.bk

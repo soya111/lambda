@@ -15,12 +15,16 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-lambda-go/lambdacontext"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/awslabs/aws-lambda-go-api-proxy/core"
+	"github.com/guregu/dynamo"
 	"github.com/joho/godotenv"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
 var bot *linebot.Client
+var db *dynamo.DB
 
 func init() {
 	// localで実行するとき用
@@ -32,6 +36,9 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	sess := session.Must(session.NewSession())
+	db = dynamo.New(sess, &aws.Config{Region: aws.String("ap-northeast-1")})
 }
 
 func main() {
@@ -69,7 +76,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		var wg sync.WaitGroup
 
 		// ここから正常系の処理をやる
-		handler := webhook.NewHandler(bot)
+		handler := webhook.NewHandler(bot, db)
 
 		for _, event := range events {
 			// 解析用ログ出力

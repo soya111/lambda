@@ -13,6 +13,7 @@ Localでzipしたいときはこれ
 Windowsでzipするとうごかないこともある
 
 ```bash
+cp handler.zip handler.zip.bk
 build-lambda-zip.exe -output handler.zip handler
 aws lambda update-function-code --function-name {{name}} --zip-file fileb://handler.zip 
 ```

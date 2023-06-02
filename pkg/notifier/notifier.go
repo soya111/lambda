@@ -9,7 +9,17 @@ import (
 )
 
 func Excute(s blog.Scraper, client infrastructure.Client, database infrastructure.Database) {
-	latestDiaries := s.GetAndPostLatestDiaries()
+	latestDiaries, err := s.GetLatestDiaries()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
+	}
+
+	err = s.PostDiaries(latestDiaries)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
+	}
 	for _, diary := range latestDiaries {
 		to, err := database.GetDestination(strings.Replace(diary.MemberName, " ", "", 1))
 		if err != nil {

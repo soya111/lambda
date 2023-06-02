@@ -12,10 +12,15 @@ import (
 
 type ScraperMock struct{}
 
-func (*ScraperMock) GetAndPostLatestDiaries() []*blog.Diary {
+func (*ScraperMock) GetLatestDiaries() ([]*blog.Diary, error) {
 	return []*blog.Diary{
 		blog.NewDiary("https://www.hinatazaka46.com/s/official/diary/detail/20317", "ニャー0( =^ ・_・^)= 〇", "加藤 史帆", time.Now(), 20317),
-	}
+	}, nil
+}
+
+func (*ScraperMock) PostDiaries(diaries []*blog.Diary) error {
+	// モックなので何もしない
+	return nil
 }
 
 func (*ScraperMock) GetImages(diary *blog.Diary) []string {

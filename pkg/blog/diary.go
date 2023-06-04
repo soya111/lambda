@@ -100,6 +100,7 @@ func PostDiary(tableName string, diary *Diary) error {
 }
 
 type Scraper interface {
-	GetAndPostLatestDiaries() []*Diary
+	GetLatestDiaries() ([]*Diary, error)
+	PostDiaries([]*Diary) error
 	GetImages(*Diary) []string
 }

@@ -1,18 +1,42 @@
 package main
 
 import (
+	"context"
+	"log"
+	"notify/pkg/blog"
+	"notify/pkg/database"
+	"notify/pkg/line"
+	"notify/pkg/notifier"
+	"os"
 	"time"
-
-	h "notify/app/hinatazaka_blog_notifier"
 
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
+var bot *line.Linebot
+var db *database.Dynamo
+
 func init() {
 	// set timezone
 	time.Local = time.FixedZone("JST", 9*60*60)
+
+	channelSecret := os.Getenv("CHANNEL_SECRET")
+	channelToken := os.Getenv("CHANNEL_TOKEN")
+	var err error
+	bot, err = line.NewLinebot(channelSecret, channelToken)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	db, err = database.NewDynamo()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func main() {
-	lambda.Start(h.ExcuteFunction)
+	lambda.Start(func() {
+		ctx := context.Background()
+		notifier.Excute(ctx, &blog.HinatazakaScraper{}, bot, db)
+	})
 }

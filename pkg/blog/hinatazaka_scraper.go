@@ -18,33 +18,39 @@ func NewHinatazakaScraper() *HinatazakaScraper {
 	return &HinatazakaScraper{}
 }
 
-// 最新の記事を調べる
-func (s *HinatazakaScraper) GetAndPostLatestDiaries() []*Diary {
-	latestDiaries := s.getLatestDiaries()
+// 最新の記事を取得する
+func (s *HinatazakaScraper) GetLatestDiaries() ([]*Diary, error) {
+	latestDiaries := s.scrapeLatestDiaries()
 
 	res := []*Diary{}
 	for _, d := range latestDiaries {
 		diary, err := GetDiary("hinatazaka_blog", d.MemberName, d.Id)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			return nil
+			return nil, err
 		}
 
 		// Dynamoにデータがない場合
 		if diary.Id == 0 {
-			fmt.Printf("%s %s %s\n%s\n", d.Date, d.Title, d.MemberName, d.Url)
-			if err := PostDiary("hinatazaka_blog", d); err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				return nil
-			}
 			res = append(res, d)
 		}
 	}
 
-	return res
+	return res, nil
 }
 
-func (s *HinatazakaScraper) getLatestDiaries() []*Diary {
+// 記事を保存する
+func (s *HinatazakaScraper) PostDiaries(diaries []*Diary) error {
+	for _, d := range diaries {
+		fmt.Printf("%s %s %s\n%s\n", d.Date, d.Title, d.MemberName, d.Url)
+		if err := PostDiary("hinatazaka_blog", d); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *HinatazakaScraper) scrapeLatestDiaries() []*Diary {
 	rootURL := "https://www.hinatazaka46.com"
 	url := "https://www.hinatazaka46.com/s/official/diary/member/list?ima=0000"
 	document, err := GetDocumentFromURL(url)

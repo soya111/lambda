@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"notify/app/webhook"
+	"notify/pkg/line"
 	"os"
 	"strings"
 	"sync"
@@ -23,16 +24,15 @@ import (
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
-var bot *linebot.Client
+var bot *line.Linebot
 var db *dynamo.DB
 
 func init() {
 	// localで実行するとき用
 	err := godotenv.Load(".env")
-	bot, err = linebot.New(
-		os.Getenv("CHANNEL_SECRET"),
-		os.Getenv("CHANNEL_TOKEN"),
-	)
+	channelSecret := os.Getenv("CHANNEL_SECRET")
+	channelToken := os.Getenv("CHANNEL_TOKEN")
+	bot, err = line.NewLinebot(channelSecret, channelToken)
 	if err != nil {
 		log.Fatal(err)
 	}

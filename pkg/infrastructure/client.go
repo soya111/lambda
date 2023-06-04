@@ -1,7 +1,9 @@
 package infrastructure
 
+import "context"
+
 type Client interface {
-	PushTextMessages(to []string, messages ...string)
-	PushFlexImagesMessage(to []string, urls []string)
-	ReplyTextMessages(token string, message string) error
+	PushTextMessages(ctx context.Context, to []string, messages ...string) error
+	PushFlexImagesMessage(ctx context.Context, to []string, urls []string) error
+	ReplyTextMessages(ctx context.Context, token string, message string) error
 }

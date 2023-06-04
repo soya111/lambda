@@ -12,11 +12,11 @@ import (
 )
 
 type Handler struct {
-	bot *linebot.Client
+	bot *line.Linebot
 	db  *dynamo.DB
 }
 
-func NewHandler(client *linebot.Client, db *dynamo.DB) *Handler {
+func NewHandler(client *line.Linebot, db *dynamo.DB) *Handler {
 	return &Handler{client, db}
 }
 
@@ -203,12 +203,12 @@ func (h *Handler) getSubscribeList(id string) ([]Subscriber, error) {
 
 func (h *Handler) sendUserId(event *linebot.Event) {
 	message := fmt.Sprintf("User id is \"%s\"", event.Source.UserID)
-	line.NewLinebot().ReplyTextMessages(event.ReplyToken, message)
+	h.bot.ReplyTextMessages(context.TODO(), event.ReplyToken, message)
 }
 
 func (h *Handler) sendGroupId(event *linebot.Event) {
 	message := fmt.Sprintf("Group id is \"%s\"\nYour user id is \"%s\"", event.Source.GroupID, event.Source.UserID)
-	line.NewLinebot().ReplyTextMessages(event.ReplyToken, message)
+	h.bot.ReplyTextMessages(context.TODO(), event.ReplyToken, message)
 }
 
 type User struct {

@@ -1,6 +1,7 @@
 package notifier
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -30,17 +31,19 @@ func (*ScraperMock) GetImages(diary *blog.Diary) []string {
 
 type BotMock struct{}
 
-func (*BotMock) PushTextMessages(to []string, messages ...string) {
+func (*BotMock) PushTextMessages(ctx context.Context, to []string, messages ...string) error {
 	fmt.Println("PushTextMessages")
 	fmt.Println(to, messages)
+	return nil
 }
 
-func (*BotMock) PushFlexImagesMessage(to []string, urls []string) {
+func (*BotMock) PushFlexImagesMessage(ctx context.Context, to []string, urls []string) error {
 	fmt.Println("PushFlexImagesMessage")
 	fmt.Println(to, urls)
+	return nil
 }
 
-func (*BotMock) ReplyTextMessages(token string, message string) error {
+func (*BotMock) ReplyTextMessages(ctx context.Context, token string, message string) error {
 	return nil
 }
 
@@ -52,5 +55,5 @@ func (*DBMock) GetDestination(memberName string) ([]string, error) {
 
 func TestExcute(t *testing.T) {
 	godotenv.Load("../.env")
-	Excute(&ScraperMock{}, &BotMock{}, &DBMock{})
+	Excute(context.Background(), &ScraperMock{}, &BotMock{}, &DBMock{})
 }

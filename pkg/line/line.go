@@ -1,11 +1,10 @@
 package line
 
 import (
-	"fmt"
-	"log"
-	"os"
+	"context"
 
-	"github.com/line/line-bot-sdk-go/linebot"
+	"github.com/hashicorp/go-multierror"
+	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
 type Linebot struct {
@@ -13,29 +12,32 @@ type Linebot struct {
 }
 
 // 本番用コンストラクタ
-func NewLinebot() *Linebot {
-	bot, err := linebot.New(
-		os.Getenv("CHANNEL_SECRET"),
-		os.Getenv("CHANNEL_TOKEN"),
-	)
+func NewLinebot(channelSecret string, channelToken string) (*Linebot, error) {
+	bot, err := linebot.New(channelSecret, channelToken)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return &Linebot{bot}
+	return &Linebot{bot}, nil
 }
 
 // line送信
-func (b *Linebot) PushTextMessages(to []string, messages ...string) {
+func (b *Linebot) PushTextMessages(ctx context.Context, to []string, messages ...string) error {
+	var result *multierror.Error
+
 	for _, message := range messages {
 		for _, to := range to {
-			if _, err := b.Client.PushMessage(to, linebot.NewTextMessage(message)).Do(); err != nil {
-				fmt.Fprintln(os.Stderr, err)
+			if _, err := b.Client.PushMessage(to, linebot.NewTextMessage(message)).WithContext(ctx).Do(); err != nil {
+				result = multierror.Append(result, err)
 			}
 		}
 	}
+
+	return result.ErrorOrNil()
 }
 
-func (b *Linebot) PushFlexImagesMessage(to []string, urls []string) {
+func (b *Linebot) PushFlexImagesMessage(ctx context.Context, to []string, urls []string) error {
+	var result *multierror.Error
+
 	contents := []*linebot.BubbleContainer{}
 	for _, url := range urls {
 		content := &linebot.BubbleContainer{
@@ -65,14 +67,16 @@ func (b *Linebot) PushFlexImagesMessage(to []string, urls []string) {
 	}
 
 	for _, to := range to {
-		if _, err := b.Client.PushMessage(to, linebot.NewFlexMessage("新着ブログがあります", container)).Do(); err != nil {
-			fmt.Fprintln(os.Stderr, err)
+		if _, err := b.Client.PushMessage(to, linebot.NewFlexMessage("新着ブログがあります", container)).WithContext(ctx).Do(); err != nil {
+			result = multierror.Append(result, err)
 		}
 	}
+
+	return result.ErrorOrNil()
 }
 
-func (b *Linebot) ReplyTextMessages(token string, message string) error {
-	if _, err := b.Client.ReplyMessage(token, linebot.NewTextMessage(message)).Do(); err != nil {
+func (b *Linebot) ReplyTextMessages(ctx context.Context, token string, message string) error {
+	if _, err := b.Client.ReplyMessage(token, linebot.NewTextMessage(message)).WithContext(ctx).Do(); err != nil {
 		return err
 	}
 	return nil

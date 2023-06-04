@@ -36,17 +36,28 @@ func reverse(a []*Diary) []*Diary {
 	return a
 }
 
-// DynamoからGET
-func GetDiary(tableName string, memberName string, diaryId int) (*Diary, error) {
-	sess, err := session.NewSession()
-	if err != nil {
-		return nil, err
-	}
-	db := dynamodb.New(sess)
+// DiaryRepository provides an interface for database operations on Diaries
+type DiaryRepository interface {
+	GetDiary(memberName string, diaryId int) (*Diary, error)
+	PostDiary(diary *Diary) error
+}
 
-	// 検索条件を用意
+type DynamoDiaryRepository struct {
+	db        *dynamodb.DynamoDB
+	tableName string
+}
+
+func NewDynamoDiaryRepository(sess *session.Session, tableName string) *DynamoDiaryRepository {
+	return &DynamoDiaryRepository{
+		db:        dynamodb.New(sess),
+		tableName: tableName,
+	}
+}
+
+// DynamoからGET
+func (repo *DynamoDiaryRepository) GetDiary(memberName string, diaryId int) (*Diary, error) {
 	getParam := &dynamodb.GetItemInput{
-		TableName: aws.String(tableName),
+		TableName: aws.String(repo.tableName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"member_name": {
 				S: aws.String(memberName),
@@ -57,8 +68,7 @@ func GetDiary(tableName string, memberName string, diaryId int) (*Diary, error) 
 		},
 	}
 
-	// 検索
-	result, err := db.GetItem(getParam)
+	result, err := repo.db.GetItem(getParam)
 	if err != nil {
 		return nil, err
 	}
@@ -73,25 +83,18 @@ func GetDiary(tableName string, memberName string, diaryId int) (*Diary, error) 
 }
 
 // DynamoにPOST
-func PostDiary(tableName string, diary *Diary) error {
-	sess, err := session.NewSession()
-	if err != nil {
-		return err
-	}
-	db := dynamodb.New(sess)
-
-	// attribute value作成
+func (repo *DynamoDiaryRepository) PostDiary(diary *Diary) error {
 	inputAV, err := dynamodbattribute.MarshalMap(diary)
 	if err != nil {
 		return err
 	}
 
 	input := &dynamodb.PutItemInput{
-		TableName: aws.String(tableName),
+		TableName: aws.String(repo.tableName),
 		Item:      inputAV,
 	}
 
-	_, err = db.PutItem(input)
+	_, err = repo.db.PutItem(input)
 	if err != nil {
 		return err
 	}

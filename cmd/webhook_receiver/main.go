@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,7 +10,6 @@ import (
 	"notify/pkg/database"
 	"notify/pkg/line"
 	"os"
-	"strings"
 	"sync"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -21,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/awslabs/aws-lambda-go-api-proxy/core"
 	"github.com/guregu/dynamo"
+	"github.com/hashicorp/go-multierror"
 	"github.com/joho/godotenv"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
@@ -74,7 +73,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 			}
 		}
 
-		var errs []error
+		var result *multierror.Error
 		var wg sync.WaitGroup
 
 		// ここから正常系の処理をやる
@@ -106,12 +105,12 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 			err := handler.HandleEvent(ctx, event)
 			if err != nil {
 				fmt.Printf("RequestId: %s, Error: %s\n", requestId, err)
-				errs = append(errs, err)
+				result = multierror.Append(result, err)
 			}
 		}
 		wg.Wait()
 
-		return newResponse(http.StatusOK), processErrors(errs)
+		return newResponse(http.StatusOK), result.ErrorOrNil()
 	default:
 		return newResponse(http.StatusBadRequest), nil
 	}
@@ -135,18 +134,4 @@ func marshal(v interface{}) string {
 		fmt.Printf("marshal: %s\n", err)
 	}
 	return string(b)
-}
-
-func processErrors(errs []error) error {
-	if len(errs) == 0 {
-		return nil
-	} else {
-		errList := []string{}
-
-		for _, err := range errs {
-			errList = append(errList, err.Error())
-		}
-		str := strings.Join(errList, ",")
-		return errors.New(str)
-	}
 }

@@ -12,11 +12,10 @@ import (
 
 type HinatazakaScraper struct {
 	Scraper
-	repo DiaryRepository
 }
 
-func NewHinatazakaScraper(repo DiaryRepository) *HinatazakaScraper {
-	return &HinatazakaScraper{repo: repo}
+func NewHinatazakaScraper() *HinatazakaScraper {
+	return &HinatazakaScraper{}
 }
 
 // 最新の記事を取得する
@@ -25,7 +24,7 @@ func (s *HinatazakaScraper) GetLatestDiaries() ([]*Diary, error) {
 
 	res := []*Diary{}
 	for _, d := range latestDiaries {
-		diary, err := s.repo.GetDiary(d.MemberName, d.Id)
+		diary, err := GetDiary("hinatazaka_blog", d.MemberName, d.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -43,7 +42,7 @@ func (s *HinatazakaScraper) GetLatestDiaries() ([]*Diary, error) {
 func (s *HinatazakaScraper) PostDiaries(diaries []*Diary) error {
 	for _, d := range diaries {
 		fmt.Printf("%s %s %s\n%s\n", d.Date, d.Title, d.MemberName, d.Url)
-		if err := s.repo.PostDiary(d); err != nil {
+		if err := PostDiary("hinatazaka_blog", d); err != nil {
 			return err
 		}
 	}

@@ -25,14 +25,16 @@ func (s *HinatazakaScraper) GetLatestDiaries() ([]*Diary, error) {
 
 	res := []*Diary{}
 	for _, d := range latestDiaries {
-		diary, err := s.repo.GetDiary(d.MemberName, d.Id)
+		_, err := s.repo.GetDiary(d.MemberName, d.Id)
 		if err != nil {
+			// Check if the error is a "not found" error.
+			if err == ErrDiaryNotFound {
+				// The item is not in the database, so it's a new diary.
+				res = append(res, d)
+				continue
+			}
+			// Some other error occurred.
 			return nil, err
-		}
-
-		// Dynamoにデータがない場合
-		if diary.Id == 0 {
-			res = append(res, d)
 		}
 	}
 

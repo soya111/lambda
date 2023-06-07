@@ -15,9 +15,9 @@ var (
 type Diary struct {
 	Url        string   `dynamo:"url" json:"url"`
 	Title      string   `dynamo:"title" json:"title"`
-	MemberName string   `dynamo:"member_name" json:"member_name"`
+	MemberName string   `dynamo:"member_name,hash" json:"member_name"`
 	Date       string   `dynamo:"date" json:"date"`
-	Id         int      `dynamo:"diary_id" json:"diary_id"`
+	Id         int      `dynamo:"diary_id,range" json:"diary_id"`
 	Images     []string `dynamo:"images,omitempty" json:"images"`
 }
 

@@ -19,6 +19,9 @@ jobs:
       - name: Get Dependencies
         run: go mod download
 
+      - name: Test
+        run: go test -v ./...
+
       - name: Build
         run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o handler ./cmd/hinatazaka_blog_notifier/main.go
 
@@ -47,6 +50,9 @@ jobs:
 
       - name: Get Dependencies
         run: go mod download
+
+      - name: Test
+        run: go test -v ./...
 
       - name: Build
         run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o handler ./cmd/webhook_receiver/main.go

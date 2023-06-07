@@ -1,6 +1,7 @@
 package blog
 
 import (
+	"errors"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -53,10 +54,15 @@ func NewDynamoDiaryRepository(sess *session.Session, tableName string) *DynamoDi
 	}
 }
 
+var ErrDiaryNotFound = errors.New("diary not found")
+
 func (r *DynamoDiaryRepository) GetDiary(memberName string, diaryId int) (*Diary, error) {
 	diary := new(Diary)
 	err := r.table.Get("member_name", memberName).Range("diary_id", dynamo.Equal, diaryId).One(diary)
 	if err != nil {
+		if err == dynamo.ErrNotFound {
+			return nil, ErrDiaryNotFound
+		}
 		return nil, err
 	}
 	return diary, nil

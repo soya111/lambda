@@ -1,13 +1,10 @@
 package blog
 
 import (
-	"strconv"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/guregu/dynamo"
 )
 
 var (
@@ -16,12 +13,12 @@ var (
 )
 
 type Diary struct {
-	Url        string `dynamodbav:"url" json:"url"`
-	Title      string `dynamodbav:"title" json:"title"`
-	MemberName string `dynamodbav:"member_name" json:"member_name"`
-	Date       string `dynamodbav:"date" json:"date"`
-	Id         int    `dynamodbav:"diary_id" json:"diary_id"`
-	Images     []string
+	Url        string   `dynamo:"url" json:"url"`
+	Title      string   `dynamo:"title" json:"title"`
+	MemberName string   `dynamo:"member_name,hash" json:"member_name"`
+	Date       string   `dynamo:"date" json:"date"`
+	Id         int      `dynamo:"diary_id,range" json:"diary_id"`
+	Images     []string `dynamo:"images,omitempty" json:"images"`
 }
 
 func NewDiary(url string, title string, memberName string, date time.Time, id int) *Diary {
@@ -36,67 +33,37 @@ func reverse(a []*Diary) []*Diary {
 	return a
 }
 
-// DynamoからGET
-func GetDiary(tableName string, memberName string, diaryId int) (*Diary, error) {
-	sess, err := session.NewSession()
-	if err != nil {
-		return nil, err
-	}
-	db := dynamodb.New(sess)
-
-	// 検索条件を用意
-	getParam := &dynamodb.GetItemInput{
-		TableName: aws.String(tableName),
-		Key: map[string]*dynamodb.AttributeValue{
-			"member_name": {
-				S: aws.String(memberName),
-			},
-			"diary_id": {
-				N: aws.String(strconv.Itoa(diaryId)),
-			},
-		},
-	}
-
-	// 検索
-	result, err := db.GetItem(getParam)
-	if err != nil {
-		return nil, err
-	}
-
-	diary := Diary{}
-	err = dynamodbattribute.UnmarshalMap(result.Item, &diary)
-	if err != nil {
-		return nil, err
-	}
-
-	return &diary, nil
+// DiaryRepository provides an interface for database operations on Diaries
+type DiaryRepository interface {
+	GetDiary(memberName string, diaryId int) (*Diary, error)
+	PostDiary(diary *Diary) error
 }
 
-// DynamoにPOST
-func PostDiary(tableName string, diary *Diary) error {
-	sess, err := session.NewSession()
+type DynamoDiaryRepository struct {
+	db    *dynamo.DB
+	table dynamo.Table
+}
+
+func NewDynamoDiaryRepository(sess *session.Session, tableName string) *DynamoDiaryRepository {
+	db := dynamo.New(sess)
+	table := db.Table(tableName)
+	return &DynamoDiaryRepository{
+		db:    db,
+		table: table,
+	}
+}
+
+func (r *DynamoDiaryRepository) GetDiary(memberName string, diaryId int) (*Diary, error) {
+	diary := new(Diary)
+	err := r.table.Get("member_name", memberName).Range("diary_id", dynamo.Equal, diaryId).One(diary)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	db := dynamodb.New(sess)
+	return diary, nil
+}
 
-	// attribute value作成
-	inputAV, err := dynamodbattribute.MarshalMap(diary)
-	if err != nil {
-		return err
-	}
-
-	input := &dynamodb.PutItemInput{
-		TableName: aws.String(tableName),
-		Item:      inputAV,
-	}
-
-	_, err = db.PutItem(input)
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (r *DynamoDiaryRepository) PostDiary(diary *Diary) error {
+	return r.table.Put(diary).Run()
 }
 
 type Scraper interface {

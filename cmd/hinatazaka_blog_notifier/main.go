@@ -11,9 +11,11 @@ import (
 	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/aws/session"
 )
 
 var bot *line.Linebot
+var sess *session.Session
 var db *database.Dynamo
 
 func init() {
@@ -28,6 +30,11 @@ func init() {
 		log.Fatal(err)
 	}
 
+	sess, err = session.NewSession()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	db, err = database.NewDynamo()
 	if err != nil {
 		panic(err)
@@ -37,6 +44,8 @@ func init() {
 func main() {
 	lambda.Start(func() {
 		ctx := context.Background()
-		notifier.Excute(ctx, &blog.HinatazakaScraper{}, bot, db)
+		repo := blog.NewDynamoDiaryRepository(sess, "hinatazaka_blog")
+		scraper := blog.NewHinatazakaScraper(repo)
+		notifier.Excute(ctx, scraper, bot, db)
 	})
 }

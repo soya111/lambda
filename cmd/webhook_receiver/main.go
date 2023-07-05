@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"notify/app/webhook"
+	"notify/pkg/database"
 	"notify/pkg/line"
 	"os"
 	"strings"
@@ -26,6 +27,7 @@ import (
 
 var bot *line.Linebot
 var db *dynamo.DB
+var sess *session.Session
 
 func init() {
 	// localで実行するとき用
@@ -37,7 +39,7 @@ func init() {
 		log.Fatal(err)
 	}
 
-	sess := session.Must(session.NewSession())
+	sess = session.Must(session.NewSession())
 	db = dynamo.New(sess, &aws.Config{Region: aws.String("ap-northeast-1")})
 }
 
@@ -76,7 +78,8 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		var wg sync.WaitGroup
 
 		// ここから正常系の処理をやる
-		handler := webhook.NewHandler(bot, db)
+		repo := database.NewDynamoSubscriberRepository(sess)
+		handler := webhook.NewHandler(bot, db, repo)
 
 		for _, event := range events {
 			// 解析用ログ出力

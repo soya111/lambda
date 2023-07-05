@@ -16,7 +16,6 @@ import (
 
 var bot *line.Linebot
 var sess *session.Session
-var db *database.Dynamo
 
 func init() {
 	// set timezone
@@ -35,17 +34,15 @@ func init() {
 		log.Fatal(err)
 	}
 
-	db, err = database.NewDynamo()
-	if err != nil {
-		panic(err)
-	}
 }
 
 func main() {
 	lambda.Start(func() {
 		ctx := context.Background()
-		repo := blog.NewDynamoDiaryRepository(sess, "hinatazaka_blog")
-		scraper := blog.NewHinatazakaScraper(repo)
-		notifier.Excute(ctx, scraper, bot, db)
+		diary := blog.NewDynamoDiaryRepository(sess, "hinatazaka_blog")
+		scraper := blog.NewHinatazakaScraper(diary)
+		subscriber := database.NewDynamoSubscriberRepository(sess)
+
+		notifier.Excute(ctx, scraper, bot, subscriber)
 	})
 }

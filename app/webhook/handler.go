@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"notify/pkg/database"
 	"notify/pkg/line"
 
 	"github.com/guregu/dynamo"
@@ -12,12 +13,13 @@ import (
 )
 
 type Handler struct {
-	bot *line.Linebot
-	db  *dynamo.DB
+	bot        *line.Linebot
+	db         *dynamo.DB
+	subscriber database.SubscriberRepository
 }
 
-func NewHandler(client *line.Linebot, db *dynamo.DB) *Handler {
-	return &Handler{client, db}
+func NewHandler(client *line.Linebot, db *dynamo.DB, subscriber database.SubscriberRepository) *Handler {
+	return &Handler{client, db, subscriber}
 }
 
 func (h *Handler) HandleEvent(ctx context.Context, event *linebot.Event) error {
@@ -109,7 +111,7 @@ func (h *Handler) registerMember(member string, event *linebot.Event) error {
 		id = event.Source.GroupID
 	}
 
-	err := h.postSubscriber(Subscriber{member, id})
+	err := h.subscriber.Subscribe(database.Subscriber{member, id})
 	if err != nil {
 		message := "登録できませんでした！"
 		if _, err := h.bot.ReplyMessage(token, linebot.NewTextMessage(message)).Do(); err != nil {
@@ -129,7 +131,7 @@ func (h *Handler) unregisterMember(member string, event *linebot.Event) error {
 	token := event.ReplyToken
 	id := extractEventSourceIdentifier(event)
 
-	err := h.deleteSubscriber(member, id)
+	err := h.subscriber.Unsubscribe(member, id)
 	if err != nil {
 		message := "登録できませんでした！"
 		if _, err := h.bot.ReplyMessage(token, linebot.NewTextMessage(message)).Do(); err != nil {
@@ -149,7 +151,7 @@ func (h *Handler) showSubscribeList(event *linebot.Event) error {
 	token := event.ReplyToken
 	id := extractEventSourceIdentifier(event)
 
-	list, err := h.getSubscribeList(id)
+	list, err := h.subscriber.GetAllById(id)
 	if err != nil {
 		message := "情報を取得できませんでした！"
 		if _, err := h.bot.ReplyMessage(token, linebot.NewTextMessage(message)).Do(); err != nil {
@@ -167,38 +169,6 @@ func (h *Handler) showSubscribeList(event *linebot.Event) error {
 		return fmt.Errorf("showSubscribeList: %w", err)
 	}
 	return nil
-}
-
-func (h *Handler) postSubscriber(subscriber Subscriber) error {
-	table := h.db.Table("Subscriber")
-
-	if err := table.Put(subscriber).Run(); err != nil {
-		return fmt.Errorf("postSubscriber: %w", err)
-	}
-
-	return nil
-}
-
-func (h *Handler) deleteSubscriber(memberName, userId string) error {
-	table := h.db.Table("Subscriber")
-
-	err := table.Delete("member_name", memberName).Range("user_id", userId).Run()
-
-	if err != nil {
-		return fmt.Errorf("deleteSubscriber: %w", err)
-	}
-	return nil
-}
-
-func (h *Handler) getSubscribeList(id string) ([]Subscriber, error) {
-	table := h.db.Table("Subscriber")
-
-	var res []Subscriber
-	err := table.Get("user_id", id).Index("user_id-index").All(&res)
-	if err != nil {
-		return nil, fmt.Errorf("getSubscribeList: %w", err)
-	}
-	return res, nil
 }
 
 func (h *Handler) sendUserId(event *linebot.Event) {

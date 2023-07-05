@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 	"notify/pkg/blog"
-	"notify/pkg/database"
 	"notify/pkg/infrastructure"
 	"os"
 	"strings"
 )
 
-func Excute(ctx context.Context, s blog.Scraper, client infrastructure.Client, subscriber database.SubscriberRepository) {
+func Excute(ctx context.Context, s blog.Scraper, client infrastructure.Client, database infrastructure.Database) {
 	latestDiaries, err := s.GetLatestDiaries()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -23,7 +22,7 @@ func Excute(ctx context.Context, s blog.Scraper, client infrastructure.Client, s
 		return
 	}
 	for _, diary := range latestDiaries {
-		to, err := subscriber.GetAllByMemberName(strings.Replace(diary.MemberName, " ", "", 1))
+		to, err := database.GetDestination(strings.Replace(diary.MemberName, " ", "", 1))
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			continue

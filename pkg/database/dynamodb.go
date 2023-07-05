@@ -1,79 +1,58 @@
 package database
 
 import (
-	"fmt"
-
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/guregu/dynamo"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
 type Subscriber struct {
-	MemberName string `dynamo:"member_name" json:"member_name"`
-	UserId     string `json:"user_id" dynamo:"user_id"`
+	MemberName string `dynamodbav:"member_name" json:"member_name"`
+	UserId     string `json:"user_id" dynamodbav:"user_id"`
 }
 
-type SubscriberRepository interface {
-	GetAllByMemberName(memberName string) ([]string, error)
-	Subscribe(subscriber Subscriber) error
-	Unsubscribe(memberName, userId string) error
-	GetAllById(id string) ([]Subscriber, error)
+type Dynamo struct {
+	db *dynamodb.DynamoDB
 }
 
-type DynamoSubscriberRepository struct {
-	db *dynamo.DB
+func NewDynamo() (*Dynamo, error) {
+	sess, err := session.NewSession()
+	if err != nil {
+		return nil, err
+	}
+	db := dynamodb.New(sess)
+	return &Dynamo{db}, nil
 }
 
-func NewDynamoSubscriberRepository(sess *session.Session) SubscriberRepository {
-	db := dynamo.New(sess)
-	return &DynamoSubscriberRepository{db}
-}
+func (d *Dynamo) GetDestination(memberName string) ([]string, error) {
+	params := &dynamodb.QueryInput{
+		TableName:              aws.String("Subscriber"),
+		KeyConditionExpression: aws.String("#member_name = :member_name"),
+		ExpressionAttributeNames: map[string]*string{
+			"#member_name": aws.String("member_name"),
+		},
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":member_name": {
+				S: aws.String(memberName),
+			},
+		},
+	}
 
-func (d *DynamoSubscriberRepository) GetAllByMemberName(memberName string) ([]string, error) {
-	table := d.db.Table("Subscriber")
-
-	var subscribers []Subscriber
-	err := table.Get("member_name", memberName).All(&subscribers)
+	result, err := d.db.Query(params)
 	if err != nil {
 		return nil, err
 	}
 
-	userIds := make([]string, len(subscribers))
-	for i, sub := range subscribers {
-		userIds[i] = sub.UserId
-	}
-
-	return userIds, nil
-}
-
-func (d *DynamoSubscriberRepository) Subscribe(subscriber Subscriber) error {
-	table := d.db.Table("Subscriber")
-
-	if err := table.Put(subscriber).Run(); err != nil {
-		return fmt.Errorf("postSubscriber: %w", err)
-	}
-
-	return nil
-}
-
-func (d *DynamoSubscriberRepository) Unsubscribe(memberName, userId string) error {
-	table := d.db.Table("Subscriber")
-
-	err := table.Delete("memberName", memberName).Range("userId", userId).Run()
-
+	users := []Subscriber{}
+	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &users)
 	if err != nil {
-		return fmt.Errorf("deleteSubscriber: %w", err)
+		return nil, err
 	}
 
-	return nil
-}
-
-func (d *DynamoSubscriberRepository) GetAllById(id string) ([]Subscriber, error) {
-	table := d.db.Table("Subscriber")
-
-	var res []Subscriber
-	err := table.Get("userId", id).Index("userId-index").All(&res)
-	if err != nil {
-		return nil, fmt.Errorf("getSubscribeList: %w", err)
+	res := []string{}
+	for _, user := range users {
+		res = append(res, user.UserId)
 	}
 
 	return res, nil

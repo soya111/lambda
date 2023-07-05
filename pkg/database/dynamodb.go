@@ -71,7 +71,7 @@ func (d *DynamoSubscriberRepository) GetAllById(id string) ([]Subscriber, error)
 	table := d.db.Table("Subscriber")
 
 	var res []Subscriber
-	err := table.Get("userId", id).Index("userId-index").All(&res)
+	err := table.Get("userId", id).Index("user_id-index").All(&res)
 	if err != nil {
 		return nil, fmt.Errorf("getSubscribeList: %w", err)
 	}

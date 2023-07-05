@@ -58,7 +58,7 @@ func (d *DynamoSubscriberRepository) Subscribe(subscriber Subscriber) error {
 func (d *DynamoSubscriberRepository) Unsubscribe(memberName, userId string) error {
 	table := d.db.Table("Subscriber")
 
-	err := table.Delete("memberName", memberName).Range("userId", userId).Run()
+	err := table.Delete("member_name", memberName).Range("user_id", userId).Run()
 
 	if err != nil {
 		return fmt.Errorf("deleteSubscriber: %w", err)
@@ -71,7 +71,7 @@ func (d *DynamoSubscriberRepository) GetAllById(id string) ([]Subscriber, error)
 	table := d.db.Table("Subscriber")
 
 	var res []Subscriber
-	err := table.Get("userId", id).Index("user_id-index").All(&res)
+	err := table.Get("user_id", id).Index("user_id-index").All(&res)
 	if err != nil {
 		return nil, fmt.Errorf("getSubscribeList: %w", err)
 	}

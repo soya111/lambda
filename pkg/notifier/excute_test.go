@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"notify/pkg/blog"
+	"notify/pkg/database"
 
 	"github.com/joho/godotenv"
 )
@@ -47,13 +48,25 @@ func (*BotMock) ReplyTextMessages(ctx context.Context, token string, message str
 	return nil
 }
 
-type DBMock struct{}
+type MockSubscriberRepository struct{}
 
-func (*DBMock) GetDestination(memberName string) ([]string, error) {
-	return []string{"kosakana"}, nil
+func (*MockSubscriberRepository) GetAllByMemberName(memberName string) ([]string, error) {
+	return []string{"こさかな"}, nil
+}
+
+func (*MockSubscriberRepository) Subscribe(subscriber database.Subscriber) error {
+	return nil
+}
+
+func (*MockSubscriberRepository) Unsubscribe(memberName, userId string) error {
+	return nil
+}
+
+func (*MockSubscriberRepository) GetAllById(id string) ([]database.Subscriber, error) {
+	return []database.Subscriber{}, nil
 }
 
 func TestExcute(t *testing.T) {
 	godotenv.Load("../.env")
-	Excute(context.Background(), &ScraperMock{}, &BotMock{}, &DBMock{})
+	Excute(context.Background(), &ScraperMock{}, &BotMock{}, &MockSubscriberRepository{})
 }

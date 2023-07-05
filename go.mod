@@ -7,6 +7,7 @@ require (
 	github.com/aws/aws-lambda-go v1.28.0
 	github.com/aws/aws-sdk-go v1.42.47
 	github.com/awslabs/aws-lambda-go-api-proxy v0.12.0
+	github.com/golang/mock v1.1.1
 	github.com/guregu/dynamo v1.17.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/joho/godotenv v1.4.0
@@ -22,4 +23,5 @@ require (
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 )

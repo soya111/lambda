@@ -8,8 +8,8 @@ import (
 )
 
 type Subscriber struct {
-	MemberName string `dynamodbav:"member_name" json:"member_name"`
-	UserId     string `json:"user_id" dynamodbav:"user_id"`
+	MemberName string `dynamo:"member_name,hash" json:"member_name"`
+	UserId     string `dynamo:"user_id,range" json:"user_id"`
 }
 
 type Dynamo struct {

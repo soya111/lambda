@@ -1,7 +1,8 @@
-package blog
+package dynamodb
 
 import (
 	"fmt"
+	"notify/pkg/model"
 	"testing"
 	"time"
 
@@ -35,12 +36,12 @@ func TestDynamoDiaryRepository(t *testing.T) {
 		fmt.Println(err)
 	}
 
-	err = db.CreateTable(tableName, Diary{}).Run()
+	err = db.CreateTable(tableName, model.Diary{}).Run()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	diary := NewDiary("https://www.hinatazaka46.com/s/official/diary/detail/34467", "タイトル", "小坂菜緒", time.Now(), 1)
+	diary := model.NewDiary("https://www.hinatazaka46.com/s/official/diary/detail/34467", "タイトル", "小坂菜緒", time.Now(), 1)
 	err = repo.PostDiary(diary)
 	if err != nil {
 		t.Fatal(err)

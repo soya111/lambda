@@ -2,9 +2,8 @@ package blog
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/PuerkitoBio/goquery"
@@ -19,12 +18,12 @@ func GetDocumentFromURL(url string) (*goquery.Document, error) {
 		return nil, err
 	}
 	if res.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("status code error: %d %s", res.StatusCode, res.Status))
+		return nil, fmt.Errorf("status code: %d error: %s", res.StatusCode, res.Status)
 	}
 	defer res.Body.Close()
 
 	// Body内を読み取り
-	buffer, _ := ioutil.ReadAll(res.Body)
+	buffer, _ := io.ReadAll(res.Body)
 
 	// 文字コードを判定
 	detector := chardet.NewTextDetector()

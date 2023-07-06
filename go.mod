@@ -7,7 +7,6 @@ require (
 	github.com/aws/aws-lambda-go v1.28.0
 	github.com/aws/aws-sdk-go v1.42.47
 	github.com/awslabs/aws-lambda-go-api-proxy v0.12.0
-	github.com/golang/mock v1.1.1
 	github.com/guregu/dynamo v1.17.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/joho/godotenv v1.4.0

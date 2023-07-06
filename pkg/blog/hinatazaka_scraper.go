@@ -2,7 +2,9 @@ package blog
 
 import (
 	"fmt"
+	"notify/pkg/infrastructure/scrape"
 	"notify/pkg/model"
+	"notify/pkg/slices"
 	"os"
 	"strconv"
 	"strings"
@@ -57,7 +59,7 @@ func (s *HinatazakaScraper) PostDiaries(diaries []*model.Diary) error {
 func (s *HinatazakaScraper) scrapeLatestDiaries() []*model.Diary {
 	rootURL := "https://www.hinatazaka46.com"
 	url := "https://www.hinatazaka46.com/s/official/diary/member/list?ima=0000"
-	document, err := GetDocumentFromURL(url)
+	document, err := scrape.GetDocumentFromURL(url)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return nil
@@ -82,7 +84,7 @@ func (s *HinatazakaScraper) scrapeLatestDiaries() []*model.Diary {
 		res = append(res, newDiary)
 	})
 
-	return reverse(res)
+	return slices.Reverse(res)
 }
 
 func (*HinatazakaScraper) getIdFromHref(href string) int {
@@ -96,7 +98,7 @@ func (*HinatazakaScraper) getIdFromHref(href string) int {
 
 // blog中の全画像を取得
 func (s *HinatazakaScraper) GetImages(diary *model.Diary) []string {
-	document, err := GetDocumentFromURL(diary.Url)
+	document, err := scrape.GetDocumentFromURL(diary.Url)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return nil

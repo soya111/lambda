@@ -26,7 +26,7 @@ func NewDiary(url string, title string, memberName string, date time.Time, id in
 	return &Diary{url, title, memberName, date.Format("2006.1.2 15:04 (MST)"), id, []string{}}
 }
 
-func reverse(a []*Diary) []*Diary {
+func reverse[T any](a []T) []T {
 	for i := 0; i < len(a)/2; i++ {
 		j := len(a) - i - 1
 		a[i], a[j] = a[j], a[i]

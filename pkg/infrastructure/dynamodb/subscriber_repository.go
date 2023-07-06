@@ -1,29 +1,19 @@
-package database
+package dynamodb
 
 import (
 	"fmt"
+
+	"notify/pkg/model"
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/guregu/dynamo"
 )
 
-type Subscriber struct {
-	MemberName string `dynamo:"member_name,hash" json:"member_name"`
-	UserId     string `dynamo:"user_id,range" json:"user_id"`
-}
-
-type SubscriberRepository interface {
-	GetAllByMemberName(memberName string) ([]string, error)
-	Subscribe(subscriber Subscriber) error
-	Unsubscribe(memberName, userId string) error
-	GetAllById(id string) ([]Subscriber, error)
-}
-
 type DynamoSubscriberRepository struct {
 	db *dynamo.DB
 }
 
-func NewDynamoSubscriberRepository(sess *session.Session) SubscriberRepository {
+func NewDynamoSubscriberRepository(sess *session.Session) model.SubscriberRepository {
 	db := dynamo.New(sess)
 	return &DynamoSubscriberRepository{db}
 }
@@ -31,7 +21,7 @@ func NewDynamoSubscriberRepository(sess *session.Session) SubscriberRepository {
 func (d *DynamoSubscriberRepository) GetAllByMemberName(memberName string) ([]string, error) {
 	table := d.db.Table("Subscriber")
 
-	var subscribers []Subscriber
+	var subscribers []model.Subscriber
 	err := table.Get("member_name", memberName).All(&subscribers)
 	if err != nil {
 		return nil, err
@@ -45,7 +35,7 @@ func (d *DynamoSubscriberRepository) GetAllByMemberName(memberName string) ([]st
 	return userIds, nil
 }
 
-func (d *DynamoSubscriberRepository) Subscribe(subscriber Subscriber) error {
+func (d *DynamoSubscriberRepository) Subscribe(subscriber model.Subscriber) error {
 	table := d.db.Table("Subscriber")
 
 	if err := table.Put(subscriber).Run(); err != nil {
@@ -67,10 +57,10 @@ func (d *DynamoSubscriberRepository) Unsubscribe(memberName, userId string) erro
 	return nil
 }
 
-func (d *DynamoSubscriberRepository) GetAllById(id string) ([]Subscriber, error) {
+func (d *DynamoSubscriberRepository) GetAllById(id string) ([]model.Subscriber, error) {
 	table := d.db.Table("Subscriber")
 
-	var res []Subscriber
+	var res []model.Subscriber
 	err := table.Get("user_id", id).Index("user_id-index").All(&res)
 	if err != nil {
 		return nil, fmt.Errorf("getSubscribeList: %w", err)

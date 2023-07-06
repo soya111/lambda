@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"notify/pkg/blog"
-	"notify/pkg/database"
+	"notify/pkg/model"
 
 	"github.com/joho/godotenv"
 )
@@ -54,7 +54,7 @@ func (*MockSubscriberRepository) GetAllByMemberName(memberName string) ([]string
 	return []string{"こさかな"}, nil
 }
 
-func (*MockSubscriberRepository) Subscribe(subscriber database.Subscriber) error {
+func (*MockSubscriberRepository) Subscribe(subscriber model.Subscriber) error {
 	return nil
 }
 
@@ -62,8 +62,8 @@ func (*MockSubscriberRepository) Unsubscribe(memberName, userId string) error {
 	return nil
 }
 
-func (*MockSubscriberRepository) GetAllById(id string) ([]database.Subscriber, error) {
-	return []database.Subscriber{}, nil
+func (*MockSubscriberRepository) GetAllById(id string) ([]model.Subscriber, error) {
+	return []model.Subscriber{}, nil
 }
 
 func TestExcute(t *testing.T) {

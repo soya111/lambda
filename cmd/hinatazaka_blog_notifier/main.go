@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 	"notify/pkg/blog"
-	"notify/pkg/database"
+	"notify/pkg/infrastructure/dynamodb"
 	"notify/pkg/line"
 	"notify/pkg/notifier"
 	"os"
@@ -39,9 +39,9 @@ func init() {
 func main() {
 	lambda.Start(func() {
 		ctx := context.Background()
-		diary := blog.NewDynamoDiaryRepository(sess, "hinatazaka_blog")
+		diary := dynamodb.NewDynamoDiaryRepository(sess, "hinatazaka_blog")
 		scraper := blog.NewHinatazakaScraper(diary)
-		subscriber := database.NewDynamoSubscriberRepository(sess)
+		subscriber := dynamodb.NewDynamoSubscriberRepository(sess)
 
 		notifier.Excute(ctx, scraper, bot, subscriber)
 	})

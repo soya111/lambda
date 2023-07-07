@@ -2,6 +2,9 @@ package blog
 
 import (
 	"fmt"
+	"notify/pkg/infrastructure/scrape"
+	"notify/pkg/model"
+	"notify/pkg/slices"
 	"os"
 	"strconv"
 	"strings"
@@ -12,23 +15,23 @@ import (
 
 type HinatazakaScraper struct {
 	Scraper
-	repo DiaryRepository
+	repo model.DiaryRepository
 }
 
-func NewHinatazakaScraper(repo DiaryRepository) *HinatazakaScraper {
+func NewHinatazakaScraper(repo model.DiaryRepository) *HinatazakaScraper {
 	return &HinatazakaScraper{repo: repo}
 }
 
 // 最新の記事を取得する
-func (s *HinatazakaScraper) GetLatestDiaries() ([]*Diary, error) {
+func (s *HinatazakaScraper) GetLatestDiaries() ([]*model.Diary, error) {
 	latestDiaries := s.scrapeLatestDiaries()
 
-	res := []*Diary{}
+	res := []*model.Diary{}
 	for _, d := range latestDiaries {
 		_, err := s.repo.GetDiary(d.MemberName, d.Id)
 		if err != nil {
 			// Check if the error is a "not found" error.
-			if err == ErrDiaryNotFound {
+			if err == model.ErrDiaryNotFound {
 				// The item is not in the database, so it's a new diary.
 				res = append(res, d)
 				continue
@@ -42,7 +45,7 @@ func (s *HinatazakaScraper) GetLatestDiaries() ([]*Diary, error) {
 }
 
 // 記事を保存する
-func (s *HinatazakaScraper) PostDiaries(diaries []*Diary) error {
+func (s *HinatazakaScraper) PostDiaries(diaries []*model.Diary) error {
 	for _, d := range diaries {
 		fmt.Printf("%s %s %s\n%s\n", d.Date, d.Title, d.MemberName, d.Url)
 		if err := s.repo.PostDiary(d); err != nil {
@@ -53,16 +56,16 @@ func (s *HinatazakaScraper) PostDiaries(diaries []*Diary) error {
 	return nil
 }
 
-func (s *HinatazakaScraper) scrapeLatestDiaries() []*Diary {
+func (s *HinatazakaScraper) scrapeLatestDiaries() []*model.Diary {
 	rootURL := "https://www.hinatazaka46.com"
 	url := "https://www.hinatazaka46.com/s/official/diary/member/list?ima=0000"
-	document, err := GetDocumentFromURL(url)
+	document, err := scrape.GetDocumentFromURL(url)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return nil
 	}
 
-	res := []*Diary{}
+	res := []*model.Diary{}
 	articles := document.Find(".p-blog-article")
 
 	articles.Each(func(i int, sl *goquery.Selection) {
@@ -77,11 +80,11 @@ func (s *HinatazakaScraper) scrapeLatestDiaries() []*Diary {
 		name := strings.TrimSpace(sl.Find(".c-blog-article__name").Text())
 		diaryId := s.getIdFromHref(href)
 
-		newDiary := NewDiary(rootURL+href, title, name, updateAt, diaryId)
+		newDiary := model.NewDiary(rootURL+href, title, name, updateAt, diaryId)
 		res = append(res, newDiary)
 	})
 
-	return reverse(res)
+	return slices.Reverse(res)
 }
 
 func (*HinatazakaScraper) getIdFromHref(href string) int {
@@ -94,8 +97,8 @@ func (*HinatazakaScraper) getIdFromHref(href string) int {
 }
 
 // blog中の全画像を取得
-func (s *HinatazakaScraper) GetImages(diary *Diary) []string {
-	document, err := GetDocumentFromURL(diary.Url)
+func (s *HinatazakaScraper) GetImages(diary *model.Diary) []string {
+	document, err := scrape.GetDocumentFromURL(diary.Url)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return nil

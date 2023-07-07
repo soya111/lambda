@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 	"notify/app/webhook"
-	"notify/pkg/database"
+	"notify/pkg/infrastructure/dynamodb"
 	"notify/pkg/line"
 	"os"
 	"sync"
@@ -77,7 +77,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		var wg sync.WaitGroup
 
 		// ここから正常系の処理をやる
-		repo := database.NewDynamoSubscriberRepository(sess)
+		repo := dynamodb.NewDynamoSubscriberRepository(sess)
 		handler := webhook.NewHandler(bot, db, repo)
 
 		for _, event := range events {

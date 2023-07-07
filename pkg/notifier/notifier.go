@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"notify/pkg/blog"
-	"notify/pkg/database"
 	"notify/pkg/infrastructure"
+	"notify/pkg/model"
 	"os"
 	"strings"
 )
 
-func Excute(ctx context.Context, s blog.Scraper, client infrastructure.Client, subscriber database.SubscriberRepository) {
+func Excute(ctx context.Context, s blog.Scraper, client infrastructure.Client, subscriber model.SubscriberRepository) {
 	latestDiaries, err := s.GetLatestDiaries()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)

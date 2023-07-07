@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"notify/pkg/database"
 	"notify/pkg/line"
+	"notify/pkg/model"
 
 	"github.com/guregu/dynamo"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
@@ -15,10 +15,10 @@ import (
 type Handler struct {
 	bot        *line.Linebot
 	db         *dynamo.DB
-	subscriber database.SubscriberRepository
+	subscriber model.SubscriberRepository
 }
 
-func NewHandler(client *line.Linebot, db *dynamo.DB, subscriber database.SubscriberRepository) *Handler {
+func NewHandler(client *line.Linebot, db *dynamo.DB, subscriber model.SubscriberRepository) *Handler {
 	return &Handler{client, db, subscriber}
 }
 
@@ -111,7 +111,7 @@ func (h *Handler) registerMember(member string, event *linebot.Event) error {
 		id = event.Source.GroupID
 	}
 
-	err := h.subscriber.Subscribe(database.Subscriber{member, id})
+	err := h.subscriber.Subscribe(model.Subscriber{member, id})
 	if err != nil {
 		message := "登録できませんでした！"
 		if _, err := h.bot.ReplyMessage(token, linebot.NewTextMessage(message)).Do(); err != nil {

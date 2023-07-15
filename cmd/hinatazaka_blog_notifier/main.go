@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"notify/pkg/blog"
 	"notify/pkg/infrastructure/dynamodb"
-	"notify/pkg/line"
+	"notify/pkg/infrastructure/line"
 	"notify/pkg/notifier"
 	"os"
 	"time"
@@ -37,12 +38,16 @@ func init() {
 }
 
 func main() {
-	lambda.Start(func() {
-		ctx := context.Background()
+	lambda.Start(func(ctx context.Context) error {
 		diary := dynamodb.NewDynamoDiaryRepository(sess, "hinatazaka_blog")
 		scraper := blog.NewHinatazakaScraper(diary)
 		subscriber := dynamodb.NewDynamoSubscriberRepository(sess)
 
-		notifier.Excute(ctx, scraper, bot, subscriber)
+		err := notifier.Excute(ctx, scraper, bot, subscriber)
+		if err != nil {
+			return fmt.Errorf("error in Excute function: %v", err)
+		}
+
+		return nil
 	})
 }

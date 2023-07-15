@@ -2,11 +2,12 @@ package notifier
 
 import (
 	"context"
-	"fmt"
+	"os"
 	"testing"
 	"time"
 
 	"notify/pkg/blog"
+	"notify/pkg/infrastructure/line"
 	"notify/pkg/model"
 
 	"github.com/joho/godotenv"
@@ -30,24 +31,6 @@ func (*ScraperMock) GetImages(diary *model.Diary) []string {
 	return s.GetImages(diary)
 }
 
-type BotMock struct{}
-
-func (*BotMock) PushTextMessages(ctx context.Context, to []string, messages ...string) error {
-	fmt.Println("PushTextMessages")
-	fmt.Println(to, messages)
-	return nil
-}
-
-func (*BotMock) PushFlexImagesMessage(ctx context.Context, to []string, urls []string) error {
-	fmt.Println("PushFlexImagesMessage")
-	fmt.Println(to, urls)
-	return nil
-}
-
-func (*BotMock) ReplyTextMessages(ctx context.Context, token string, message string) error {
-	return nil
-}
-
 type MockSubscriberRepository struct{}
 
 func (*MockSubscriberRepository) GetAllByMemberName(memberName string) ([]string, error) {
@@ -68,5 +51,8 @@ func (*MockSubscriberRepository) GetAllById(id string) ([]model.Subscriber, erro
 
 func TestExcute(t *testing.T) {
 	godotenv.Load("../.env")
-	Excute(context.Background(), &ScraperMock{}, &BotMock{}, &MockSubscriberRepository{})
+	channelSecret := os.Getenv("CHANNEL_SECRET")
+	channelToken := os.Getenv("CHANNEL_TOKEN")
+	bot, _ := line.NewLinebot(channelSecret, channelToken)
+	Excute(context.Background(), &ScraperMock{}, bot, &MockSubscriberRepository{})
 }

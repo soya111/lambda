@@ -2,42 +2,26 @@ package line
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/aws/aws-lambda-go/lambdacontext"
 	"github.com/hashicorp/go-multierror"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
-type Linebot struct {
-	*linebot.Client
-}
+const (
+	MessageBlogUpdate = "新着ブログがあります"
+)
 
-// 本番用コンストラクタ
-func NewLinebot(channelSecret string, channelToken string) (*Linebot, error) {
-	bot, err := linebot.New(channelSecret, channelToken)
-	if err != nil {
-		return nil, err
-	}
-	return &Linebot{bot}, nil
-}
-
-// line送信
-func (b *Linebot) PushTextMessages(ctx context.Context, to []string, messages ...string) error {
-	var result *multierror.Error
-
+func (b *Linebot) CreateTextMessages(messages ...string) []linebot.SendingMessage {
+	var sendingMessages []linebot.SendingMessage
 	for _, message := range messages {
-		for _, to := range to {
-			if _, err := b.Client.PushMessage(to, linebot.NewTextMessage(message)).WithContext(ctx).Do(); err != nil {
-				result = multierror.Append(result, err)
-			}
-		}
+		sendingMessages = append(sendingMessages, linebot.NewTextMessage(message))
 	}
-
-	return result.ErrorOrNil()
+	return sendingMessages
 }
 
-func (b *Linebot) PushFlexImagesMessage(ctx context.Context, to []string, urls []string) error {
-	var result *multierror.Error
-
+func (b *Linebot) CreateFlexImagesMessage(urls []string) linebot.SendingMessage {
 	contents := []*linebot.BubbleContainer{}
 	for _, url := range urls {
 		content := &linebot.BubbleContainer{
@@ -66,12 +50,20 @@ func (b *Linebot) PushFlexImagesMessage(ctx context.Context, to []string, urls [
 		Contents: contents,
 	}
 
-	for _, to := range to {
-		if _, err := b.Client.PushMessage(to, linebot.NewFlexMessage("新着ブログがあります", container)).WithContext(ctx).Do(); err != nil {
-			result = multierror.Append(result, err)
-		}
-	}
+	return linebot.NewFlexMessage(MessageBlogUpdate, container)
+}
 
+func (b *Linebot) PushMessages(ctx context.Context, to []string, messages []linebot.SendingMessage) error {
+	var result *multierror.Error
+
+	lambdaCtx, _ := lambdacontext.FromContext(ctx)
+	requestId := lambdaCtx.AwsRequestID
+
+	for _, to := range to {
+		_, err := b.Client.PushMessage(to, messages...).WithContext(ctx).Do()
+		result = multierror.Append(result, err)
+		fmt.Printf("RequestId: %s, Push Messages to %s, error: %v\n", requestId, to, err)
+	}
 	return result.ErrorOrNil()
 }
 

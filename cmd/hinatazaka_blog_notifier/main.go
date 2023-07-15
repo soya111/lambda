@@ -37,8 +37,7 @@ func init() {
 }
 
 func main() {
-	lambda.Start(func() {
-		ctx := context.Background()
+	lambda.Start(func(ctx context.Context) {
 		diary := dynamodb.NewDynamoDiaryRepository(sess, "hinatazaka_blog")
 		scraper := blog.NewHinatazakaScraper(diary)
 		subscriber := dynamodb.NewDynamoSubscriberRepository(sess)

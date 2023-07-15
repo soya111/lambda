@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-lambda-go/lambdacontext"
 	"github.com/hashicorp/go-multierror"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
@@ -55,13 +56,17 @@ func (b *Linebot) CreateFlexImagesMessage(urls []string) linebot.SendingMessage 
 func (b *Linebot) PushMessages(ctx context.Context, to []string, messages []linebot.SendingMessage) error {
 	var result *multierror.Error
 
+	lambdaCtx, _ := lambdacontext.FromContext(ctx)
+	requestId := lambdaCtx.AwsRequestID
+
 	for _, to := range to {
 		_, err := b.Client.PushMessage(to, messages...).WithContext(ctx).Do()
 		result = multierror.Append(result, err)
-		fmt.Println("PushFlexImagesMessage", to, err)
+		fmt.Printf("RequestId: %s, Push Messages to %s, error: %v\n", requestId, to, err)
 	}
 	return result.ErrorOrNil()
 }
+
 func (b *Linebot) ReplyTextMessages(ctx context.Context, token string, message string) error {
 	if _, err := b.Client.ReplyMessage(token, linebot.NewTextMessage(message)).WithContext(ctx).Do(); err != nil {
 		return err

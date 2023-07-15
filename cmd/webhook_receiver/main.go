@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"notify/app/webhook"
 	"notify/pkg/infrastructure/dynamodb"
-	"notify/pkg/line"
+	"notify/pkg/infrastructure/line"
 	"os"
 	"sync"
 

@@ -5,7 +5,7 @@ import (
 	"log"
 	"notify/pkg/blog"
 	"notify/pkg/infrastructure/dynamodb"
-	"notify/pkg/line"
+	"notify/pkg/infrastructure/line"
 	"notify/pkg/notifier"
 	"os"
 	"time"

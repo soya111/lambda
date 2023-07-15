@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"notify/pkg/line"
+	"notify/pkg/infrastructure/line"
 	"notify/pkg/model"
 
 	"github.com/guregu/dynamo"

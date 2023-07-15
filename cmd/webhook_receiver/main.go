@@ -60,16 +60,15 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		r := &core.RequestAccessor{}
 		httpRequest, err := r.EventToRequest(request)
 		if err != nil {
-			return newResponse(http.StatusInternalServerError), err
+			return newResponse(http.StatusInternalServerError), fmt.Errorf("RequestId: %s, Method: %s, Path: %s, Body: %s, Error: %v", requestId, method, path, body, err)
 		}
 
 		events, err := bot.ParseRequest(httpRequest)
 		if err != nil {
-			fmt.Printf("RequestId: %s, Method: %s, Path: %s, Body: %s\n", requestId, method, path, body)
 			if err == linebot.ErrInvalidSignature {
-				return newResponse(http.StatusBadRequest), err
+				return newResponse(http.StatusBadRequest), fmt.Errorf("invalid signature: %v", err)
 			} else {
-				return newResponse(http.StatusInternalServerError), err
+				return newResponse(http.StatusInternalServerError), fmt.Errorf("failed to parse request: %v", err)
 			}
 		}
 
@@ -104,8 +103,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 			err := handler.HandleEvent(ctx, event)
 			if err != nil {
-				fmt.Printf("RequestId: %s, Error: %s\n", requestId, err)
-				result = multierror.Append(result, err)
+				result = multierror.Append(result, fmt.Errorf("RequestId: %s, Error: %v", requestId, err))
 			}
 		}
 		wg.Wait()

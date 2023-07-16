@@ -114,14 +114,8 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 }
 
-func newAPIGatewayProxyResponse() events.APIGatewayProxyResponse {
-	var headers = make(map[string]string)
-	var mHeaders = make(map[string][]string)
-	return events.APIGatewayProxyResponse{Headers: headers, MultiValueHeaders: mHeaders}
-}
-
 func newResponse(statusCode int) events.APIGatewayProxyResponse {
-	res := newAPIGatewayProxyResponse()
+	res := events.APIGatewayProxyResponse{Headers: make(map[string]string), MultiValueHeaders: make(map[string][]string), Body: ""}
 	res.StatusCode = statusCode
 	return res
 }

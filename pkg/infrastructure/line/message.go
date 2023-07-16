@@ -55,9 +55,12 @@ func (b *Linebot) CreateFlexImagesMessage(urls []string) linebot.SendingMessage 
 
 func (b *Linebot) PushMessages(ctx context.Context, to []string, messages []linebot.SendingMessage) error {
 	var result *multierror.Error
+	var requestId string
 
-	lambdaCtx, _ := lambdacontext.FromContext(ctx)
-	requestId := lambdaCtx.AwsRequestID
+	lambdaCtx, ok := lambdacontext.FromContext(ctx)
+	if ok {
+		requestId = lambdaCtx.AwsRequestID
+	}
 
 	for _, to := range to {
 		_, err := b.Client.PushMessage(to, messages...).WithContext(ctx).Do()

@@ -31,10 +31,16 @@ func (*ScraperMock) GetImages(diary *model.Diary) []string {
 	return s.GetImages(diary)
 }
 
-type MockSubscriberRepository struct{}
+type MockSubscriberRepository struct {
+	to string
+}
 
-func (*MockSubscriberRepository) GetAllByMemberName(memberName string) ([]string, error) {
-	return []string{"こさかな"}, nil
+func NewMockSubscriberRepository(to string) *MockSubscriberRepository {
+	return &MockSubscriberRepository{to}
+}
+
+func (s *MockSubscriberRepository) GetAllByMemberName(memberName string) ([]string, error) {
+	return []string{s.to}, nil
 }
 
 func (*MockSubscriberRepository) Subscribe(subscriber model.Subscriber) error {
@@ -53,6 +59,13 @@ func TestExcute(t *testing.T) {
 	godotenv.Load("../.env")
 	channelSecret := os.Getenv("CHANNEL_SECRET")
 	channelToken := os.Getenv("CHANNEL_TOKEN")
-	bot, _ := line.NewLinebot(channelSecret, channelToken)
-	Excute(context.Background(), &ScraperMock{}, bot, &MockSubscriberRepository{})
+	me := os.Getenv("ME")
+	bot, err := line.NewLinebot(channelSecret, channelToken)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = Excute(context.Background(), &ScraperMock{}, bot, NewMockSubscriberRepository(me))
+	if err != nil {
+		t.Fatal(err)
+	}
 }

@@ -13,6 +13,11 @@ const (
 	MessageBlogUpdate = "新着ブログがあります"
 )
 
+var MicroBubbleContainer = linebot.BubbleContainer{
+	Type: linebot.FlexContainerTypeBubble,
+	Size: linebot.FlexBubbleSizeTypeMicro,
+}
+
 func (b *Linebot) CreateTextMessages(messages ...string) []linebot.SendingMessage {
 	var sendingMessages []linebot.SendingMessage
 	for _, message := range messages {
@@ -21,39 +26,90 @@ func (b *Linebot) CreateTextMessages(messages ...string) []linebot.SendingMessag
 	return sendingMessages
 }
 
-func (b *Linebot) CreateFlexImagesMessage(urls []string) linebot.SendingMessage {
+func (b *Linebot) CreateFlexMessage(message string, urls []string) linebot.SendingMessage {
+	var container []*linebot.BubbleContainer
+	container = append(container, b.CreateFlexTextMessage(message))
+
+	if len(urls) > 0 {
+		container = append(container, b.CreateFlexImagesMessage(urls)...)
+	}
+
+	outerContainer := &linebot.CarouselContainer{
+		Type:     linebot.FlexContainerTypeCarousel,
+		Contents: container,
+	}
+
+	return linebot.NewFlexMessage(MessageBlogUpdate, outerContainer)
+}
+
+func (b *Linebot) CreateFlexTextMessage(message string) *linebot.BubbleContainer {
+	container := MicroBubbleContainer
+	container.Body = &linebot.BoxComponent{
+		Type:   linebot.FlexComponentTypeBox,
+		Layout: linebot.FlexBoxLayoutTypeVertical,
+		Contents: []linebot.FlexComponent{
+			&linebot.TextComponent{
+				Type:   linebot.FlexComponentTypeText,
+				Text:   message,
+				Wrap:   true,
+				Weight: linebot.FlexTextWeightTypeBold,
+			},
+		},
+	}
+	return &container
+}
+
+func (b *Linebot) CreateFlexImagesMessage(urls []string) []*linebot.BubbleContainer {
 	contents := []*linebot.BubbleContainer{}
 	for _, url := range urls {
-		content := &linebot.BubbleContainer{
-			Type: linebot.FlexContainerTypeBubble,
-			Size: linebot.FlexBubbleSizeTypeMicro,
-			Body: &linebot.BoxComponent{
-				Type:   linebot.FlexComponentTypeImage,
-				Layout: linebot.FlexBoxLayoutTypeVertical,
-				Contents: []linebot.FlexComponent{
-					&linebot.ImageComponent{
-						Type:   linebot.FlexComponentTypeImage,
-						URL:    url,
-						Margin: linebot.FlexComponentMarginTypeNone,
-					},
+		content := MicroBubbleContainer
+
+		content.Body = &linebot.BoxComponent{
+			Type:       linebot.FlexComponentTypeImage,
+			Layout:     linebot.FlexBoxLayoutTypeVertical,
+			PaddingAll: "0px",
+			Contents: []linebot.FlexComponent{
+				&linebot.ImageComponent{
+					Type:        linebot.FlexComponentTypeImage,
+					URL:         url,
+					Size:        linebot.FlexImageSizeTypeFull,
+					AspectRatio: linebot.FlexImageAspectRatioType3to4,
+					AspectMode:  linebot.FlexImageAspectModeTypeCover,
 				},
-				Action: &linebot.URIAction{
-					URI: url,
+				&linebot.BoxComponent{
+					Type:            linebot.FlexComponentTypeBox,
+					Layout:          linebot.FlexBoxLayoutTypeVertical,
+					Position:        linebot.FlexComponentPositionTypeAbsolute,
+					BackgroundColor: "#03303Acc",
+					OffsetBottom:    "0px",
+					OffsetStart:     "0px",
+					OffsetEnd:       "0px",
+					PaddingAll:      "12px",
+					Contents: []linebot.FlexComponent{
+						&linebot.BoxComponent{
+							Type:   linebot.FlexComponentTypeBox,
+							Layout: linebot.FlexBoxLayoutTypeVertical,
+							Contents: []linebot.FlexComponent{
+								&linebot.ButtonComponent{
+									Type: linebot.FlexComponentTypeButton,
+									Action: &linebot.URIAction{
+										URI:   url,
+										Label: "View detail",
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		}
-		contents = append(contents, content)
+		contents = append(contents, &content)
 	}
 
-	container := &linebot.CarouselContainer{
-		Type:     linebot.FlexContainerTypeCarousel,
-		Contents: contents,
-	}
-
-	return linebot.NewFlexMessage(MessageBlogUpdate, container)
+	return contents
 }
 
-func (b *Linebot) PushMessages(ctx context.Context, to []string, messages []linebot.SendingMessage) error {
+func (b *Linebot) PushMessages(ctx context.Context, to []string, messages ...linebot.SendingMessage) error {
 	var result *multierror.Error
 	var requestId string
 

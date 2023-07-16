@@ -7,8 +7,6 @@ import (
 	"notify/pkg/infrastructure/line"
 	"notify/pkg/model"
 	"strings"
-
-	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
 func Excute(ctx context.Context, s blog.Scraper, client *line.Linebot, subscriber model.SubscriberRepository) error {
@@ -29,15 +27,11 @@ func Excute(ctx context.Context, s blog.Scraper, client *line.Linebot, subscribe
 		}
 
 		text := fmt.Sprintf("%s %s %s\n%s", diary.Date, diary.Title, diary.MemberName, diary.Url)
-		messages := []linebot.SendingMessage{}
-		messages = append(messages, client.CreateTextMessages(text)...)
 
 		images := s.GetImages(diary)
-		if len(images) > 0 {
-			messages = append(messages, client.CreateFlexImagesMessage(images))
-		}
+		message := client.CreateFlexMessage(text, images)
 
-		err = client.PushMessages(ctx, to, messages)
+		err = client.PushMessages(ctx, to, message)
 		if err != nil {
 			return fmt.Errorf("error pushing messages: %v", err)
 		}

@@ -50,9 +50,13 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	path := request.Path
 	body := request.Body
 	method := request.HTTPMethod
+	ip := request.RequestContext.Identity.SourceIP
 
 	lambdaCtx, _ := lambdacontext.FromContext(ctx)
 	requestId := lambdaCtx.AwsRequestID
+
+	// どこからのリクエストか出力
+	fmt.Printf("RequestId: %s, IP: %s, Method: %s, Path: %s, Body: %s\n", requestId, ip, method, path, body)
 
 	switch path {
 	case "/webhook":

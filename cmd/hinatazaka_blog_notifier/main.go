@@ -45,7 +45,7 @@ func main() {
 
 		err := notifier.Excute(ctx, scraper, bot, subscriber)
 		if err != nil {
-			return fmt.Errorf("error in Excute function: %v", err)
+			return fmt.Errorf("ApplicationError in Excute function: %v", err)
 		}
 
 		return nil

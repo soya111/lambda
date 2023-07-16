@@ -3,25 +3,26 @@ module notify
 go 1.20
 
 require (
-	github.com/PuerkitoBio/goquery v1.8.0
-	github.com/aws/aws-lambda-go v1.28.0
-	github.com/aws/aws-sdk-go v1.42.47
-	github.com/awslabs/aws-lambda-go-api-proxy v0.12.0
-	github.com/guregu/dynamo v1.17.0
+	github.com/PuerkitoBio/goquery v1.8.1
+	github.com/aws/aws-lambda-go v1.41.0
+	github.com/aws/aws-sdk-go v1.44.300
+	github.com/awslabs/aws-lambda-go-api-proxy v0.14.0
+	github.com/guregu/dynamo v1.20.0
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/joho/godotenv v1.4.0
-	github.com/line/line-bot-sdk-go/v7 v7.12.0
-	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca
-	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
+	github.com/joho/godotenv v1.5.1
+	github.com/line/line-bot-sdk-go/v7 v7.20.0
+	github.com/saintfish/chardet v0.0.0-20230101081208-5e3ef4b5456d
+	golang.org/x/net v0.12.0
 )
 
 require (
-	github.com/andybalholm/cascadia v1.3.1 // indirect
-	github.com/cenkalti/backoff/v4 v4.1.2 // indirect
-	github.com/gofrs/uuid v4.2.0+incompatible // indirect
-	github.com/hashicorp/errwrap v1.0.0 // indirect
+	github.com/andybalholm/cascadia v1.3.2 // indirect
+	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
+	github.com/gofrs/uuid v4.4.0+incompatible // indirect
+	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
-	golang.org/x/sys v0.1.0 // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/sync v0.3.0 // indirect
+	golang.org/x/sys v0.10.0 // indirect
+	golang.org/x/text v0.11.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 )

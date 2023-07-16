@@ -50,9 +50,13 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	path := request.Path
 	body := request.Body
 	method := request.HTTPMethod
+	ip := request.RequestContext.Identity.SourceIP
 
 	lambdaCtx, _ := lambdacontext.FromContext(ctx)
 	requestId := lambdaCtx.AwsRequestID
+
+	// どこからのリクエストか出力
+	fmt.Printf("RequestId: %s, IP: %s, Method: %s, Path: %s, Body: %s\n", requestId, ip, method, path, body)
 
 	switch path {
 	case "/webhook":
@@ -114,14 +118,8 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	}
 }
 
-func newAPIGatewayProxyResponse() events.APIGatewayProxyResponse {
-	var headers = make(map[string]string)
-	var mHeaders = make(map[string][]string)
-	return events.APIGatewayProxyResponse{Headers: headers, MultiValueHeaders: mHeaders}
-}
-
 func newResponse(statusCode int) events.APIGatewayProxyResponse {
-	res := newAPIGatewayProxyResponse()
+	res := events.APIGatewayProxyResponse{Headers: make(map[string]string), MultiValueHeaders: make(map[string][]string), Body: ""}
 	res.StatusCode = statusCode
 	return res
 }

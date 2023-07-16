@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"notify/pkg/blog"
 	"notify/pkg/infrastructure/line"
+	"notify/pkg/infrastructure/scrape"
 	"notify/pkg/model"
 	"strings"
-
-	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
 func Excute(ctx context.Context, s blog.Scraper, client *line.Linebot, subscriber model.SubscriberRepository) error {
@@ -28,16 +27,15 @@ func Excute(ctx context.Context, s blog.Scraper, client *line.Linebot, subscribe
 			return fmt.Errorf("error getting all by member name: %v", err)
 		}
 
-		text := fmt.Sprintf("%s %s %s\n%s", diary.Date, diary.Title, diary.MemberName, diary.Url)
-		messages := []linebot.SendingMessage{}
-		messages = append(messages, client.CreateTextMessages(text)...)
-
-		images := s.GetImages(diary)
-		if len(images) > 0 {
-			messages = append(messages, client.CreateFlexImagesMessage(images))
+		document, err := scrape.GetDocumentFromURL(diary.Url)
+		if err != nil {
+			return fmt.Errorf("error getting document from url: %v", err)
 		}
+		images := s.GetImages(document)
+		memberIcon := s.GetMemberIcon(document)
+		message := client.CreateFlexMessage(diary, memberIcon, images)
 
-		err = client.PushMessages(ctx, to, messages)
+		err = client.PushMessages(ctx, to, message)
 		if err != nil {
 			return fmt.Errorf("error pushing messages: %v", err)
 		}

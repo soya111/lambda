@@ -10,6 +10,7 @@ import (
 	"notify/pkg/infrastructure/line"
 	"notify/pkg/model"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/joho/godotenv"
 )
 
@@ -26,15 +27,25 @@ func (*ScraperMock) PostDiaries(diaries []*model.Diary) error {
 	return nil
 }
 
-func (*ScraperMock) GetImages(diary *model.Diary) []string {
+func (*ScraperMock) GetImages(document *goquery.Document) []string {
 	var s = &blog.HinatazakaScraper{}
-	return s.GetImages(diary)
+	return s.GetImages(document)
 }
 
-type MockSubscriberRepository struct{}
+func (*ScraperMock) GetMemberIcon(document *goquery.Document) string {
+	return "https://cdn.hinatazaka46.com/images/14/0a0/472f1b55902a03c7b685fd958e085/400_320_102400.jpg"
+}
 
-func (*MockSubscriberRepository) GetAllByMemberName(memberName string) ([]string, error) {
-	return []string{"こさかな"}, nil
+type MockSubscriberRepository struct {
+	to string
+}
+
+func NewMockSubscriberRepository(to string) *MockSubscriberRepository {
+	return &MockSubscriberRepository{to}
+}
+
+func (s *MockSubscriberRepository) GetAllByMemberName(memberName string) ([]string, error) {
+	return []string{s.to}, nil
 }
 
 func (*MockSubscriberRepository) Subscribe(subscriber model.Subscriber) error {
@@ -53,6 +64,13 @@ func TestExcute(t *testing.T) {
 	godotenv.Load("../.env")
 	channelSecret := os.Getenv("CHANNEL_SECRET")
 	channelToken := os.Getenv("CHANNEL_TOKEN")
-	bot, _ := line.NewLinebot(channelSecret, channelToken)
-	Excute(context.Background(), &ScraperMock{}, bot, &MockSubscriberRepository{})
+	me := os.Getenv("ME")
+	bot, err := line.NewLinebot(channelSecret, channelToken)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = Excute(context.Background(), &ScraperMock{}, bot, NewMockSubscriberRepository(me))
+	if err != nil {
+		t.Fatal(err)
+	}
 }

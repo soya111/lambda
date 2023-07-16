@@ -97,13 +97,7 @@ func (*HinatazakaScraper) getIdFromHref(href string) int {
 }
 
 // blog中の全画像を取得
-func (s *HinatazakaScraper) GetImages(diary *model.Diary) []string {
-	document, err := scrape.GetDocumentFromURL(diary.Url)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return nil
-	}
-
+func (s *HinatazakaScraper) GetImages(document *goquery.Document) []string {
 	article := document.Find(".c-blog-article__text")
 	img := article.Find("img")
 	srcs := []string{}
@@ -116,4 +110,22 @@ func (s *HinatazakaScraper) GetImages(diary *model.Diary) []string {
 	})
 
 	return srcs
+}
+
+func (s *HinatazakaScraper) GetMemberIcon(document *goquery.Document) string {
+	var iconUrl = "https://natalie.mu/music/news/472084"
+	// Find the div with class .c-blog-member__icon
+	document.Find(".c-blog-member__icon").Each(func(i int, s *goquery.Selection) {
+		// Get the style attribute
+		style, exists := s.Attr("style")
+		if exists {
+			// Split the style string into 2 parts: "background-image:url(" and the url with ");" at the end
+			splittedStyle := strings.Split(style, "(")
+			if len(splittedStyle) == 2 {
+				// Remove the ");" from the end of the second part of splittedStyle to get the url
+				iconUrl = strings.TrimSuffix(splittedStyle[1], ");")
+			}
+		}
+	})
+	return iconUrl
 }

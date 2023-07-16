@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"notify/pkg/blog"
 	"notify/pkg/infrastructure/line"
+	"notify/pkg/infrastructure/scrape"
 	"notify/pkg/model"
 	"strings"
 )
@@ -26,10 +27,13 @@ func Excute(ctx context.Context, s blog.Scraper, client *line.Linebot, subscribe
 			return fmt.Errorf("error getting all by member name: %v", err)
 		}
 
-		text := fmt.Sprintf("%s %s %s\n%s", diary.Date, diary.Title, diary.MemberName, diary.Url)
-
-		images := s.GetImages(diary)
-		message := client.CreateFlexMessage(text, images)
+		document, err := scrape.GetDocumentFromURL(diary.Url)
+		if err != nil {
+			return fmt.Errorf("error getting document from url: %v", err)
+		}
+		images := s.GetImages(document)
+		memberIcon := s.GetMemberIcon(document)
+		message := client.CreateFlexMessage(diary, memberIcon, images)
 
 		err = client.PushMessages(ctx, to, message)
 		if err != nil {

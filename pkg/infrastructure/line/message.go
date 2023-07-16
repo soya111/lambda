@@ -3,6 +3,7 @@ package line
 import (
 	"context"
 	"fmt"
+	"notify/pkg/model"
 
 	"github.com/aws/aws-lambda-go/lambdacontext"
 	"github.com/hashicorp/go-multierror"
@@ -13,9 +14,9 @@ const (
 	MessageBlogUpdate = "新着ブログがあります"
 )
 
-var MicroBubbleContainer = linebot.BubbleContainer{
+var MegaBubbleContainer = linebot.BubbleContainer{
 	Type: linebot.FlexContainerTypeBubble,
-	Size: linebot.FlexBubbleSizeTypeMicro,
+	Size: linebot.FlexBubbleSizeTypeMega,
 }
 
 func (b *Linebot) CreateTextMessages(messages ...string) []linebot.SendingMessage {
@@ -26,12 +27,12 @@ func (b *Linebot) CreateTextMessages(messages ...string) []linebot.SendingMessag
 	return sendingMessages
 }
 
-func (b *Linebot) CreateFlexMessage(message string, urls []string) linebot.SendingMessage {
+func (b *Linebot) CreateFlexMessage(diary *model.Diary, icon string, images []string) linebot.SendingMessage {
 	var container []*linebot.BubbleContainer
-	container = append(container, b.CreateFlexTextMessage(message))
+	container = append(container, b.CreateFlexTextMessage(diary, icon))
 
-	if len(urls) > 0 {
-		container = append(container, b.CreateFlexImagesMessage(urls)...)
+	if len(images) > 0 {
+		container = append(container, b.CreateFlexImagesMessage(images)...)
 	}
 
 	outerContainer := &linebot.CarouselContainer{
@@ -42,27 +43,137 @@ func (b *Linebot) CreateFlexMessage(message string, urls []string) linebot.Sendi
 	return linebot.NewFlexMessage(MessageBlogUpdate, outerContainer)
 }
 
-func (b *Linebot) CreateFlexTextMessage(message string) *linebot.BubbleContainer {
-	container := MicroBubbleContainer
+func (b *Linebot) CreateFlexTextMessage(diary *model.Diary, icon string) *linebot.BubbleContainer {
+	container := MegaBubbleContainer
+
 	container.Body = &linebot.BoxComponent{
-		Type:   linebot.FlexComponentTypeBox,
-		Layout: linebot.FlexBoxLayoutTypeVertical,
+		Type:       linebot.FlexComponentTypeBox,
+		Layout:     linebot.FlexBoxLayoutTypeVertical,
+		PaddingAll: "0px",
 		Contents: []linebot.FlexComponent{
-			&linebot.TextComponent{
-				Type:   linebot.FlexComponentTypeText,
-				Text:   message,
-				Wrap:   true,
-				Weight: linebot.FlexTextWeightTypeBold,
+			&linebot.BoxComponent{
+				Type:   linebot.FlexComponentTypeBox,
+				Layout: linebot.FlexBoxLayoutTypeVertical,
+				Contents: []linebot.FlexComponent{
+					&linebot.BoxComponent{
+						Type:   linebot.FlexComponentTypeBox,
+						Layout: linebot.FlexBoxLayoutTypeHorizontal,
+						Contents: []linebot.FlexComponent{
+							&linebot.ImageComponent{
+								Type:        linebot.FlexComponentTypeImage,
+								URL:         icon,
+								Size:        linebot.FlexImageSizeTypeFull,
+								AspectMode:  linebot.FlexImageAspectModeTypeCover,
+								AspectRatio: linebot.FlexImageAspectRatioType4to3,
+							},
+						},
+					},
+					&linebot.BoxComponent{
+						Type:   linebot.FlexComponentTypeBox,
+						Layout: linebot.FlexBoxLayoutTypeHorizontal,
+						Contents: []linebot.FlexComponent{
+							&linebot.TextComponent{
+								Type:    linebot.FlexComponentTypeText,
+								Text:    "NEW",
+								Size:    linebot.FlexTextSizeTypeXs,
+								Color:   "#ffffff",
+								Align:   linebot.FlexComponentAlignTypeCenter,
+								Gravity: linebot.FlexComponentGravityTypeCenter,
+							},
+						},
+						BackgroundColor: "#EC3D44",
+						PaddingAll:      "2px",
+						PaddingStart:    "4px",
+						PaddingEnd:      "4px",
+						Flex:            linebot.IntPtr(0),
+						Position:        linebot.FlexComponentPositionTypeAbsolute,
+						OffsetStart:     "18px",
+						OffsetTop:       "18px",
+						CornerRadius:    "100px",
+						Width:           "48px",
+						Height:          "25px",
+					},
+				},
+				PaddingAll: "0px",
+			},
+			&linebot.BoxComponent{
+				Type:   linebot.FlexComponentTypeBox,
+				Layout: linebot.FlexBoxLayoutTypeVertical,
+				Contents: []linebot.FlexComponent{
+
+					&linebot.BoxComponent{
+						Type:   linebot.FlexComponentTypeBox,
+						Layout: linebot.FlexBoxLayoutTypeVertical,
+						Contents: []linebot.FlexComponent{
+							&linebot.BoxComponent{
+								Type:   linebot.FlexComponentTypeBox,
+								Layout: linebot.FlexBoxLayoutTypeVertical,
+								Contents: []linebot.FlexComponent{
+									&linebot.TextComponent{
+										Type:   linebot.FlexComponentTypeText,
+										Size:   linebot.FlexTextSizeTypeXl,
+										Wrap:   true,
+										Text:   diary.Title,
+										Color:  "#ffffff",
+										Weight: linebot.FlexTextWeightTypeBold,
+									},
+									&linebot.TextComponent{
+										Type:  linebot.FlexComponentTypeText,
+										Text:  fmt.Sprintf("%s %s", diary.MemberName, diary.Date),
+										Color: "#ffffffcc",
+										Size:  linebot.FlexTextSizeTypeSm,
+									},
+								},
+								Spacing: linebot.FlexComponentSpacingTypeSm,
+							},
+							&linebot.BoxComponent{
+								Type:   linebot.FlexComponentTypeBox,
+								Layout: linebot.FlexBoxLayoutTypeVertical,
+								Contents: []linebot.FlexComponent{
+									&linebot.BoxComponent{
+										Type:   linebot.FlexComponentTypeBox,
+										Layout: linebot.FlexBoxLayoutTypeVertical,
+										Contents: []linebot.FlexComponent{
+											&linebot.TextComponent{
+												Type:   linebot.FlexComponentTypeText,
+												Size:   linebot.FlexTextSizeTypeSm,
+												Wrap:   true,
+												Margin: linebot.FlexComponentMarginTypeLg,
+												Color:  "#ffffffde",
+												Text:   "Private Pool, Delivery box, Floor heating, Private Cinema",
+											},
+										},
+									},
+								},
+								PaddingAll:      "13px",
+								BackgroundColor: "#ffffff1A",
+								CornerRadius:    "2px",
+								Margin:          linebot.FlexComponentMarginTypeXl,
+							},
+						},
+					},
+				},
+				PaddingAll:      "20px",
+				BackgroundColor: "#464F69",
+				Action: &linebot.URIAction{
+					Label: "action",
+					URI:   diary.Url,
+				},
+				Position:     linebot.FlexComponentPositionTypeAbsolute,
+				OffsetBottom: "0px",
+				OffsetStart:  "0px",
+				OffsetEnd:    "0px",
 			},
 		},
 	}
+
 	return &container
 }
 
 func (b *Linebot) CreateFlexImagesMessage(urls []string) []*linebot.BubbleContainer {
 	contents := []*linebot.BubbleContainer{}
 	for _, url := range urls {
-		content := MicroBubbleContainer
+		content := MegaBubbleContainer
 
 		content.Body = &linebot.BoxComponent{
 			Type:       linebot.FlexComponentTypeImage,

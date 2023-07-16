@@ -12,6 +12,7 @@ import (
 )
 
 // Document structを返す
+// エラー握りつぶし
 func GetDocumentFromURL(url string) (*goquery.Document, error) {
 	res, err := http.Get(url)
 	if err != nil {

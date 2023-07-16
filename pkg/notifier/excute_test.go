@@ -10,6 +10,7 @@ import (
 	"notify/pkg/infrastructure/line"
 	"notify/pkg/model"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/joho/godotenv"
 )
 
@@ -26,9 +27,13 @@ func (*ScraperMock) PostDiaries(diaries []*model.Diary) error {
 	return nil
 }
 
-func (*ScraperMock) GetImages(diary *model.Diary) []string {
+func (*ScraperMock) GetImages(document *goquery.Document) []string {
 	var s = &blog.HinatazakaScraper{}
-	return s.GetImages(diary)
+	return s.GetImages(document)
+}
+
+func (*ScraperMock) GetMemberIcon(document *goquery.Document) string {
+	return "https://cdn.hinatazaka46.com/images/14/0a0/472f1b55902a03c7b685fd958e085/400_320_102400.jpg"
 }
 
 type MockSubscriberRepository struct {

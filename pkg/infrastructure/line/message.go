@@ -236,10 +236,3 @@ func (b *Linebot) PushMessages(ctx context.Context, to []string, messages ...lin
 	}
 	return result.ErrorOrNil()
 }
-
-func (b *Linebot) ReplyTextMessages(ctx context.Context, token string, message string) error {
-	if _, err := b.Client.ReplyMessage(token, linebot.NewTextMessage(message)).WithContext(ctx).Do(); err != nil {
-		return err
-	}
-	return nil
-}

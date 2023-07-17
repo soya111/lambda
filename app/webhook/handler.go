@@ -49,8 +49,7 @@ func (h *Handler) handleMessageEvent(ctx context.Context, event *linebot.Event) 
 	case *linebot.TextMessage:
 		return h.handleTextMessage(message.Text, event)
 	default:
-		// 他のメッセージタイプも同様にハンドリングする
-		// ...
+		// TextMessage以外は何もしない
 		return nil
 	}
 }
@@ -175,77 +174,69 @@ type Subscriber struct {
 }
 
 func (h *Handler) registerMember(member string, event *linebot.Event) error {
-	var id string
+	ctx := context.TODO()
 	token := event.ReplyToken
 
-	if event.Source.Type == linebot.EventSourceTypeUser {
-		// user名調査
-		userId := event.Source.UserID
-		userProfile, _ := h.bot.GetProfile(userId).Do()
-		err := h.postUser(User{userId, userProfile.DisplayName})
-		if err != nil {
-			fmt.Println(err)
-		}
-		id = userId
-	} else if event.Source.Type == linebot.EventSourceTypeGroup {
-		id = event.Source.GroupID
+	id := extractEventSourceIdentifier(event)
+	if id == "" {
+		err := fmt.Errorf("invalid source type: %v", event.Source.Type)
+		return h.bot.ReplyWithError(ctx, token, "Invalid source type!", err)
 	}
 
 	err := h.subscriber.Subscribe(model.Subscriber{member, id})
 	if err != nil {
-		message := "登録できませんでした！"
-		if _, err := h.bot.ReplyMessage(token, linebot.NewTextMessage(message)).Do(); err != nil {
-			return fmt.Errorf("registerMember: %w", err)
-		}
-		return fmt.Errorf("registerMember: %w", err)
+		return h.bot.ReplyWithError(ctx, token, "登録できませんでした！", err)
 	}
 
 	message := fmt.Sprintf("registered %s", member)
-	if _, err := h.bot.ReplyMessage(token, linebot.NewTextMessage(message)).Do(); err != nil {
+	if err := h.bot.ReplyTextMessages(ctx, token, message); err != nil {
 		return fmt.Errorf("registerMember: %w", err)
 	}
 	return nil
 }
 
 func (h *Handler) unregisterMember(member string, event *linebot.Event) error {
+	ctx := context.TODO() // あるいは他の適切なコンテキストを使用します
 	token := event.ReplyToken
+
 	id := extractEventSourceIdentifier(event)
+	if id == "" {
+		err := fmt.Errorf("invalid source type: %v", event.Source.Type)
+		return h.bot.ReplyWithError(ctx, token, "Invalid source type!", err)
+	}
 
 	err := h.subscriber.Unsubscribe(member, id)
 	if err != nil {
-		message := "登録できませんでした！"
-		if _, err := h.bot.ReplyMessage(token, linebot.NewTextMessage(message)).Do(); err != nil {
-			return fmt.Errorf("unregisterMember: %w", err)
-		}
-		return fmt.Errorf("unregisterMember: %w", err)
+		return h.bot.ReplyWithError(ctx, token, "登録解除できませんでした！", err)
 	}
 
 	message := fmt.Sprintf("unregistered %s", member)
-	if _, err := h.bot.ReplyMessage(token, linebot.NewTextMessage(message)).Do(); err != nil {
+	if err := h.bot.ReplyTextMessages(ctx, token, message); err != nil {
 		return fmt.Errorf("unregisterMember: %w", err)
 	}
 	return nil
 }
 
 func (h *Handler) showSubscribeList(event *linebot.Event) error {
+	ctx := context.TODO() // あるいは他の適切なコンテキストを使用します
 	token := event.ReplyToken
+
 	id := extractEventSourceIdentifier(event)
+	if id == "" {
+		err := fmt.Errorf("invalid source type: %v", event.Source.Type)
+		return h.bot.ReplyWithError(ctx, token, "Invalid source type!", err)
+	}
 
 	list, err := h.subscriber.GetAllById(id)
 	if err != nil {
-		message := "情報を取得できませんでした！"
-		if _, err := h.bot.ReplyMessage(token, linebot.NewTextMessage(message)).Do(); err != nil {
-			return fmt.Errorf("showSubscribeList: %w", err)
-		}
-		return fmt.Errorf("showSubscribeList: %w", err)
-
+		return h.bot.ReplyWithError(ctx, token, "情報を取得できませんでした！", err)
 	}
 
 	message := "登録リスト"
 	for _, v := range list {
 		message += fmt.Sprintf("\n%s", v.MemberName)
 	}
-	if _, err := h.bot.ReplyMessage(token, linebot.NewTextMessage(message)).Do(); err != nil {
+	if err := h.bot.ReplyTextMessages(ctx, token, message); err != nil {
 		return fmt.Errorf("showSubscribeList: %w", err)
 	}
 	return nil
@@ -258,17 +249,6 @@ func (h *Handler) sendWhoami(event *linebot.Event) error {
 type User struct {
 	Id   string `json:"user_id" dynamodbav:"user_id"`
 	Name string `json:"name" dynamodbav:"name"`
-}
-
-func (h *Handler) postUser(user User) error {
-	table := h.db.Table("User")
-
-	err := table.Put(user).Run()
-	if err != nil {
-		return fmt.Errorf("postUser: %w", err)
-	}
-
-	return nil
 }
 
 func extractEventSourceIdentifier(event *linebot.Event) string {

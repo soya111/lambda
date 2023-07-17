@@ -27,9 +27,9 @@ func (b *Linebot) CreateTextMessages(messages ...string) []linebot.SendingMessag
 	return sendingMessages
 }
 
-func (b *Linebot) CreateFlexMessage(diary *model.Diary, icon string, images []string) linebot.SendingMessage {
+func (b *Linebot) CreateFlexMessage(diary *model.Diary, icon, lead string, images []string) linebot.SendingMessage {
 	var container []*linebot.BubbleContainer
-	container = append(container, b.CreateFlexTextMessage(diary, icon))
+	container = append(container, b.CreateFlexTextMessage(diary, icon, lead))
 
 	if len(images) > 0 {
 		container = append(container, b.CreateFlexImagesMessage(images)...)
@@ -43,7 +43,7 @@ func (b *Linebot) CreateFlexMessage(diary *model.Diary, icon string, images []st
 	return linebot.NewFlexMessage(MessageBlogUpdate, outerContainer)
 }
 
-func (b *Linebot) CreateFlexTextMessage(diary *model.Diary, icon string) *linebot.BubbleContainer {
+func (b *Linebot) CreateFlexTextMessage(diary *model.Diary, icon, lead string) *linebot.BubbleContainer {
 	container := MegaBubbleContainer
 
 	container.Body = &linebot.BoxComponent{
@@ -138,9 +138,9 @@ func (b *Linebot) CreateFlexTextMessage(diary *model.Diary, icon string) *linebo
 												Type:   linebot.FlexComponentTypeText,
 												Size:   linebot.FlexTextSizeTypeSm,
 												Wrap:   true,
-												Margin: linebot.FlexComponentMarginTypeLg,
+												Margin: linebot.FlexComponentMarginTypeXs,
 												Color:  "#ffffffde",
-												Text:   "Private Pool, Delivery box, Floor heating, Private Cinema",
+												Text:   fmt.Sprintf("%s...", lead),
 											},
 										},
 									},

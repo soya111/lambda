@@ -33,7 +33,8 @@ func Excute(ctx context.Context, s blog.Scraper, client *line.Linebot, subscribe
 		}
 		images := s.GetImages(document)
 		memberIcon := s.GetMemberIcon(document)
-		message := client.CreateFlexMessage(diary, memberIcon, images)
+		lead := scrape.GetFirstNChars(document, ".c-blog-article__text", 50)
+		message := client.CreateFlexMessage(diary, memberIcon, lead, images)
 
 		err = client.PushMessages(ctx, to, message)
 		if err != nil {

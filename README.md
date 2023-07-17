@@ -30,3 +30,12 @@ build-lambda-zip.exe -output handler.zip handler
 ```bash
 aws lambda update-function-code --function-name {{name}} --zip-file fileb://handler.zip 
 ```
+
+## Coverage
+
+```bash
+go test -cover -coverprofile=coverage.out ./...
+go tool cover -html=coverage.out -o coverage.html
+```
+
+[`coverage.html`](./coverage.html) をブラウザで開く

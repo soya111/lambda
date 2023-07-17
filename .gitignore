@@ -4,3 +4,5 @@ handler
 *handler.zip.bk
 *.db
 .vscode
+coverage.out
+coverage.html

@@ -28,3 +28,12 @@ var (
 		"四期生リレー",
 	}
 )
+
+func isMember(text string) bool {
+	for _, v := range memberList {
+		if text == v {
+			return true
+		}
+	}
+	return false
+}

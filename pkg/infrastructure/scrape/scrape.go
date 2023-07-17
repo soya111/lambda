@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/saintfish/chardet"
@@ -38,4 +39,22 @@ func GetDocumentFromURL(url string) (*goquery.Document, error) {
 	document, _ := goquery.NewDocumentFromReader(reader)
 
 	return document, nil
+}
+
+// GetFirstNChars is a function that extracts text from a specific HTML element,
+// removes unnecessary whitespaces and line breaks, and returns the first N characters.
+func GetFirstNChars(doc *goquery.Document, selector string, n int) string {
+	text := doc.Find(selector).Text()
+
+	// Use regular expression to remove white spaces
+	re := regexp.MustCompile(`\s`)
+	text = re.ReplaceAllString(text, "")
+
+	// Convert to []rune to handle multi-byte characters
+	runeText := []rune(text)
+
+	if len(runeText) > n {
+		runeText = runeText[:n]
+	}
+	return string(runeText)
 }

@@ -40,7 +40,7 @@ func (b *Linebot) CreateFlexMessage(diary *model.Diary, icon, lead string, image
 		Contents: container,
 	}
 
-	return linebot.NewFlexMessage(MessageBlogUpdate, outerContainer)
+	return linebot.NewFlexMessage(MessageBlogUpdate, outerContainer).WithSender(linebot.NewSender(diary.MemberName, icon))
 }
 
 func (b *Linebot) CreateFlexTextMessage(diary *model.Diary, icon, lead string) *linebot.BubbleContainer {

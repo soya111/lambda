@@ -9,16 +9,16 @@ import (
 	"github.com/guregu/dynamo"
 )
 
-type DynamoSubscriberRepository struct {
+type SubscriberRepository struct {
 	db *dynamo.DB
 }
 
-func NewDynamoSubscriberRepository(sess *session.Session) model.SubscriberRepository {
+func NewSubscriberRepository(sess *session.Session) model.SubscriberRepository {
 	db := dynamo.New(sess)
-	return &DynamoSubscriberRepository{db}
+	return &SubscriberRepository{db}
 }
 
-func (d *DynamoSubscriberRepository) GetAllByMemberName(memberName string) ([]string, error) {
+func (d *SubscriberRepository) GetAllByMemberName(memberName string) ([]string, error) {
 	table := d.db.Table("Subscriber")
 
 	var subscribers []model.Subscriber
@@ -35,7 +35,7 @@ func (d *DynamoSubscriberRepository) GetAllByMemberName(memberName string) ([]st
 	return userIds, nil
 }
 
-func (d *DynamoSubscriberRepository) Subscribe(subscriber model.Subscriber) error {
+func (d *SubscriberRepository) Subscribe(subscriber model.Subscriber) error {
 	table := d.db.Table("Subscriber")
 
 	if err := table.Put(subscriber).Run(); err != nil {
@@ -45,7 +45,7 @@ func (d *DynamoSubscriberRepository) Subscribe(subscriber model.Subscriber) erro
 	return nil
 }
 
-func (d *DynamoSubscriberRepository) Unsubscribe(memberName, userId string) error {
+func (d *SubscriberRepository) Unsubscribe(memberName, userId string) error {
 	table := d.db.Table("Subscriber")
 
 	err := table.Delete("member_name", memberName).Range("user_id", userId).Run()
@@ -57,7 +57,7 @@ func (d *DynamoSubscriberRepository) Unsubscribe(memberName, userId string) erro
 	return nil
 }
 
-func (d *DynamoSubscriberRepository) GetAllById(id string) ([]model.Subscriber, error) {
+func (d *SubscriberRepository) GetAllById(id string) ([]model.Subscriber, error) {
 	table := d.db.Table("Subscriber")
 
 	var res []model.Subscriber

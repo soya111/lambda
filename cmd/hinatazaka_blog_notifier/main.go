@@ -39,9 +39,9 @@ func init() {
 
 func main() {
 	lambda.Start(func(ctx context.Context) error {
-		diary := dynamodb.NewDynamoDiaryRepository(sess, "hinatazaka_blog")
+		diary := dynamodb.NewDiaryRepository(sess, "hinatazaka_blog")
 		scraper := blog.NewHinatazakaScraper(diary)
-		subscriber := dynamodb.NewDynamoSubscriberRepository(sess)
+		subscriber := dynamodb.NewSubscriberRepository(sess)
 
 		err := notifier.Excute(ctx, scraper, bot, subscriber)
 		if err != nil {

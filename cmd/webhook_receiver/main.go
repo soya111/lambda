@@ -77,7 +77,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		var wg sync.WaitGroup
 
 		// ここから正常系の処理をやる
-		repo := dynamodb.NewDynamoSubscriberRepository(sess)
+		repo := dynamodb.NewSubscriberRepository(sess)
 		handler := webhook.NewHandler(bot, repo)
 
 		for _, event := range events {

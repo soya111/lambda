@@ -172,7 +172,7 @@ func (b *Linebot) CreateFlexTextMessage(diary *model.Diary, icon, lead string) *
 
 func (b *Linebot) CreateFlexImagesMessage(urls []string) []*linebot.BubbleContainer {
 	contents := []*linebot.BubbleContainer{}
-	for _, url := range urls {
+	for _, url := range urls[:11] {
 		content := MegaBubbleContainer
 
 		content.Body = &linebot.BoxComponent{

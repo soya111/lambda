@@ -59,6 +59,13 @@ func TestGetFirstNChars(t *testing.T) {
 			n:        8,
 			expected: "日向坂46の加藤",
 		},
+		{
+			name:     "ID selector",
+			html:     `<div id="test">Hello, world!</div>`,
+			selector: "#test",
+			n:        5,
+			expected: "Hello",
+		},
 	}
 
 	for _, tt := range tests {

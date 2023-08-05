@@ -8,18 +8,16 @@ import (
 	"notify/pkg/infrastructure/line"
 	"notify/pkg/model"
 
-	"github.com/guregu/dynamo"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
 type Handler struct {
 	bot        *line.Linebot
-	db         *dynamo.DB
 	subscriber model.SubscriberRepository
 }
 
-func NewHandler(client *line.Linebot, db *dynamo.DB, subscriber model.SubscriberRepository) *Handler {
-	return &Handler{client, db, subscriber}
+func NewHandler(client *line.Linebot, subscriber model.SubscriberRepository) *Handler {
+	return &Handler{client, subscriber}
 }
 
 type EventHandler func(ctx context.Context, event *linebot.Event) error
@@ -183,7 +181,7 @@ func (h *Handler) registerMember(member string, event *linebot.Event) error {
 		return h.bot.ReplyWithError(ctx, token, "Invalid source type!", err)
 	}
 
-	err := h.subscriber.Subscribe(model.Subscriber{member, id})
+	err := h.subscriber.Subscribe(model.Subscriber{MemberName: member, UserId: id})
 	if err != nil {
 		return h.bot.ReplyWithError(ctx, token, "登録できませんでした！", err)
 	}

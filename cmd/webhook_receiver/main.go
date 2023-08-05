@@ -15,22 +15,20 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-lambda-go/lambdacontext"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/awslabs/aws-lambda-go-api-proxy/core"
-	"github.com/guregu/dynamo"
 	"github.com/hashicorp/go-multierror"
 	"github.com/joho/godotenv"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
 var bot *line.Linebot
-var db *dynamo.DB
 var sess *session.Session
 
 func init() {
 	// localで実行するとき用
-	err := godotenv.Load(".env")
+	var err error
+	_ = godotenv.Load(".env")
 	channelSecret := os.Getenv("CHANNEL_SECRET")
 	channelToken := os.Getenv("CHANNEL_TOKEN")
 	bot, err = line.NewLinebot(channelSecret, channelToken)
@@ -39,7 +37,6 @@ func init() {
 	}
 
 	sess = session.Must(session.NewSession())
-	db = dynamo.New(sess, &aws.Config{Region: aws.String("ap-northeast-1")})
 }
 
 func main() {
@@ -81,7 +78,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 
 		// ここから正常系の処理をやる
 		repo := dynamodb.NewDynamoSubscriberRepository(sess)
-		handler := webhook.NewHandler(bot, db, repo)
+		handler := webhook.NewHandler(bot, repo)
 
 		for _, event := range events {
 			// 解析用ログ出力

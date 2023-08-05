@@ -7,21 +7,21 @@ import (
 	"github.com/guregu/dynamo"
 )
 
-type DynamoDiaryRepository struct {
+type DiaryRepository struct {
 	db    *dynamo.DB
 	table dynamo.Table
 }
 
-func NewDynamoDiaryRepository(sess *session.Session, tableName string) *DynamoDiaryRepository {
+func NewDiaryRepository(sess *session.Session, tableName string) *DiaryRepository {
 	db := dynamo.New(sess)
 	table := db.Table(tableName)
-	return &DynamoDiaryRepository{
+	return &DiaryRepository{
 		db:    db,
 		table: table,
 	}
 }
 
-func (r *DynamoDiaryRepository) GetDiary(memberName string, diaryId int) (*model.Diary, error) {
+func (r *DiaryRepository) GetDiary(memberName string, diaryId int) (*model.Diary, error) {
 	diary := new(model.Diary)
 	err := r.table.Get("member_name", memberName).Range("diary_id", dynamo.Equal, diaryId).One(diary)
 	if err != nil {
@@ -33,6 +33,6 @@ func (r *DynamoDiaryRepository) GetDiary(memberName string, diaryId int) (*model
 	return diary, nil
 }
 
-func (r *DynamoDiaryRepository) PostDiary(diary *model.Diary) error {
+func (r *DiaryRepository) PostDiary(diary *model.Diary) error {
 	return r.table.Put(diary).Run()
 }

@@ -62,7 +62,7 @@ func (*MockSubscriberRepository) GetAllById(id string) ([]model.Subscriber, erro
 
 func TestExcute(t *testing.T) {
 	t.Skip("skipping this test for now")
-	godotenv.Load("../.env")
+	_ = godotenv.Load("../.env")
 	channelSecret := os.Getenv("CHANNEL_SECRET")
 	channelToken := os.Getenv("CHANNEL_TOKEN")
 	me := os.Getenv("ME")

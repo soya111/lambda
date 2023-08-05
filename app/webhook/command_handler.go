@@ -107,10 +107,15 @@ func (h *Handler) handleWhoamiCommand(event *linebot.Event, params []string) err
 }
 
 func (h *Handler) handleHelpCommand(event *linebot.Event, params []string) error {
-	replyText := "Available commands are:\n"
+	var replyTextBuilder strings.Builder
 	for command, cmdInfo := range h.getCommandHandlers() {
-		replyText += fmt.Sprintf("%s: %s\n", string(command), cmdInfo.Desc)
+		replyTextBuilder.WriteString(fmt.Sprintf("%s: %s\n", string(command), cmdInfo.Desc))
 	}
+
+	// 最後の改行を取り除く
+	replyText := replyTextBuilder.String()
+	replyText = strings.TrimSuffix(replyText, "\n")
+
 	if _, err := h.bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(replyText)).Do(); err != nil {
 		return err
 	}

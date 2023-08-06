@@ -3,7 +3,7 @@ package line
 import (
 	"context"
 	"fmt"
-	"notify/pkg/model"
+	"notify/pkg/blog"
 
 	"github.com/aws/aws-lambda-go/lambdacontext"
 	"github.com/hashicorp/go-multierror"
@@ -27,23 +27,21 @@ func (b *Linebot) CreateTextMessages(messages ...string) []linebot.SendingMessag
 	return sendingMessages
 }
 
-func (b *Linebot) CreateFlexMessage(diary *model.Diary, icon, lead string, images []string) linebot.SendingMessage {
+func (b *Linebot) CreateFlexMessage(diary *blog.ScrapedDiary) linebot.SendingMessage {
 	var container []*linebot.BubbleContainer
-	container = append(container, b.CreateFlexTextMessage(diary, icon, lead))
+	container = append(container, b.CreateFlexTextMessage(diary))
 
-	if len(images) > 0 {
-		container = append(container, b.CreateFlexImagesMessage(images)...)
-	}
+	container = append(container, b.CreateFlexImagesMessage(diary.Images)...)
 
 	outerContainer := &linebot.CarouselContainer{
 		Type:     linebot.FlexContainerTypeCarousel,
 		Contents: container,
 	}
 
-	return linebot.NewFlexMessage(MessageBlogUpdate, outerContainer).WithSender(linebot.NewSender(diary.MemberName, icon))
+	return linebot.NewFlexMessage(MessageBlogUpdate, outerContainer).WithSender(linebot.NewSender(diary.MemberName, diary.MemberIcon))
 }
 
-func (b *Linebot) CreateFlexTextMessage(diary *model.Diary, icon, lead string) *linebot.BubbleContainer {
+func (b *Linebot) CreateFlexTextMessage(diary *blog.ScrapedDiary) *linebot.BubbleContainer {
 	container := MegaBubbleContainer
 
 	container.Body = &linebot.BoxComponent{
@@ -61,7 +59,7 @@ func (b *Linebot) CreateFlexTextMessage(diary *model.Diary, icon, lead string) *
 						Contents: []linebot.FlexComponent{
 							&linebot.ImageComponent{
 								Type:        linebot.FlexComponentTypeImage,
-								URL:         icon,
+								URL:         diary.MemberIcon,
 								Size:        linebot.FlexImageSizeTypeFull,
 								AspectMode:  linebot.FlexImageAspectModeTypeCover,
 								AspectRatio: linebot.FlexImageAspectRatioType4to3,
@@ -140,7 +138,7 @@ func (b *Linebot) CreateFlexTextMessage(diary *model.Diary, icon, lead string) *
 												Wrap:   true,
 												Margin: linebot.FlexComponentMarginTypeXs,
 												Color:  "#ffffffde",
-												Text:   fmt.Sprintf("%s...", lead),
+												Text:   fmt.Sprintf("%s...", diary.Lead),
 											},
 										},
 									},

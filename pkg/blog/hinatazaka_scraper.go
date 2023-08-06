@@ -13,6 +13,11 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+const (
+	RootURL = "https://www.hinatazaka46.com"
+	TimeFmt = "2006.1.2 15:04 (MST)"
+)
+
 type HinatazakaScraper struct {
 	Scraper
 	repo model.DiaryRepository
@@ -23,17 +28,20 @@ func NewHinatazakaScraper(repo model.DiaryRepository) *HinatazakaScraper {
 }
 
 // 最新の記事を取得する
-func (s *HinatazakaScraper) GetLatestDiaries() ([]*model.Diary, error) {
-	latestDiaries := s.scrapeLatestDiaries()
+func (s *HinatazakaScraper) GetLatestDiaries() ([]*ScrapedDiary, error) {
+	latestDiaries, err := s.scrapeLatestDiaries()
+	if err != nil {
+		return nil, err
+	}
 
-	res := []*model.Diary{}
-	for _, d := range latestDiaries {
-		_, err := s.repo.GetDiary(d.MemberName, d.Id)
+	res := []*ScrapedDiary{}
+	for _, diary := range latestDiaries {
+		_, err := s.repo.GetDiary(diary.MemberName, diary.Id)
 		if err != nil {
 			// Check if the error is a "not found" error.
 			if err == model.ErrDiaryNotFound {
 				// The item is not in the database, so it's a new diary.
-				res = append(res, d)
+				res = append(res, diary)
 				continue
 			}
 			// Some other error occurred.
@@ -45,10 +53,11 @@ func (s *HinatazakaScraper) GetLatestDiaries() ([]*model.Diary, error) {
 }
 
 // 記事を保存する
-func (s *HinatazakaScraper) PostDiaries(diaries []*model.Diary) error {
+func (s *HinatazakaScraper) PostDiaries(diaries []*ScrapedDiary) error {
 	for _, d := range diaries {
-		fmt.Printf("%s %s %s\n%s\n", d.Date, d.Title, d.MemberName, d.Url)
-		if err := s.repo.PostDiary(d); err != nil {
+		diary := ConvertScrapedDiaryToDiary(d)
+		fmt.Printf("%s %s %s\n%s\n", diary.Date, diary.Title, diary.MemberName, diary.Url)
+		if err := s.repo.PostDiary(diary); err != nil {
 			return err
 		}
 	}
@@ -56,35 +65,26 @@ func (s *HinatazakaScraper) PostDiaries(diaries []*model.Diary) error {
 	return nil
 }
 
-func (s *HinatazakaScraper) scrapeLatestDiaries() []*model.Diary {
-	rootURL := "https://www.hinatazaka46.com"
-	url := "https://www.hinatazaka46.com/s/official/diary/member/list?ima=0000"
+func (s *HinatazakaScraper) scrapeLatestDiaries() ([]*ScrapedDiary, error) {
+	url := fmt.Sprintf("%s/s/official/diary/member/list?ima=0000", RootURL)
 	document, err := scrape.GetDocumentFromURL(url)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return nil
+		return nil, err
 	}
 
-	res := []*model.Diary{}
+	res := []*ScrapedDiary{}
 	articles := document.Find(".p-blog-article")
 
 	articles.Each(func(i int, sl *goquery.Selection) {
-		updateAt, err := time.Parse("2006.1.2 15:04 (MST)", strings.TrimSpace(sl.Find(".c-blog-article__date").Text())+" (JST)")
+		diary, err := s.parseDiaryFromSelection(sl)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
+			fmt.Printf("error parsing diary from selection: %v\n", err)
 			return
 		}
-
-		href := sl.Find(".c-button-blog-detail").Nodes[0].Attr[1].Val
-		title := strings.TrimSpace(sl.Find(".c-blog-article__title").Text())
-		name := strings.TrimSpace(sl.Find(".c-blog-article__name").Text())
-		diaryId := s.getIdFromHref(href)
-
-		newDiary := model.NewDiary(rootURL+href, title, name, updateAt, diaryId)
-		res = append(res, newDiary)
+		res = append(res, diary)
 	})
 
-	return slices.Reverse(res)
+	return slices.Reverse(res), nil
 }
 
 func (*HinatazakaScraper) getIdFromHref(href string) int {
@@ -128,4 +128,49 @@ func (s *HinatazakaScraper) GetMemberIcon(document *goquery.Document) string {
 		}
 	})
 	return iconUrl
+}
+
+// 各メンバーごとの最新記事を取得する
+func (s *HinatazakaScraper) GetLatestDiaryByMember(memberName string) (*ScrapedDiary, error) {
+	memberNumber, err := model.GetMemberNumber(memberName)
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("%s/s/official/diary/member/list?ima=0000&ct=%s", RootURL, memberNumber)
+
+	document, err := scrape.GetDocumentFromURL(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get document from url %s: %w", url, err)
+	}
+
+	article := document.Find(".p-blog-article").First()
+
+	diary, err := s.parseDiaryFromSelection(article)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse diary from selection: %w", err)
+	}
+
+	return diary, nil
+}
+
+func (s *HinatazakaScraper) parseDiaryFromSelection(sl *goquery.Selection) (*ScrapedDiary, error) {
+	href := sl.Find(".c-button-blog-detail").Nodes[0].Attr[1].Val
+	title := strings.TrimSpace(sl.Find(".c-blog-article__title").Text())
+	name := strings.TrimSpace(sl.Find(".c-blog-article__name").Text())
+	diaryId := s.getIdFromHref(href)
+
+	date, err := time.Parse(TimeFmt, strings.TrimSpace(sl.Find(".c-blog-article__date").Text())+" (JST)")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	images := s.GetImages(&goquery.Document{Selection: sl})
+	lead := scrape.GetFirstNChars(&goquery.Document{Selection: sl}, ".c-blog-article__text", 50)
+	iconUrl := s.GetMemberIcon(&goquery.Document{Selection: sl})
+
+	diary := NewScrapedDiary(RootURL+href, title, name, date, diaryId, images, lead, iconUrl)
+
+	return diary, nil
 }

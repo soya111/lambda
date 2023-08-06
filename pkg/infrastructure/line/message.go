@@ -170,7 +170,13 @@ func (b *Linebot) CreateFlexTextMessage(diary *blog.ScrapedDiary) *linebot.Bubbl
 
 func (b *Linebot) CreateFlexImagesMessage(urls []string) []*linebot.BubbleContainer {
 	contents := []*linebot.BubbleContainer{}
-	for _, url := range urls[:11] {
+	num := len(urls)
+	if num > 11 {
+		num = 11
+	}
+
+	for _, url := range urls[:num] {
+
 		content := MegaBubbleContainer
 
 		content.Body = &linebot.BoxComponent{

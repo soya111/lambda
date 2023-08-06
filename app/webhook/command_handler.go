@@ -4,6 +4,8 @@ package webhook
 import (
 	"context"
 	"fmt"
+	"notify/pkg/blog"
+	"notify/pkg/infrastructure/line"
 	"notify/pkg/model"
 	"strings"
 
@@ -25,6 +27,7 @@ const (
 	ListCommand   Command = "list"
 	WhoamiCommand Command = "whoami"
 	HelpCommand   Command = "help"
+	BlogCommand   Command = "blog"
 	// 新しいコマンドを追加する場合はここに定義する
 )
 
@@ -50,6 +53,10 @@ func (h *Handler) getCommandHandlers() CommandHandlers {
 			Handler: h.handleHelpCommand,
 			Desc:    "Show the list of available commands. Usage: help",
 		},
+		BlogCommand: {
+			Handler: h.handleBlogCommand,
+			Desc:    "Get the latest blog of a member. Usage: blog [member]",
+		},
 		// 新たに追加するコマンドも同様にここに追加します
 	}
 }
@@ -68,7 +75,7 @@ func (h *Handler) handleRegCommand(event *linebot.Event, params []string) error 
 	if len(params) < 2 {
 		return nil
 	}
-	if !isMember(params[1]) {
+	if !model.IsMember(params[1]) {
 		return nil
 	}
 	member := params[1]
@@ -83,7 +90,7 @@ func (h *Handler) handleUnregCommand(event *linebot.Event, params []string) erro
 	if len(params) < 2 {
 		return nil
 	}
-	if !isMember(params[1]) {
+	if !model.IsMember(params[1]) {
 		return nil
 	}
 	member := params[1]
@@ -116,8 +123,35 @@ func (h *Handler) handleHelpCommand(event *linebot.Event, params []string) error
 	replyText := replyTextBuilder.String()
 	replyText = strings.TrimSuffix(replyText, "\n")
 
-	if _, err := h.bot.ReplyMessage(event.ReplyToken, linebot.NewTextMessage(replyText)).Do(); err != nil {
+	if err := h.bot.ReplyMessage(context.TODO(), event.ReplyToken, linebot.NewTextMessage(replyText)); err != nil {
 		return err
+	}
+	return nil
+}
+
+func (h *Handler) handleBlogCommand(event *linebot.Event, params []string) error {
+	if len(params) < 2 {
+		return fmt.Errorf("Member name must be provided. Usage: blog [member]")
+	}
+
+	memberName := params[1]
+	if !model.IsMember(memberName) {
+		if err := h.bot.ReplyTextMessages(context.TODO(), event.ReplyToken, fmt.Sprintf("%sは存在しません。", memberName)); err != nil {
+			return fmt.Errorf("handleBlogCommand: %w", err)
+		}
+	}
+
+	scraper := blog.NewHinatazakaScraper(nil)
+	diary, err := scraper.GetLatestDiaryByMember(memberName)
+	if err != nil {
+		return h.bot.ReplyWithError(context.TODO(), event.ReplyToken, "内部エラー", err)
+	}
+
+	message := h.bot.CreateFlexMessage(diary)
+
+	err = h.bot.ReplyMessage(context.TODO(), event.ReplyToken, message)
+	if err != nil {
+		return fmt.Errorf("handleBlogCommand: %w", err)
 	}
 	return nil
 }
@@ -131,7 +165,7 @@ func (h *Handler) registerMember(member string, event *linebot.Event) error {
 	ctx := context.TODO()
 	token := event.ReplyToken
 
-	id := extractEventSourceIdentifier(event)
+	id := line.ExtractEventSourceIdentifier(event)
 	if id == "" {
 		err := fmt.Errorf("invalid source type: %v", event.Source.Type)
 		return h.bot.ReplyWithError(ctx, token, "Invalid source type!", err)
@@ -153,7 +187,7 @@ func (h *Handler) unregisterMember(member string, event *linebot.Event) error {
 	ctx := context.TODO() // あるいは他の適切なコンテキストを使用します
 	token := event.ReplyToken
 
-	id := extractEventSourceIdentifier(event)
+	id := line.ExtractEventSourceIdentifier(event)
 	if id == "" {
 		err := fmt.Errorf("invalid source type: %v", event.Source.Type)
 		return h.bot.ReplyWithError(ctx, token, "Invalid source type!", err)
@@ -175,7 +209,7 @@ func (h *Handler) showSubscribeList(event *linebot.Event) error {
 	ctx := context.TODO() // あるいは他の適切なコンテキストを使用します
 	token := event.ReplyToken
 
-	id := extractEventSourceIdentifier(event)
+	id := line.ExtractEventSourceIdentifier(event)
 	if id == "" {
 		err := fmt.Errorf("invalid source type: %v", event.Source.Type)
 		return h.bot.ReplyWithError(ctx, token, "Invalid source type!", err)
@@ -197,5 +231,5 @@ func (h *Handler) showSubscribeList(event *linebot.Event) error {
 }
 
 func (h *Handler) sendWhoami(event *linebot.Event) error {
-	return h.bot.ReplyTextMessages(context.TODO(), event.ReplyToken, extractEventSourceIdentifier(event))
+	return h.bot.ReplyTextMessages(context.TODO(), event.ReplyToken, line.ExtractEventSourceIdentifier(event))
 }

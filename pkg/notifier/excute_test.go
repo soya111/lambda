@@ -16,13 +16,16 @@ import (
 
 type ScraperMock struct{}
 
-func (*ScraperMock) GetLatestDiaries() ([]*model.Diary, error) {
-	return []*model.Diary{
-		model.NewDiary("https://www.hinatazaka46.com/s/official/diary/detail/20317", "ニャー0( =^ ・_・^)= 〇", "加藤 史帆", time.Now(), 20317),
+func (*ScraperMock) GetLatestDiaries() ([]*blog.ScrapedDiary, error) {
+	// return []*model.Diary{
+	// 	model.NewDiary("https://www.hinatazaka46.com/s/official/diary/detail/20317", "ニャー0( =^ ・_・^)= 〇", "加藤 史帆", time.Now(), 20317),
+	// }, nil
+	return []*blog.ScrapedDiary{
+		blog.NewScrapedDiary("https://www.hinatazaka46.com/s/official/diary/detail/20317", "ニャー0( =^ ・_・^)= 〇", "加藤 史帆", time.Now(), 20317, []string{}, "", ""),
 	}, nil
 }
 
-func (*ScraperMock) PostDiaries(diaries []*model.Diary) error {
+func (*ScraperMock) PostDiaries(diaries []*blog.ScrapedDiary) error {
 	// モックなので何もしない
 	return nil
 }

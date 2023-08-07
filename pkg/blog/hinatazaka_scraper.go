@@ -112,21 +112,23 @@ func (s *HinatazakaScraper) GetImages(document *goquery.Document) []string {
 	return srcs
 }
 
-func (s *HinatazakaScraper) GetMemberIcon(document *goquery.Document) string {
-	var iconUrl = "https://natalie.mu/music/news/472084"
-	// Find the div with class .c-blog-member__icon
-	document.Find(".c-blog-member__icon").Each(func(i int, s *goquery.Selection) {
-		// Get the style attribute
-		style, exists := s.Attr("style")
-		if exists {
-			// Split the style string into 2 parts: "background-image:url(" and the url with ");" at the end
-			splittedStyle := strings.Split(style, "(")
-			if len(splittedStyle) == 2 {
-				// Remove the ");" from the end of the second part of splittedStyle to get the url
-				iconUrl = strings.TrimSuffix(splittedStyle[1], ");")
-			}
+func (s *HinatazakaScraper) GetIconURLByID(document *goquery.Document, memberID string) string {
+	var iconUrl = "https://cdn.hinatazaka46.com/images/14/14d/a9bac831ed1e6a4fdd93c4271aa8a.jpg"
+
+	query := fmt.Sprintf(`.p-blog-face__list[data-member="%s"]`, memberID)
+	div := document.Find(query).First().Find(".c-blog-face__item")
+
+	// Get the style attribute
+	style, exists := div.Attr("style")
+	if exists {
+		// Split the style string to extract the URL
+		splittedStyle := strings.Split(style, "(")
+		if len(splittedStyle) == 2 {
+			// Remove the ");" from the end of the second part of splittedStyle to get the url
+			iconUrl = strings.TrimSuffix(splittedStyle[1], ");")
 		}
-	})
+	}
+
 	return iconUrl
 }
 
@@ -147,10 +149,11 @@ func (s *HinatazakaScraper) GetLatestDiaryByMember(memberName string) (*ScrapedD
 	article := document.Find(".p-blog-article").First()
 
 	diary, err := s.parseDiaryFromSelection(article)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse diary from selection: %w", err)
 	}
+
+	diary.SetMemberIcon(s.GetIconURLByID(document, memberNumber))
 
 	return diary, nil
 }
@@ -168,9 +171,8 @@ func (s *HinatazakaScraper) parseDiaryFromSelection(sl *goquery.Selection) (*Scr
 
 	images := s.GetImages(&goquery.Document{Selection: sl})
 	lead := scrape.GetFirstNChars(&goquery.Document{Selection: sl}, ".c-blog-article__text", 50)
-	iconUrl := s.GetMemberIcon(&goquery.Document{Selection: sl})
 
-	diary := NewScrapedDiary(RootURL+href, title, name, date, diaryId, images, lead, iconUrl)
+	diary := NewScrapedDiary(RootURL+href, title, name, date, diaryId, images, lead)
 
 	return diary, nil
 }

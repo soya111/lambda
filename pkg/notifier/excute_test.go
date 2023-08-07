@@ -21,7 +21,7 @@ func (*ScraperMock) GetLatestDiaries() ([]*blog.ScrapedDiary, error) {
 	// 	model.NewDiary("https://www.hinatazaka46.com/s/official/diary/detail/20317", "ニャー0( =^ ・_・^)= 〇", "加藤 史帆", time.Now(), 20317),
 	// }, nil
 	return []*blog.ScrapedDiary{
-		blog.NewScrapedDiary("https://www.hinatazaka46.com/s/official/diary/detail/20317", "ニャー0( =^ ・_・^)= 〇", "加藤 史帆", time.Now(), 20317, []string{}, "", ""),
+		blog.NewScrapedDiary("https://www.hinatazaka46.com/s/official/diary/detail/20317", "ニャー0( =^ ・_・^)= 〇", "加藤 史帆", time.Now(), 20317, []string{}, ""),
 	}, nil
 }
 

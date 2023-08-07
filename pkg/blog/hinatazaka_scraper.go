@@ -175,7 +175,17 @@ func (s *HinatazakaScraper) parseDiaryFromSelection(sl *goquery.Selection) (*Scr
 	}
 
 	images := s.GetImages(&goquery.Document{Selection: sl})
-	lead := scrape.GetFirstNChars(&goquery.Document{Selection: sl}, ".c-blog-article__text", 50)
+
+	opt := scrape.TextExtractionOptions{
+		MaxLength:       50,
+		IncludeNewlines: false,
+		AppendEllipsis:  true,
+	}
+
+	lead, err := scrape.ExtractAndFormatTextFromElement(&goquery.Document{Selection: sl}, ".c-blog-article__text", opt)
+	if err != nil {
+		fmt.Printf("error extracting text from element: %v\n", err)
+	}
 
 	diary := NewScrapedDiary(RootURL+href, title, name, date, diaryId, images, lead)
 

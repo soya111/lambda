@@ -7,9 +7,10 @@ import (
 	"notify/pkg/infrastructure/scrape"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestGetFirstNChars(t *testing.T) {
+func TestExtractAndFormatTextFromElement(t *testing.T) {
 	tests := []struct {
 		name     string
 		html     string
@@ -21,8 +22,8 @@ func TestGetFirstNChars(t *testing.T) {
 			name:     "Simple English text",
 			html:     `<div class="test">Hello, world!</div>`,
 			selector: ".test",
-			n:        11,
-			expected: "Hello,world",
+			n:        12,
+			expected: "Hello, world",
 		},
 		{
 			name:     "Two English sentences",
@@ -66,6 +67,48 @@ func TestGetFirstNChars(t *testing.T) {
 			n:        5,
 			expected: "Hello",
 		},
+		{
+			name:     "Invalid selector",
+			html:     `<div class="test">Hello, world!</div>`,
+			selector: ".invalid",
+			n:        12,
+			expected: "",
+		},
+		{
+			name:     "Empty text",
+			html:     `<div class="test"></div>`,
+			selector: ".test",
+			n:        5,
+			expected: "",
+		},
+		{
+			name:     "Whitespace only text",
+			html:     `<div class="test">     </div>`,
+			selector: ".test",
+			n:        5,
+			expected: "",
+		},
+		{
+			name:     "Text with leading and trailing whitespaces",
+			html:     `  <div class="test">   Hello   </div>  `,
+			selector: ".test",
+			n:        8,
+			expected: "Hello",
+		},
+		{
+			name:     "MaxLength set to 0",
+			html:     `<div class="test">Hello, world!</div>`,
+			selector: ".test",
+			n:        0,
+			expected: "",
+		},
+		{
+			name:     "Text length same as MaxLength",
+			html:     `<div class="test">Hello</div>`,
+			selector: ".test",
+			n:        5,
+			expected: "Hello",
+		},
 	}
 
 	for _, tt := range tests {
@@ -75,8 +118,12 @@ func TestGetFirstNChars(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+			opt := scrape.TextExtractionOptions{
+				MaxLength: tt.n,
+			}
 
-			result := scrape.GetFirstNChars(doc, tt.selector, tt.n)
+			result, err := scrape.ExtractAndFormatTextFromElement(doc, tt.selector, opt)
+			assert.NoError(t, err)
 			if result != tt.expected {
 				t.Errorf("Expected '%s', got '%s'", tt.expected, result)
 			}

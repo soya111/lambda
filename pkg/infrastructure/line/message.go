@@ -138,7 +138,7 @@ func (b *Linebot) CreateFlexTextMessage(diary *blog.ScrapedDiary) *linebot.Bubbl
 												Wrap:   true,
 												Margin: linebot.FlexComponentMarginTypeXs,
 												Color:  "#ffffffde",
-												Text:   fmt.Sprintf("%s...", diary.Lead),
+												Text:   diary.Lead,
 											},
 										},
 									},

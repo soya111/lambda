@@ -1,6 +1,9 @@
 package model
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 var (
 	MemberList = []string{
@@ -31,7 +34,7 @@ var (
 	}
 )
 
-var MemberToNumberMap = map[string]string{
+var MemberToIdMap = map[string]string{
 	"潮紗理菜":   "2",
 	"影山優佳":   "4",
 	"加藤史帆":   "5",
@@ -58,13 +61,19 @@ var MemberToNumberMap = map[string]string{
 	"四期生リレー": "2000",
 }
 
+func normalizeName(name string) string {
+	name = strings.TrimSpace(name)
+	name = strings.ReplaceAll(name, " ", "")
+	return name
+}
 func IsMember(text string) bool {
-	_, exists := MemberToNumberMap[text]
+	_, exists := MemberToIdMap[text]
 	return exists
 }
 
-func GetMemberNumber(memberName string) (string, error) {
-	number, exists := MemberToNumberMap[memberName]
+func GetMemberId(memberName string) (string, error) {
+	memberName = normalizeName(memberName)
+	number, exists := MemberToIdMap[memberName]
 	if !exists {
 		return "", fmt.Errorf("member not found: %s", memberName)
 	}

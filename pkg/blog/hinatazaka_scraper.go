@@ -81,6 +81,11 @@ func (s *HinatazakaScraper) scrapeLatestDiaries() ([]*ScrapedDiary, error) {
 			fmt.Printf("error parsing diary from selection: %v\n", err)
 			return
 		}
+		memberId, err := model.GetMemberId(diary.MemberName)
+		if err != nil {
+			fmt.Printf("error getting member id: %v\n", err)
+		}
+		diary.SetMemberIcon(s.GetIconURLByID(document, memberId))
 		res = append(res, diary)
 	})
 
@@ -134,12 +139,12 @@ func (s *HinatazakaScraper) GetIconURLByID(document *goquery.Document, memberID 
 
 // 各メンバーごとの最新記事を取得する
 func (s *HinatazakaScraper) GetLatestDiaryByMember(memberName string) (*ScrapedDiary, error) {
-	memberNumber, err := model.GetMemberNumber(memberName)
+	memberId, err := model.GetMemberId(memberName)
 	if err != nil {
 		return nil, err
 	}
 
-	url := fmt.Sprintf("%s/s/official/diary/member/list?ima=0000&ct=%s", RootURL, memberNumber)
+	url := fmt.Sprintf("%s/s/official/diary/member/list?ima=0000&ct=%s", RootURL, memberId)
 
 	document, err := scrape.GetDocumentFromURL(url)
 	if err != nil {
@@ -153,7 +158,7 @@ func (s *HinatazakaScraper) GetLatestDiaryByMember(memberName string) (*ScrapedD
 		return nil, fmt.Errorf("failed to parse diary from selection: %w", err)
 	}
 
-	diary.SetMemberIcon(s.GetIconURLByID(document, memberNumber))
+	diary.SetMemberIcon(s.GetIconURLByID(document, memberId))
 
 	return diary, nil
 }

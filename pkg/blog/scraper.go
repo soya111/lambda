@@ -3,15 +3,11 @@ package blog
 import (
 	"notify/pkg/model"
 	"time"
-
-	"github.com/PuerkitoBio/goquery"
 )
 
 type Scraper interface {
 	GetLatestDiaries() ([]*ScrapedDiary, error)
 	PostDiaries([]*ScrapedDiary) error
-	GetImages(*goquery.Document) []string
-	GetMemberIcon(*goquery.Document) string
 }
 
 type ScrapedDiary struct {
@@ -25,8 +21,13 @@ type ScrapedDiary struct {
 	MemberIcon string   `json:"member_icon"`
 }
 
-func NewScrapedDiary(url, title, memberName string, date time.Time, id int, images []string, lead string, memberIcon string) *ScrapedDiary {
-	return &ScrapedDiary{url, title, memberName, date.Format(TimeFmt), id, images, lead, memberIcon}
+func NewScrapedDiary(url, title, memberName string, date time.Time, id int, images []string, lead string) *ScrapedDiary {
+	return &ScrapedDiary{url, title, memberName, date.Format(TimeFmt), id, images, lead, ""}
+}
+
+// SetMemberIconはScrapedDiaryのMemberIconを設定します。
+func (sd *ScrapedDiary) SetMemberIcon(iconUrl string) {
+	sd.MemberIcon = iconUrl
 }
 
 // ScrapedDiaryをDiaryに変換する

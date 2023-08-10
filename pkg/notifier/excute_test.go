@@ -16,7 +16,7 @@ import (
 
 type ScraperMock struct{}
 
-func (*ScraperMock) GetLatestDiaries() ([]*blog.ScrapedDiary, error) {
+func (*ScraperMock) ScrapeLatestDiaries() ([]*blog.ScrapedDiary, error) {
 	// return []*model.Diary{
 	// 	model.NewDiary("https://www.hinatazaka46.com/s/official/diary/detail/20317", "ニャー0( =^ ・_・^)= 〇", "加藤 史帆", time.Now(), 20317),
 	// }, nil
@@ -73,7 +73,7 @@ func TestExcute(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = Excute(context.Background(), &ScraperMock{}, bot, NewMockSubscriberRepository(me))
+	err = Excute(context.Background(), &ScraperMock{}, bot, NewMockSubscriberRepository(me), nil)
 	if err != nil {
 		t.Fatal(err)
 	}

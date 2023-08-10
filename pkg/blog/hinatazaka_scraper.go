@@ -21,52 +21,15 @@ const (
 
 type HinatazakaScraper struct {
 	Scraper
-	repo model.DiaryRepository
+	// repo model.DiaryRepository
 }
 
 func NewHinatazakaScraper(repo model.DiaryRepository) *HinatazakaScraper {
-	return &HinatazakaScraper{repo: repo}
+	return &HinatazakaScraper{}
 }
 
-// 最新の記事を取得する
-func (s *HinatazakaScraper) GetLatestDiaries() ([]*ScrapedDiary, error) {
-	latestDiaries, err := s.scrapeLatestDiaries()
-	if err != nil {
-		return nil, err
-	}
-
-	res := []*ScrapedDiary{}
-	for _, diary := range latestDiaries {
-		_, err := s.repo.GetDiary(diary.MemberName, diary.Id)
-		if err != nil {
-			// Check if the error is a "not found" error.
-			if err == model.ErrDiaryNotFound {
-				// The item is not in the database, so it's a new diary.
-				res = append(res, diary)
-				continue
-			}
-			// Some other error occurred.
-			return nil, err
-		}
-	}
-
-	return res, nil
-}
-
-// 記事を保存する
-func (s *HinatazakaScraper) PostDiaries(diaries []*ScrapedDiary) error {
-	for _, d := range diaries {
-		diary := ConvertScrapedDiaryToDiary(d)
-		fmt.Printf("%s %s %s\n%s\n", diary.Date, diary.Title, diary.MemberName, diary.Url)
-		if err := s.repo.PostDiary(diary); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (s *HinatazakaScraper) scrapeLatestDiaries() ([]*ScrapedDiary, error) {
+// 古い順に記事を取得する
+func (s *HinatazakaScraper) ScrapeLatestDiaries() ([]*ScrapedDiary, error) {
 	url := fmt.Sprintf("%s/s/official/diary/member/list?ima=0000", RootURL)
 	document, err := scrape.GetDocumentFromURL(url)
 	if err != nil {

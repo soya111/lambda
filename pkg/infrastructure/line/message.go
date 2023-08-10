@@ -19,7 +19,7 @@ var MegaBubbleContainer = linebot.BubbleContainer{
 	Size: linebot.FlexBubbleSizeTypeMega,
 }
 
-func (b *Linebot) CreateTextMessages(messages ...string) []linebot.SendingMessage {
+func CreateTextMessages(messages ...string) []linebot.SendingMessage {
 	var sendingMessages []linebot.SendingMessage
 	for _, message := range messages {
 		sendingMessages = append(sendingMessages, linebot.NewTextMessage(message))
@@ -27,11 +27,11 @@ func (b *Linebot) CreateTextMessages(messages ...string) []linebot.SendingMessag
 	return sendingMessages
 }
 
-func (b *Linebot) CreateFlexMessage(diary *blog.ScrapedDiary) linebot.SendingMessage {
+func CreateFlexMessage(diary *blog.ScrapedDiary) linebot.SendingMessage {
 	var container []*linebot.BubbleContainer
-	container = append(container, b.CreateFlexTextMessage(diary))
+	container = append(container, createFlexTextMessage(diary))
 
-	container = append(container, b.CreateFlexImagesMessage(diary.Images)...)
+	container = append(container, createFlexImagesMessage(diary.Images)...)
 
 	outerContainer := &linebot.CarouselContainer{
 		Type:     linebot.FlexContainerTypeCarousel,
@@ -41,7 +41,7 @@ func (b *Linebot) CreateFlexMessage(diary *blog.ScrapedDiary) linebot.SendingMes
 	return linebot.NewFlexMessage(MessageBlogUpdate, outerContainer).WithSender(linebot.NewSender(diary.MemberName, diary.MemberIcon))
 }
 
-func (b *Linebot) CreateFlexTextMessage(diary *blog.ScrapedDiary) *linebot.BubbleContainer {
+func createFlexTextMessage(diary *blog.ScrapedDiary) *linebot.BubbleContainer {
 	container := MegaBubbleContainer
 
 	container.Body = &linebot.BoxComponent{
@@ -168,7 +168,7 @@ func (b *Linebot) CreateFlexTextMessage(diary *blog.ScrapedDiary) *linebot.Bubbl
 	return &container
 }
 
-func (b *Linebot) CreateFlexImagesMessage(urls []string) []*linebot.BubbleContainer {
+func createFlexImagesMessage(urls []string) []*linebot.BubbleContainer {
 	contents := []*linebot.BubbleContainer{}
 	num := len(urls)
 	if num > 11 {

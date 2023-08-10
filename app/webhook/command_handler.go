@@ -185,7 +185,7 @@ func (c *BlogCommand) Execute(event *linebot.Event, args []string) error {
 		return c.bot.ReplyWithError(context.TODO(), event.ReplyToken, "内部エラー", err)
 	}
 
-	message := c.bot.CreateFlexMessage(diary)
+	message := line.CreateFlexMessage(diary)
 
 	err = c.bot.ReplyMessage(context.TODO(), event.ReplyToken, message)
 	if err != nil {

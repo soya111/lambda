@@ -6,8 +6,7 @@ import (
 )
 
 type Scraper interface {
-	GetLatestDiaries() ([]*ScrapedDiary, error)
-	PostDiaries([]*ScrapedDiary) error
+	ScrapeLatestDiaries() ([]*ScrapedDiary, error)
 }
 
 type ScrapedDiary struct {

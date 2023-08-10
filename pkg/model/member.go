@@ -81,7 +81,7 @@ var MemberToIdMap = map[string]string{
 	"ポカ":    "000",
 }
 
-func normalizeName(name string) string {
+func NormalizeName(name string) string {
 	name = strings.TrimSpace(name)
 	name = strings.ReplaceAll(name, " ", "")
 	return name
@@ -92,7 +92,7 @@ func IsMember(text string) bool {
 }
 
 func GetMemberId(memberName string) (string, error) {
-	memberName = normalizeName(memberName)
+	memberName = NormalizeName(memberName)
 	number, exists := MemberToIdMap[memberName]
 	if !exists {
 		return "", fmt.Errorf("member not found: %s", memberName)

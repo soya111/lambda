@@ -13,31 +13,43 @@ import (
 	"golang.org/x/net/html/charset"
 )
 
-// Document structを返す
-// エラー握りつぶし
+// GetDocumentFromURL gets the HTML document from the given URL.
 func GetDocumentFromURL(url string) (*goquery.Document, error) {
 	res, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
+
 	if res.StatusCode != 200 {
 		return nil, fmt.Errorf("status code: %d error: %s", res.StatusCode, res.Status)
 	}
-	defer res.Body.Close()
 
 	// Body内を読み取り
-	buffer, _ := io.ReadAll(res.Body)
+	buffer, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
 
 	// 文字コードを判定
 	detector := chardet.NewTextDetector()
-	detectResult, _ := detector.DetectBest(buffer)
+	detectResult, err := detector.DetectBest(buffer)
+	if err != nil {
+		return nil, err
+	}
 
 	// 文字コードの変換
 	bufferReader := bytes.NewReader(buffer)
-	reader, _ := charset.NewReaderLabel(detectResult.Charset, bufferReader)
+	reader, err := charset.NewReaderLabel(detectResult.Charset, bufferReader)
+	if err != nil {
+		return nil, err
+	}
 
 	// HTMLをパース
-	document, _ := goquery.NewDocumentFromReader(reader)
+	document, err := goquery.NewDocumentFromReader(reader)
+	if err != nil {
+		return nil, err
+	}
 
 	return document, nil
 }

@@ -15,7 +15,7 @@ func TestGetLatestDiaryByMember(t *testing.T) {
 		expectErr  bool
 	}{
 		{"加藤史帆", "加藤史帆", false},
-		{"四期生リレー", "四期生リレー", false},
+		{"正源司陽子", "正源司陽子", false},
 		{"ポカ", "ポカ", false},
 	}
 

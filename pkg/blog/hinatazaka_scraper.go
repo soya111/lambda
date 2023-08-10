@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"notify/pkg/infrastructure/scrape"
 	"notify/pkg/model"
-	"notify/pkg/slices"
+
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -89,7 +90,9 @@ func (s *HinatazakaScraper) scrapeLatestDiaries() ([]*ScrapedDiary, error) {
 		res = append(res, diary)
 	})
 
-	return slices.Reverse(res), nil
+	slices.Reverse(res)
+
+	return res, nil
 }
 
 func (*HinatazakaScraper) getIdFromHref(href string) int {

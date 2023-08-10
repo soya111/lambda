@@ -43,7 +43,8 @@ func main() {
 		scraper := blog.NewHinatazakaScraper(diary)
 		subscriber := dynamodb.NewSubscriberRepository(sess)
 
-		err := notifier.Excute(ctx, scraper, bot, subscriber, diary)
+		notifier := notifier.NewNotifier(scraper, bot, subscriber, diary)
+		err := notifier.Execute(ctx)
 		if err != nil {
 			return fmt.Errorf("ApplicationError in Excute function: %v", err)
 		}

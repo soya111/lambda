@@ -8,28 +8,47 @@ import (
 	"notify/pkg/model"
 )
 
-func Excute(ctx context.Context, s blog.Scraper, client *line.Linebot, subscriber model.SubscriberRepository, diary model.DiaryRepository) error {
-	latestDiaries, err := getLatestDiaries(s, subscriber, diary)
+// Notifier is a struct that notifies subscribers of new diaries.
+type Notifier struct {
+	scraper    blog.Scraper
+	client     *line.Linebot
+	subscriber model.SubscriberRepository
+	diary      model.DiaryRepository
+}
+
+// NewNotifier creates a new Notifier.
+func NewNotifier(scraper blog.Scraper, client *line.Linebot, subscriber model.SubscriberRepository, diary model.DiaryRepository) *Notifier {
+	return &Notifier{
+		scraper:    scraper,
+		client:     client,
+		subscriber: subscriber,
+		diary:      diary,
+	}
+}
+
+// Execute executes the notifier.
+func (n *Notifier) Execute(ctx context.Context) error {
+	latestDiaries, err := n.getLatestDiaries()
 	if err != nil {
 		return fmt.Errorf("error getting latest diaries: %v", err)
 	}
 
-	if err := notifyAllSubscribers(ctx, client, subscriber, latestDiaries); err != nil {
+	if err := n.notifyAllSubscribers(ctx, latestDiaries); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func getLatestDiaries(s blog.Scraper, subscriber model.SubscriberRepository, diary model.DiaryRepository) ([]*blog.ScrapedDiary, error) {
-	latestDiaries, err := s.ScrapeLatestDiaries()
+func (n *Notifier) getLatestDiaries() ([]*blog.ScrapedDiary, error) {
+	latestDiaries, err := n.scraper.ScrapeLatestDiaries()
 	if err != nil {
 		return nil, fmt.Errorf("error scraping latest diaries: %v", err)
 	}
 
 	res := []*blog.ScrapedDiary{}
 	for _, d := range latestDiaries {
-		_, err := diary.GetDiary(d.MemberName, d.Id)
+		_, err := n.diary.GetDiary(d.MemberName, d.Id)
 		if err != nil {
 			// Check if the error is a "not found" error.
 			if err == model.ErrDiaryNotFound {
@@ -45,24 +64,24 @@ func getLatestDiaries(s blog.Scraper, subscriber model.SubscriberRepository, dia
 	return res, nil
 }
 
-func notifyAllSubscribers(ctx context.Context, client *line.Linebot, subscriber model.SubscriberRepository, diaries []*blog.ScrapedDiary) error {
+func (n *Notifier) notifyAllSubscribers(ctx context.Context, diaries []*blog.ScrapedDiary) error {
 	for _, d := range diaries {
-		if err := notifySubscriber(ctx, client, subscriber, d); err != nil {
+		if err := n.notifySubscriber(ctx, d); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func notifySubscriber(ctx context.Context, client *line.Linebot, subscriber model.SubscriberRepository, diary *blog.ScrapedDiary) error {
-	to, err := subscriber.GetAllByMemberName(model.NormalizeName(diary.MemberName))
+func (n *Notifier) notifySubscriber(ctx context.Context, diary *blog.ScrapedDiary) error {
+	to, err := n.subscriber.GetAllByMemberName(model.NormalizeName(diary.MemberName))
 	if err != nil {
 		return fmt.Errorf("error getting all by member name: %v", err)
 	}
 
 	message := line.CreateFlexMessage(diary)
 
-	if err := client.PushMessages(ctx, to, message); err != nil {
+	if err := n.client.PushMessages(ctx, to, message); err != nil {
 		return fmt.Errorf("error pushing messages: %v", err)
 	}
 

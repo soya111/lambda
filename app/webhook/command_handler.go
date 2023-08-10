@@ -1,4 +1,3 @@
-// command_handler.go
 package webhook
 
 import (
@@ -12,148 +11,191 @@ import (
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
-type Command string
-type CommandInfo struct {
-	Handler CommandHandler
-	Desc    string
+type Command interface {
+	Execute(*linebot.Event, []string) error
+	Description() string
 }
 
-type CommandHandler func(*linebot.Event, []string) error
-type CommandHandlers map[Command]CommandInfo
+type CommandName string
+
+type CommandMap map[CommandName]Command
+
+type BaseCommand struct {
+	bot        *line.Linebot
+	subscriber model.SubscriberRepository
+}
+
+func NewBaseCommand(bot *line.Linebot, subscriber model.SubscriberRepository) *BaseCommand {
+	return &BaseCommand{bot, subscriber}
+}
 
 const (
-	RegCommand    Command = "reg"
-	UnregCommand  Command = "unreg"
-	ListCommand   Command = "list"
-	WhoamiCommand Command = "whoami"
-	HelpCommand   Command = "help"
-	BlogCommand   Command = "blog"
+	CmdReg    CommandName = "reg"
+	CmdUnreg  CommandName = "unreg"
+	CmdList   CommandName = "list"
+	CmdWhoami CommandName = "whoami"
+	CmdHelp   CommandName = "help"
+	CmdBlog   CommandName = "blog"
 	// 新しいコマンドを追加する場合はここに定義する
 )
 
-func (h *Handler) getCommandHandlers() CommandHandlers {
-	return CommandHandlers{
-		RegCommand: {
-			Handler: h.handleRegCommand,
-			Desc:    "Register a member. Usage: reg [member]",
-		},
-		UnregCommand: {
-			Handler: h.handleUnregCommand,
-			Desc:    "Unregister a member. Usage: unreg [member]",
-		},
-		ListCommand: {
-			Handler: h.handleListCommand,
-			Desc:    "Show the list of registered members. Usage: list",
-		},
-		WhoamiCommand: {
-			Handler: h.handleWhoamiCommand,
-			Desc:    "Show your user or group ID. Usage: whoami",
-		},
-		HelpCommand: {
-			Handler: h.handleHelpCommand,
-			Desc:    "Show the list of available commands. Usage: help",
-		},
-		BlogCommand: {
-			Handler: h.handleBlogCommand,
-			Desc:    "Get the latest blog of a member. Usage: blog [member]",
-		},
+func (h *Handler) getCommandHandlers() CommandMap {
+	base := NewBaseCommand(h.bot, h.subscriber)
+	cmdMap := CommandMap{
+		CmdReg:    &RegCommand{base},
+		CmdUnreg:  &UnregCommand{base},
+		CmdList:   &ListCommand{base},
+		CmdWhoami: &WhoamiCommand{base},
+		CmdBlog:   &BlogCommand{base},
 		// 新たに追加するコマンドも同様にここに追加します
 	}
+	cmdMap[CmdHelp] = &HelpCommand{base, cmdMap}
+	return cmdMap
 }
 
 func (h *Handler) handleTextMessage(param string, event *linebot.Event) error {
 	params := strings.Split(param, " ")
-	command := Command(params[0])
-	cmdInfo, ok := h.getCommandHandlers()[command]
+	commandName := CommandName(params[0])
+	command, ok := h.getCommandHandlers()[commandName]
 	if !ok {
 		return nil
 	}
-	return cmdInfo.Handler(event, params)
+	return command.Execute(event, params)
 }
 
-func (h *Handler) handleRegCommand(event *linebot.Event, params []string) error {
-	if len(params) < 2 {
+type RegCommand struct {
+	*BaseCommand
+}
+
+func (c *RegCommand) Execute(event *linebot.Event, args []string) error {
+	if len(args) < 2 {
 		return nil
 	}
-	if !model.IsMember(params[1]) {
+	member := args[1]
+	if !model.IsMember(member) {
 		return nil
 	}
-	member := params[1]
-	err := h.registerMember(member, event)
+	err := c.registerMember(member, event)
 	if err != nil {
-		return fmt.Errorf("handleRegCommand: %w", err)
+		return fmt.Errorf("RegCommand.Execute: %w", err)
 	}
 	return nil
 }
 
-func (h *Handler) handleUnregCommand(event *linebot.Event, params []string) error {
-	if len(params) < 2 {
+func (c *RegCommand) Description() string {
+	return "Register a member. Usage: reg [member]"
+}
+
+type UnregCommand struct {
+	*BaseCommand
+}
+
+func (c *UnregCommand) Execute(event *linebot.Event, args []string) error {
+	if len(args) < 2 {
 		return nil
 	}
-	if !model.IsMember(params[1]) {
+	member := args[1]
+	if !model.IsMember(member) {
 		return nil
 	}
-	member := params[1]
-	err := h.unregisterMember(member, event)
+	err := c.unregisterMember(member, event)
 	if err != nil {
-		return fmt.Errorf("handleUnregCommand: %w", err)
+		return fmt.Errorf("UnregCommand.Execute: %w", err)
 	}
 	return nil
 }
 
-func (h *Handler) handleListCommand(event *linebot.Event, params []string) error {
-	err := h.showSubscribeList(event)
+func (c *UnregCommand) Description() string {
+	return "Unregister a member. Usage: unreg [member]"
+}
+
+type ListCommand struct {
+	*BaseCommand
+}
+
+func (c *ListCommand) Execute(event *linebot.Event, args []string) error {
+	err := c.showSubscribeList(event)
 	if err != nil {
-		return fmt.Errorf("handleListCommand: %w", err)
+		return fmt.Errorf("ListCommand.Execute: %w", err)
 	}
 	return nil
 }
 
-func (h *Handler) handleWhoamiCommand(event *linebot.Event, params []string) error {
-	return h.sendWhoami(event)
+func (c *ListCommand) Description() string {
+	return "Show the list of registered members. Usage: list"
 }
 
-func (h *Handler) handleHelpCommand(event *linebot.Event, params []string) error {
+type WhoamiCommand struct {
+	*BaseCommand
+}
+
+func (c *WhoamiCommand) Execute(event *linebot.Event, args []string) error {
+	return c.sendWhoami(event)
+}
+
+func (c *WhoamiCommand) Description() string {
+	return "Show your user or group ID. Usage: whoami"
+}
+
+type HelpCommand struct {
+	*BaseCommand
+	handlers CommandMap
+}
+
+func (c *HelpCommand) Execute(event *linebot.Event, args []string) error {
 	var replyTextBuilder strings.Builder
-	for command, cmdInfo := range h.getCommandHandlers() {
-		replyTextBuilder.WriteString(fmt.Sprintf("%s: %s\n", string(command), cmdInfo.Desc))
+	cmdMap := c.handlers
+	for commandName, command := range cmdMap {
+		replyTextBuilder.WriteString(fmt.Sprintf("%s: %s\n", string(commandName), command.Description()))
 	}
 
 	// 最後の改行を取り除く
 	replyText := replyTextBuilder.String()
 	replyText = strings.TrimSuffix(replyText, "\n")
 
-	if err := h.bot.ReplyMessage(context.TODO(), event.ReplyToken, linebot.NewTextMessage(replyText)); err != nil {
+	if err := c.bot.ReplyMessage(context.TODO(), event.ReplyToken, linebot.NewTextMessage(replyText)); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (h *Handler) handleBlogCommand(event *linebot.Event, params []string) error {
-	if len(params) < 2 {
-		return fmt.Errorf("Member name must be provided. Usage: blog [member]")
+func (c *HelpCommand) Description() string {
+	return "Show the list of available commands. Usage: help"
+}
+
+type BlogCommand struct {
+	*BaseCommand
+}
+
+func (c *BlogCommand) Execute(event *linebot.Event, args []string) error {
+	if len(args) < 2 {
+		return nil
 	}
 
-	memberName := params[1]
-	if !model.IsMember(memberName) {
-		if err := h.bot.ReplyTextMessages(context.TODO(), event.ReplyToken, fmt.Sprintf("%sは存在しません。", memberName)); err != nil {
-			return fmt.Errorf("handleBlogCommand: %w", err)
+	member := args[1]
+	if !model.IsMember(member) {
+		if err := c.bot.ReplyTextMessages(context.TODO(), event.ReplyToken, fmt.Sprintf("%sは存在しません。", member)); err != nil {
+			return fmt.Errorf("BlogCommand.Execute: %w", err)
 		}
 	}
 
 	scraper := blog.NewHinatazakaScraper(nil)
-	diary, err := scraper.GetLatestDiaryByMember(memberName)
+	diary, err := scraper.GetLatestDiaryByMember(member)
 	if err != nil {
-		return h.bot.ReplyWithError(context.TODO(), event.ReplyToken, "内部エラー", err)
+		return c.bot.ReplyWithError(context.TODO(), event.ReplyToken, "内部エラー", err)
 	}
 
-	message := h.bot.CreateFlexMessage(diary)
+	message := c.bot.CreateFlexMessage(diary)
 
-	err = h.bot.ReplyMessage(context.TODO(), event.ReplyToken, message)
+	err = c.bot.ReplyMessage(context.TODO(), event.ReplyToken, message)
 	if err != nil {
-		return fmt.Errorf("handleBlogCommand: %w", err)
+		return fmt.Errorf("BlogCommand.Execute: %w", err)
 	}
 	return nil
+}
+
+func (c *BlogCommand) Description() string {
+	return "Get the latest blog of a member. Usage: blog [member]"
 }
 
 // type Subscriber struct {
@@ -161,75 +203,75 @@ func (h *Handler) handleBlogCommand(event *linebot.Event, params []string) error
 // 	UserId     string `json:"user_id" dynamo:"user_id" index:"user_id-index,hash"`
 // }
 
-func (h *Handler) registerMember(member string, event *linebot.Event) error {
+func (c *RegCommand) registerMember(member string, event *linebot.Event) error {
 	ctx := context.TODO()
 	token := event.ReplyToken
 
 	id := line.ExtractEventSourceIdentifier(event)
 	if id == "" {
 		err := fmt.Errorf("invalid source type: %v", event.Source.Type)
-		return h.bot.ReplyWithError(ctx, token, "Invalid source type!", err)
+		return c.bot.ReplyWithError(ctx, token, "Invalid source type!", err)
 	}
 
-	err := h.subscriber.Subscribe(model.Subscriber{MemberName: member, UserId: id})
+	err := c.subscriber.Subscribe(model.Subscriber{MemberName: member, UserId: id})
 	if err != nil {
-		return h.bot.ReplyWithError(ctx, token, "登録できませんでした！", err)
+		return c.bot.ReplyWithError(ctx, token, "登録できませんでした！", err)
 	}
 
 	message := fmt.Sprintf("registered %s", member)
-	if err := h.bot.ReplyTextMessages(ctx, token, message); err != nil {
+	if err := c.bot.ReplyTextMessages(ctx, token, message); err != nil {
 		return fmt.Errorf("registerMember: %w", err)
 	}
 	return nil
 }
 
-func (h *Handler) unregisterMember(member string, event *linebot.Event) error {
+func (c *UnregCommand) unregisterMember(member string, event *linebot.Event) error {
 	ctx := context.TODO() // あるいは他の適切なコンテキストを使用します
 	token := event.ReplyToken
 
 	id := line.ExtractEventSourceIdentifier(event)
 	if id == "" {
 		err := fmt.Errorf("invalid source type: %v", event.Source.Type)
-		return h.bot.ReplyWithError(ctx, token, "Invalid source type!", err)
+		return c.bot.ReplyWithError(ctx, token, "Invalid source type!", err)
 	}
 
-	err := h.subscriber.Unsubscribe(member, id)
+	err := c.subscriber.Unsubscribe(member, id)
 	if err != nil {
-		return h.bot.ReplyWithError(ctx, token, "登録解除できませんでした！", err)
+		return c.bot.ReplyWithError(ctx, token, "登録解除できませんでした！", err)
 	}
 
 	message := fmt.Sprintf("unregistered %s", member)
-	if err := h.bot.ReplyTextMessages(ctx, token, message); err != nil {
+	if err := c.bot.ReplyTextMessages(ctx, token, message); err != nil {
 		return fmt.Errorf("unregisterMember: %w", err)
 	}
 	return nil
 }
 
-func (h *Handler) showSubscribeList(event *linebot.Event) error {
+func (c *ListCommand) showSubscribeList(event *linebot.Event) error {
 	ctx := context.TODO() // あるいは他の適切なコンテキストを使用します
 	token := event.ReplyToken
 
 	id := line.ExtractEventSourceIdentifier(event)
 	if id == "" {
 		err := fmt.Errorf("invalid source type: %v", event.Source.Type)
-		return h.bot.ReplyWithError(ctx, token, "Invalid source type!", err)
+		return c.bot.ReplyWithError(ctx, token, "Invalid source type!", err)
 	}
 
-	list, err := h.subscriber.GetAllById(id)
+	list, err := c.subscriber.GetAllById(id)
 	if err != nil {
-		return h.bot.ReplyWithError(ctx, token, "情報を取得できませんでした！", err)
+		return c.bot.ReplyWithError(ctx, token, "情報を取得できませんでした！", err)
 	}
 
 	message := "登録リスト"
 	for _, v := range list {
 		message += fmt.Sprintf("\n%s", v.MemberName)
 	}
-	if err := h.bot.ReplyTextMessages(ctx, token, message); err != nil {
+	if err := c.bot.ReplyTextMessages(ctx, token, message); err != nil {
 		return fmt.Errorf("showSubscribeList: %w", err)
 	}
 	return nil
 }
 
-func (h *Handler) sendWhoami(event *linebot.Event) error {
-	return h.bot.ReplyTextMessages(context.TODO(), event.ReplyToken, line.ExtractEventSourceIdentifier(event))
+func (c *WhoamiCommand) sendWhoami(event *linebot.Event) error {
+	return c.bot.ReplyTextMessages(context.TODO(), event.ReplyToken, line.ExtractEventSourceIdentifier(event))
 }

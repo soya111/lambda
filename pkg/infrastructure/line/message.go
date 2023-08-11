@@ -40,7 +40,16 @@ func CreateFlexMessage(diary *blog.ScrapedDiary) linebot.SendingMessage {
 		Contents: container,
 	}
 
-	return linebot.NewFlexMessage(MessageBlogUpdate, outerContainer).WithSender(linebot.NewSender(diary.MemberName, diary.MemberIcon))
+	message := linebot.NewFlexMessage(MessageBlogUpdate, outerContainer).WithSender(linebot.NewSender(diary.MemberName, diary.MemberIcon))
+	quickReply := linebot.NewQuickReplyItems(
+		linebot.NewQuickReplyButton("", linebot.NewMessageAction("👍", "👍")),
+		linebot.NewQuickReplyButton("", linebot.NewMessageAction("👎", "👎")),
+		linebot.NewQuickReplyButton("", linebot.NewMessageAction("🤔", "🤔")),
+		linebot.NewQuickReplyButton("", linebot.NewMessageAction("👏", "👏")),
+	)
+	message.WithQuickReplies(quickReply)
+
+	return message
 }
 
 func createFlexTextMessage(diary *blog.ScrapedDiary) *linebot.BubbleContainer {

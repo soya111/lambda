@@ -8,7 +8,7 @@ import (
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
-// PushMessages push messages to line
+// PushMessages push messages to LINE
 func (b *Linebot) PushMessages(ctx context.Context, to []string, messages ...linebot.SendingMessage) error {
 	var result *multierror.Error
 

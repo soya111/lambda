@@ -11,20 +11,25 @@ import (
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
+// Command is the interface that wraps the basic Execute method.
 type Command interface {
 	Execute(*linebot.Event, []string) error
 	Description() string
 }
 
+// CommandName is the type that represents the command name.
 type CommandName string
 
+// CommandMap is the type that represents the map of command name and command.
 type CommandMap map[CommandName]Command
 
+// BaseCommand is the base struct for all commands.
 type BaseCommand struct {
 	bot        *line.Linebot
 	subscriber model.SubscriberRepository
 }
 
+// NewBaseCommand creates a new BaseCommand.
 func NewBaseCommand(bot *line.Linebot, subscriber model.SubscriberRepository) *BaseCommand {
 	return &BaseCommand{bot, subscriber}
 }

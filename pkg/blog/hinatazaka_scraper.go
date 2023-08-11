@@ -19,11 +19,12 @@ const (
 	TimeFmt = "2006.1.2 15:04 (MST)"
 )
 
+// HinatazakaScraper scrapes Hinatazaka46's blog
 type HinatazakaScraper struct {
 	Scraper
-	// repo model.DiaryRepository
 }
 
+// NewHinatazakaScraper returns a new HinatazakaScraper
 func NewHinatazakaScraper() *HinatazakaScraper {
 	return &HinatazakaScraper{}
 }

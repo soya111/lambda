@@ -28,7 +28,7 @@ func CreateTextMessages(messages ...string) []linebot.SendingMessage {
 // CreateFlexMessages creates flex messages.
 func CreateFlexMessage(diary *blog.ScrapedDiary) linebot.SendingMessage {
 	var container []*linebot.BubbleContainer
-	container = append(container, createFlexTextMessage(diary))
+	container = append(container, createFlexTextMessage(diary, true))
 
 	container = append(container, createFlexImagesMessage(diary.Images)...)
 
@@ -49,7 +49,7 @@ func CreateFlexMessage(diary *blog.ScrapedDiary) linebot.SendingMessage {
 	return message
 }
 
-func createFlexTextMessage(diary *blog.ScrapedDiary) *linebot.BubbleContainer {
+func createFlexTextMessage(diary *blog.ScrapedDiary, showNewLabel bool) *linebot.BubbleContainer {
 	container := MegaBubbleContainer
 
 	container.Body = &linebot.BoxComponent{
@@ -73,31 +73,6 @@ func createFlexTextMessage(diary *blog.ScrapedDiary) *linebot.BubbleContainer {
 								AspectRatio: linebot.FlexImageAspectRatioType4to3,
 							},
 						},
-					},
-					&linebot.BoxComponent{
-						Type:   linebot.FlexComponentTypeBox,
-						Layout: linebot.FlexBoxLayoutTypeHorizontal,
-						Contents: []linebot.FlexComponent{
-							&linebot.TextComponent{
-								Type:    linebot.FlexComponentTypeText,
-								Text:    "NEW",
-								Size:    linebot.FlexTextSizeTypeXs,
-								Color:   "#ffffff",
-								Align:   linebot.FlexComponentAlignTypeCenter,
-								Gravity: linebot.FlexComponentGravityTypeCenter,
-							},
-						},
-						BackgroundColor: "#EC3D44",
-						PaddingAll:      "2px",
-						PaddingStart:    "4px",
-						PaddingEnd:      "4px",
-						Flex:            linebot.IntPtr(0),
-						Position:        linebot.FlexComponentPositionTypeAbsolute,
-						OffsetStart:     "18px",
-						OffsetTop:       "18px",
-						CornerRadius:    "100px",
-						Width:           "48px",
-						Height:          "25px",
 					},
 				},
 				PaddingAll: "0px",
@@ -173,6 +148,12 @@ func createFlexTextMessage(diary *blog.ScrapedDiary) *linebot.BubbleContainer {
 		},
 	}
 
+	if showNewLabel {
+		// バッチのコンポーネント
+		newLabel := createNewLabelComponent()
+		firstBox := container.Body.Contents[0].(*linebot.BoxComponent)
+		firstBox.Contents = append(firstBox.Contents, newLabel)
+	}
 	return &container
 }
 
@@ -230,4 +211,32 @@ func createFlexImagesMessage(urls []string) []*linebot.BubbleContainer {
 	}
 
 	return contents
+}
+
+func createNewLabelComponent() *linebot.BoxComponent {
+	return &linebot.BoxComponent{
+		Type:   linebot.FlexComponentTypeBox,
+		Layout: linebot.FlexBoxLayoutTypeHorizontal,
+		Contents: []linebot.FlexComponent{
+			&linebot.TextComponent{
+				Type:    linebot.FlexComponentTypeText,
+				Text:    "NEW",
+				Size:    linebot.FlexTextSizeTypeXs,
+				Color:   "#ffffff",
+				Align:   linebot.FlexComponentAlignTypeCenter,
+				Gravity: linebot.FlexComponentGravityTypeCenter,
+			},
+		},
+		BackgroundColor: "#EC3D44",
+		PaddingAll:      "2px",
+		PaddingStart:    "4px",
+		PaddingEnd:      "4px",
+		Flex:            linebot.IntPtr(0),
+		Position:        linebot.FlexComponentPositionTypeAbsolute,
+		OffsetStart:     "18px",
+		OffsetTop:       "18px",
+		CornerRadius:    "100px",
+		Width:           "48px",
+		Height:          "25px",
+	}
 }

@@ -24,7 +24,7 @@ type HinatazakaScraper struct {
 	// repo model.DiaryRepository
 }
 
-func NewHinatazakaScraper(repo model.DiaryRepository) *HinatazakaScraper {
+func NewHinatazakaScraper() *HinatazakaScraper {
 	return &HinatazakaScraper{}
 }
 

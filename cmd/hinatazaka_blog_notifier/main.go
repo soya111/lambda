@@ -40,10 +40,11 @@ func init() {
 func main() {
 	lambda.Start(func(ctx context.Context) error {
 		diary := dynamodb.NewDiaryRepository(sess, "hinatazaka_blog")
-		scraper := blog.NewHinatazakaScraper(diary)
+		scraper := blog.NewHinatazakaScraper()
 		subscriber := dynamodb.NewSubscriberRepository(sess)
 
-		err := notifier.Excute(ctx, scraper, bot, subscriber, diary)
+		notifier := notifier.NewNotifier(scraper, bot, subscriber, diary)
+		err := notifier.Execute(ctx)
 		if err != nil {
 			return fmt.Errorf("ApplicationError in Excute function: %v", err)
 		}

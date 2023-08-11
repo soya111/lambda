@@ -179,7 +179,7 @@ func (c *BlogCommand) Execute(event *linebot.Event, args []string) error {
 		}
 	}
 
-	scraper := blog.NewHinatazakaScraper(nil)
+	scraper := blog.NewHinatazakaScraper()
 	diary, err := scraper.GetLatestDiaryByMember(member)
 	if err != nil {
 		return c.bot.ReplyWithError(context.TODO(), event.ReplyToken, "内部エラー", err)
@@ -226,7 +226,7 @@ func (c *RegCommand) registerMember(member string, event *linebot.Event) error {
 }
 
 func (c *UnregCommand) unregisterMember(member string, event *linebot.Event) error {
-	ctx := context.TODO() // あるいは他の適切なコンテキストを使用します
+	ctx := context.TODO()
 	token := event.ReplyToken
 
 	id := line.ExtractEventSourceIdentifier(event)
@@ -248,7 +248,7 @@ func (c *UnregCommand) unregisterMember(member string, event *linebot.Event) err
 }
 
 func (c *ListCommand) showSubscribeList(event *linebot.Event) error {
-	ctx := context.TODO() // あるいは他の適切なコンテキストを使用します
+	ctx := context.TODO()
 	token := event.ReplyToken
 
 	id := line.ExtractEventSourceIdentifier(event)

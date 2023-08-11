@@ -63,7 +63,7 @@ func (*MockSubscriberRepository) GetAllById(id string) ([]model.Subscriber, erro
 	return []model.Subscriber{}, nil
 }
 
-func TestExcute(t *testing.T) {
+func TestExecute(t *testing.T) {
 	t.Skip("skipping this test for now")
 	_ = godotenv.Load("../.env")
 	channelSecret := os.Getenv("CHANNEL_SECRET")
@@ -73,7 +73,8 @@ func TestExcute(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = Excute(context.Background(), &ScraperMock{}, bot, NewMockSubscriberRepository(me), nil)
+	notifier := NewNotifier(&ScraperMock{}, bot, NewMockSubscriberRepository(me), nil)
+	err = notifier.Execute(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}

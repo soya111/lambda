@@ -19,6 +19,7 @@ var MegaBubbleContainer = linebot.BubbleContainer{
 	Size: linebot.FlexBubbleSizeTypeMega,
 }
 
+// CreateTextMessages creates text messages.
 func CreateTextMessages(messages ...string) []linebot.SendingMessage {
 	var sendingMessages []linebot.SendingMessage
 	for _, message := range messages {
@@ -27,6 +28,7 @@ func CreateTextMessages(messages ...string) []linebot.SendingMessage {
 	return sendingMessages
 }
 
+// CreateFlexMessages creates flex messages.
 func CreateFlexMessage(diary *blog.ScrapedDiary) linebot.SendingMessage {
 	var container []*linebot.BubbleContainer
 	container = append(container, createFlexTextMessage(diary))
@@ -224,6 +226,7 @@ func createFlexImagesMessage(urls []string) []*linebot.BubbleContainer {
 	return contents
 }
 
+// PushMessages push messages to line
 func (b *Linebot) PushMessages(ctx context.Context, to []string, messages ...linebot.SendingMessage) error {
 	var result *multierror.Error
 	var requestId string

@@ -8,7 +8,7 @@ import (
 )
 
 func TestGetLatestDiaryByMember(t *testing.T) {
-	s := NewHinatazakaScraper(nil)
+	s := NewHinatazakaScraper()
 	tests := []struct {
 		name       string
 		memberName string

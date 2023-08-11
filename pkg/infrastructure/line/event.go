@@ -2,6 +2,7 @@ package line
 
 import "github.com/line/line-bot-sdk-go/v7/linebot"
 
+// ExtractEventSourceIdentifier returns the event source identifier.
 func ExtractEventSourceIdentifier(event *linebot.Event) string {
 	var id string
 

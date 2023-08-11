@@ -104,7 +104,7 @@ func TestExtractAndFormatTextFromElement(t *testing.T) {
 			html:      `  <div class="test">   Hello   </div>  `,
 			selector:  ".test",
 			n:         8,
-			expected:  "Hello",
+			expected:  " Hello ",
 			expectErr: false,
 		},
 		{

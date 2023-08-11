@@ -18,7 +18,7 @@ var MegaBubbleContainer = linebot.BubbleContainer{
 
 // CreateTextMessages creates text messages.
 func CreateTextMessages(messages ...string) []linebot.SendingMessage {
-	var sendingMessages []linebot.SendingMessage
+	var sendingMessages []linebot.SendingMessage = []linebot.SendingMessage{}
 	for _, message := range messages {
 		sendingMessages = append(sendingMessages, linebot.NewTextMessage(message))
 	}

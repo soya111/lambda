@@ -40,6 +40,7 @@ func (n *Notifier) Execute(ctx context.Context) error {
 	return nil
 }
 
+// getLatestDiaries gets the latest diaries from the scraper and stores them in the database.
 func (n *Notifier) getLatestDiaries() ([]*blog.ScrapedDiary, error) {
 	latestDiaries, err := n.scraper.ScrapeLatestDiaries()
 	if err != nil {
@@ -58,6 +59,13 @@ func (n *Notifier) getLatestDiaries() ([]*blog.ScrapedDiary, error) {
 				continue
 			}
 			// Some other error occurred.
+			return nil, err
+		}
+	}
+
+	for _, sd := range res {
+		diary := blog.ConvertScrapedDiaryToDiary(sd)
+		if err := n.diary.PostDiary(diary); err != nil {
 			return nil, err
 		}
 	}

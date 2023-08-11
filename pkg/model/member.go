@@ -88,6 +88,7 @@ func NormalizeName(name string) string {
 	name = strings.ReplaceAll(name, " ", "")
 	return name
 }
+
 func IsMember(text string) bool {
 	_, exists := MemberToIdMap[text]
 	return exists

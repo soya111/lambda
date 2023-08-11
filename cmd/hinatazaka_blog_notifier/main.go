@@ -40,7 +40,7 @@ func init() {
 func main() {
 	lambda.Start(func(ctx context.Context) error {
 		diary := dynamodb.NewDiaryRepository(sess, "hinatazaka_blog")
-		scraper := blog.NewHinatazakaScraper(diary)
+		scraper := blog.NewHinatazakaScraper()
 		subscriber := dynamodb.NewSubscriberRepository(sess)
 
 		notifier := notifier.NewNotifier(scraper, bot, subscriber, diary)

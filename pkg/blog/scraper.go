@@ -5,10 +5,12 @@ import (
 	"time"
 )
 
+// Scraper is an interface for scraping blogs.
 type Scraper interface {
 	ScrapeLatestDiaries() ([]*ScrapedDiary, error)
 }
 
+// ScrapedDiary is a struct that represents a scraped diary.
 type ScrapedDiary struct {
 	Url        string   `json:"url"`
 	Title      string   `json:"title"`
@@ -20,16 +22,17 @@ type ScrapedDiary struct {
 	MemberIcon string   `json:"member_icon"`
 }
 
+// NewScrapedDiary creates a new ScrapedDiary.
 func NewScrapedDiary(url, title, memberName string, date time.Time, id int, images []string, lead string) *ScrapedDiary {
 	return &ScrapedDiary{url, title, memberName, date.Format(TimeFmt), id, images, lead, ""}
 }
 
-// SetMemberIconはScrapedDiaryのMemberIconを設定します。
+// SetMemberIcon sets the member icon url.
 func (sd *ScrapedDiary) SetMemberIcon(iconUrl string) {
 	sd.MemberIcon = iconUrl
 }
 
-// ScrapedDiaryをDiaryに変換する
+// ConvertScrapedDiaryToDiary converts ScrapedDiary to Diary.
 func ConvertScrapedDiaryToDiary(s *ScrapedDiary) *model.Diary {
 	return &model.Diary{
 		Url:        s.Url,

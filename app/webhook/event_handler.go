@@ -12,8 +12,9 @@ type EventHandlers map[linebot.EventType]EventHandler
 
 func (h *Handler) getEventHandlers() EventHandlers {
 	return EventHandlers{
-		linebot.EventTypeMessage: h.handleMessageEvent,
-		linebot.EventTypeLeave:   h.handleLeaveEvent,
+		linebot.EventTypeMessage:  h.handleMessageEvent,
+		linebot.EventTypeLeave:    h.handleLeaveEvent,
+		linebot.EventTypePostback: h.handlePostbackEvent,
 		// 他のイベントタイプも同様に定義する
 	}
 }

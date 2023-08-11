@@ -54,6 +54,7 @@ func (n *Notifier) getLatestDiaries() ([]*blog.ScrapedDiary, error) {
 			if err == model.ErrDiaryNotFound {
 				// The item is not in the database, so it's a new diary.
 				res = append(res, d)
+				fmt.Printf("New diary: %+v\n", d)
 				continue
 			}
 			// Some other error occurred.

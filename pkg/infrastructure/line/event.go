@@ -4,15 +4,14 @@ import "github.com/line/line-bot-sdk-go/v7/linebot"
 
 // ExtractEventSourceIdentifier returns the event source identifier.
 func ExtractEventSourceIdentifier(event *linebot.Event) string {
-	var id string
-
-	if event.Source.Type == linebot.EventSourceTypeUser {
-		id = event.Source.UserID
-	} else if event.Source.Type == linebot.EventSourceTypeGroup {
-		id = event.Source.GroupID
-	} else if event.Source.Type == linebot.EventSourceTypeRoom {
-		id = event.Source.RoomID
+	switch event.Source.Type {
+	case linebot.EventSourceTypeUser:
+		return event.Source.UserID
+	case linebot.EventSourceTypeGroup:
+		return event.Source.GroupID
+	case linebot.EventSourceTypeRoom:
+		return event.Source.RoomID
 	}
 
-	return id
+	return ""
 }

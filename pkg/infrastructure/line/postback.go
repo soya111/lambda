@@ -19,6 +19,8 @@ const (
 	PostbackActionRegister PostbackAction = "reg"
 )
 
+const MemberKey = "member"
+
 func ParsePostbackData(event *linebot.Event) (*PostbackData, error) {
 	var data PostbackData
 	err := json.Unmarshal([]byte(event.Postback.Data), &data)

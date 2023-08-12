@@ -244,7 +244,7 @@ func createQuickReplies(diary *blog.ScrapedDiary) *linebot.QuickReplyItems {
 	)
 
 	postBackMap := map[string]string{
-		"name": model.NormalizeName(diary.MemberName),
+		MemberKey: model.NormalizeName(diary.MemberName),
 	}
 
 	dataString, err := NewPostbackDataString(PostbackActionRegister, postBackMap)

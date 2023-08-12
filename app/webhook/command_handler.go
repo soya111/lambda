@@ -68,6 +68,7 @@ func (h *Handler) handleTextMessage(param string, event *linebot.Event) error {
 	return command.Execute(event, params)
 }
 
+// RegCommand is the command that registers a member.
 type RegCommand struct {
 	*BaseCommand
 }
@@ -91,6 +92,7 @@ func (c *RegCommand) Description() string {
 	return "Register a member. Usage: reg [member]"
 }
 
+// UnregCommand is the command that unregisters a member.
 type UnregCommand struct {
 	*BaseCommand
 }
@@ -114,6 +116,7 @@ func (c *UnregCommand) Description() string {
 	return "Unregister a member. Usage: unreg [member]"
 }
 
+// ListCommand is the command that shows the list of registered members.
 type ListCommand struct {
 	*BaseCommand
 }
@@ -130,6 +133,7 @@ func (c *ListCommand) Description() string {
 	return "Show the list of registered members. Usage: list"
 }
 
+// WhoamiCommand is the command that shows the user or group ID.
 type WhoamiCommand struct {
 	*BaseCommand
 }
@@ -142,6 +146,7 @@ func (c *WhoamiCommand) Description() string {
 	return "Show your user or group ID. Usage: whoami"
 }
 
+// HelpCommand is the command that shows the list of available commands.
 type HelpCommand struct {
 	*BaseCommand
 	handlers CommandMap
@@ -168,6 +173,7 @@ func (c *HelpCommand) Description() string {
 	return "Show the list of available commands. Usage: help"
 }
 
+// BlogCommand is the command that shows the latest blog entry of the specified member.
 type BlogCommand struct {
 	*BaseCommand
 }

@@ -40,7 +40,7 @@ type PostbackCommandRegister struct {
 }
 
 func (c *PostbackCommandRegister) Execute(ctx context.Context, event *linebot.Event, data *line.PostbackData) error {
-	member := data.Params["member"]
+	member := data.Params[line.MemberKey]
 	if !model.IsMember(member) {
 		return fmt.Errorf("invalid member: %s", member)
 	}

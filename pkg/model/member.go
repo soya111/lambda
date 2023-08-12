@@ -6,6 +6,7 @@ import (
 )
 
 var (
+	// MemberList is a list of all members.
 	MemberList = []string{
 		"潮紗理菜",
 		"影山優佳",
@@ -45,6 +46,7 @@ var (
 	}
 )
 
+// MemberToIdMap is a map of member name to member ID.
 var MemberToIdMap = map[string]string{
 	"潮紗理菜":  "2",
 	"影山優佳":  "4",
@@ -83,16 +85,20 @@ var MemberToIdMap = map[string]string{
 	"ポカ":    "000",
 }
 
+// NormalizeName normalizes a member name.
 func NormalizeName(name string) string {
 	name = strings.TrimSpace(name)
 	name = strings.ReplaceAll(name, " ", "")
 	return name
 }
+
+// IsMember returns true if the given text is a member name.
 func IsMember(text string) bool {
 	_, exists := MemberToIdMap[text]
 	return exists
 }
 
+// GetMemberId returns the member ID for the given member name.
 func GetMemberId(memberName string) (string, error) {
 	memberName = NormalizeName(memberName)
 	number, exists := MemberToIdMap[memberName]

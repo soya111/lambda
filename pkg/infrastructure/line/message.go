@@ -1,12 +1,9 @@
 package line
 
 import (
-	"context"
 	"fmt"
 	"notify/pkg/blog"
 
-	"github.com/aws/aws-lambda-go/lambdacontext"
-	"github.com/hashicorp/go-multierror"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
@@ -21,7 +18,7 @@ var MegaBubbleContainer = linebot.BubbleContainer{
 
 // CreateTextMessages creates text messages.
 func CreateTextMessages(messages ...string) []linebot.SendingMessage {
-	var sendingMessages []linebot.SendingMessage
+	var sendingMessages []linebot.SendingMessage = []linebot.SendingMessage{}
 	for _, message := range messages {
 		sendingMessages = append(sendingMessages, linebot.NewTextMessage(message))
 	}
@@ -233,22 +230,4 @@ func createFlexImagesMessage(urls []string) []*linebot.BubbleContainer {
 	}
 
 	return contents
-}
-
-// PushMessages push messages to line
-func (b *Linebot) PushMessages(ctx context.Context, to []string, messages ...linebot.SendingMessage) error {
-	var result *multierror.Error
-	var requestId string
-
-	lambdaCtx, ok := lambdacontext.FromContext(ctx)
-	if ok {
-		requestId = lambdaCtx.AwsRequestID
-	}
-
-	for _, to := range to {
-		_, err := b.Client.PushMessage(to, messages...).WithContext(ctx).Do()
-		result = multierror.Append(result, err)
-		fmt.Printf("RequestId: %s, Push Messages to %s, error: %v\n", requestId, to, err)
-	}
-	return result.ErrorOrNil()
 }

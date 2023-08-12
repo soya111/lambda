@@ -2,6 +2,7 @@ package line
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
@@ -22,7 +23,7 @@ func ParsePostbackData(event *linebot.Event) (*PostbackData, error) {
 	var data PostbackData
 	err := json.Unmarshal([]byte(event.Postback.Data), &data)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ParsePostbackData: %w", err)
 	}
 	return &data, nil
 }

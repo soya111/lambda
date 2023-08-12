@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"notify/pkg/infrastructure/line"
+	"notify/pkg/model"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
@@ -15,8 +16,9 @@ type PostbackCommand interface {
 type PostbackCommandMap map[line.PostbackAction]PostbackCommand
 
 func (h *Handler) getPostbackCommandMap() PostbackCommandMap {
+	base := NewBaseCommand(h.bot, h.subscriber)
 	return PostbackCommandMap{
-		line.Postback: nil,
+		line.PostbackActionRegister: &PostbackCommandRegister{base},
 	}
 }
 
@@ -31,4 +33,21 @@ func (h *Handler) handlePostbackEvent(ctx context.Context, event *linebot.Event)
 		return fmt.Errorf("unknown postback action: %s", data.Action)
 	}
 	return command.Execute(ctx, event, data)
+}
+
+type PostbackCommandRegister struct {
+	*BaseCommand
+}
+
+func (c *PostbackCommandRegister) Execute(ctx context.Context, event *linebot.Event, data *line.PostbackData) error {
+	member := data.Params["member"]
+	if !model.IsMember(member) {
+		return fmt.Errorf("invalid member: %s", member)
+	}
+
+	err := c.registerMember(member, event)
+	if err != nil {
+		return fmt.Errorf("PostbackCommandRegister.Execute: %w", err)
+	}
+	return nil
 }

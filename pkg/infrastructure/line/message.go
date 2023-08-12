@@ -3,6 +3,7 @@ package line
 import (
 	"fmt"
 	"notify/pkg/blog"
+	"notify/pkg/model"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
@@ -38,7 +39,7 @@ func CreateFlexMessage(diary *blog.ScrapedDiary) linebot.SendingMessage {
 	}
 
 	message := linebot.NewFlexMessage(MessageBlogUpdate, outerContainer).WithSender(linebot.NewSender(diary.MemberName, diary.MemberIcon))
-	quickReply := createQuickReplies()
+	quickReply := createQuickReplies(diary)
 	message.WithQuickReplies(quickReply)
 
 	return message
@@ -236,13 +237,17 @@ func createNewLabelComponent() *linebot.BoxComponent {
 	}
 }
 
-func createQuickReplies() *linebot.QuickReplyItems {
+func createQuickReplies(diary *blog.ScrapedDiary) *linebot.QuickReplyItems {
 	quickReplies := linebot.NewQuickReplyItems(
 		linebot.NewQuickReplyButton("", linebot.NewMessageAction("👍", "👍")),
 		linebot.NewQuickReplyButton("", linebot.NewMessageAction("👎", "👎")),
 	)
 
-	dataString, err := NewPostbackDataString(PostbackActionRegister, nil)
+	postBackMap := map[string]string{
+		"name": model.NormalizeName(diary.MemberName),
+	}
+
+	dataString, err := NewPostbackDataString(PostbackActionRegister, postBackMap)
 	if err != nil {
 		fmt.Printf("createQuickReplies: %v", err)
 	} else {

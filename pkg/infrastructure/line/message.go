@@ -38,12 +38,7 @@ func CreateFlexMessage(diary *blog.ScrapedDiary) linebot.SendingMessage {
 	}
 
 	message := linebot.NewFlexMessage(MessageBlogUpdate, outerContainer).WithSender(linebot.NewSender(diary.MemberName, diary.MemberIcon))
-	quickReply := linebot.NewQuickReplyItems(
-		linebot.NewQuickReplyButton("", linebot.NewMessageAction("👍", "👍")),
-		linebot.NewQuickReplyButton("", linebot.NewMessageAction("👎", "👎")),
-		linebot.NewQuickReplyButton("", linebot.NewMessageAction("🤔", "🤔")),
-		linebot.NewQuickReplyButton("", linebot.NewMessageAction("👏", "👏")),
-	)
+	quickReply := createQuickReplies()
 	message.WithQuickReplies(quickReply)
 
 	return message
@@ -239,4 +234,21 @@ func createNewLabelComponent() *linebot.BoxComponent {
 		Width:           "48px",
 		Height:          "25px",
 	}
+}
+
+func createQuickReplies() *linebot.QuickReplyItems {
+	quickReplies := linebot.NewQuickReplyItems(
+		linebot.NewQuickReplyButton("", linebot.NewMessageAction("👍", "👍")),
+		linebot.NewQuickReplyButton("", linebot.NewMessageAction("👎", "👎")),
+	)
+
+	dataString, err := NewPostbackDataString(PostbackActionRegister, nil)
+	if err != nil {
+		fmt.Printf("createQuickReplies: %v", err)
+	} else {
+		registerAction := NewPostbackAction("購読する", dataString, "購読する")
+		quickReplies.Items = append(quickReplies.Items, linebot.NewQuickReplyButton("", registerAction))
+	}
+
+	return quickReplies
 }

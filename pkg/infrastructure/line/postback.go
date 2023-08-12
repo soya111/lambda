@@ -14,13 +14,8 @@ type PostbackData struct {
 type PostbackAction string
 
 const (
-	Postback                       PostbackAction = "postback"
-	PostbackActionAddSubscriber    PostbackAction = "add_subscriber"
-	PostbackActionRemoveSubscriber PostbackAction = "remove_subscriber"
-	PostbackActionListSubscriber   PostbackAction = "list_subscriber"
-	PostbackActionWhoami           PostbackAction = "whoami"
-	PostbackActionHelp             PostbackAction = "help"
-	PostbackActionBlog             PostbackAction = "blog"
+	Postback               PostbackAction = "postback"
+	PostbackActionRegister PostbackAction = "reg"
 )
 
 func ParsePostbackData(event *linebot.Event) (*PostbackData, error) {
@@ -30,4 +25,21 @@ func ParsePostbackData(event *linebot.Event) (*PostbackData, error) {
 		return nil, err
 	}
 	return &data, nil
+}
+
+func NewPostbackDataString(action PostbackAction, params map[string]string) (string, error) {
+	data := PostbackData{
+		Action: action,
+		Params: params,
+	}
+	dataBytes, err := json.Marshal(data)
+	if err != nil {
+		return "", err
+	}
+
+	return string(dataBytes), nil
+}
+
+func NewPostbackAction(label, data, displayText string) *linebot.PostbackAction {
+	return linebot.NewPostbackAction(label, data, "", displayText, "", "")
 }

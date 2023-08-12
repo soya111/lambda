@@ -208,7 +208,7 @@ func (c *BlogCommand) Description() string {
 // 	UserId     string `json:"user_id" dynamo:"user_id" index:"user_id-index,hash"`
 // }
 
-func (c *RegCommand) registerMember(member string, event *linebot.Event) error {
+func (c *BaseCommand) registerMember(member string, event *linebot.Event) error {
 	ctx := context.TODO()
 	token := event.ReplyToken
 
@@ -230,7 +230,7 @@ func (c *RegCommand) registerMember(member string, event *linebot.Event) error {
 	return nil
 }
 
-func (c *UnregCommand) unregisterMember(member string, event *linebot.Event) error {
+func (c *BaseCommand) unregisterMember(member string, event *linebot.Event) error {
 	ctx := context.TODO()
 	token := event.ReplyToken
 
@@ -252,7 +252,7 @@ func (c *UnregCommand) unregisterMember(member string, event *linebot.Event) err
 	return nil
 }
 
-func (c *ListCommand) showSubscribeList(event *linebot.Event) error {
+func (c *BaseCommand) showSubscribeList(event *linebot.Event) error {
 	ctx := context.TODO()
 	token := event.ReplyToken
 
@@ -277,6 +277,6 @@ func (c *ListCommand) showSubscribeList(event *linebot.Event) error {
 	return nil
 }
 
-func (c *WhoamiCommand) sendWhoami(event *linebot.Event) error {
+func (c *BaseCommand) sendWhoami(event *linebot.Event) error {
 	return c.bot.ReplyTextMessages(context.TODO(), event.ReplyToken, line.ExtractEventSourceIdentifier(event))
 }

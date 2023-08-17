@@ -39,3 +39,9 @@ go tool cover -html=coverage.out -o coverage.html
 ```
 
 [`coverage.html`](./coverage.html) をブラウザで開く
+
+## About Hinatazaka46
+
+Hinatazaka46 is a Japanese idol group.
+
+Click [here](https://www.hinatazaka46.com) for more information.

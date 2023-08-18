@@ -7,11 +7,13 @@ import (
 	"github.com/guregu/dynamo"
 )
 
+// DiaryRepository is the struct that represents the repository of diary.
 type DiaryRepository struct {
 	db    *dynamo.DB
 	table dynamo.Table
 }
 
+// NewDiaryRepository receives a session and a table name, and returns a new DiaryRepository.
 func NewDiaryRepository(sess *session.Session, tableName string) *DiaryRepository {
 	db := dynamo.New(sess)
 	table := db.Table(tableName)
@@ -21,6 +23,7 @@ func NewDiaryRepository(sess *session.Session, tableName string) *DiaryRepositor
 	}
 }
 
+// GetDiary returns the diary of the specified member and diary ID.
 func (r *DiaryRepository) GetDiary(memberName string, diaryId int) (*model.Diary, error) {
 	diary := new(model.Diary)
 	err := r.table.Get("member_name", memberName).Range("diary_id", dynamo.Equal, diaryId).One(diary)
@@ -33,6 +36,7 @@ func (r *DiaryRepository) GetDiary(memberName string, diaryId int) (*model.Diary
 	return diary, nil
 }
 
+// PostDiary posts the diary.
 func (r *DiaryRepository) PostDiary(diary *model.Diary) error {
 	return r.table.Put(diary).Run()
 }

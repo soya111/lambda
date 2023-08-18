@@ -30,6 +30,7 @@ func NewHinatazakaScraper() *HinatazakaScraper {
 }
 
 // 古い順に記事を取得する
+// ScrapeLatestDiaries scrapes the latest diaries in order of old
 func (s *HinatazakaScraper) ScrapeLatestDiaries() ([]*ScrapedDiary, error) {
 	url := fmt.Sprintf("%s/s/official/diary/member/list?ima=0000", RootURL)
 	document, err := scrape.GetDocumentFromURL(url)
@@ -68,7 +69,7 @@ func (*HinatazakaScraper) getIdFromHref(href string) int {
 	return id
 }
 
-// blog中の全画像を取得
+// GetImages returns the list of image URLs in the blog
 func (s *HinatazakaScraper) GetImages(document *goquery.Document) []string {
 	article := document.Find(".c-blog-article__text")
 	img := article.Find("img")
@@ -84,6 +85,7 @@ func (s *HinatazakaScraper) GetImages(document *goquery.Document) []string {
 	return srcs
 }
 
+// GetIconURLByID returns the icon URL of the specified member
 func (s *HinatazakaScraper) GetIconURLByID(document *goquery.Document, memberID string) string {
 	var iconUrl = "https://cdn.hinatazaka46.com/images/14/14d/a9bac831ed1e6a4fdd93c4271aa8a.jpg"
 
@@ -104,7 +106,7 @@ func (s *HinatazakaScraper) GetIconURLByID(document *goquery.Document, memberID 
 	return iconUrl
 }
 
-// 各メンバーごとの最新記事を取得する
+// GetLatestDiaryByMember returns the latest diary of the specified member
 func (s *HinatazakaScraper) GetLatestDiaryByMember(memberName string) (*ScrapedDiary, error) {
 	memberId, err := model.GetMemberId(memberName)
 	if err != nil {

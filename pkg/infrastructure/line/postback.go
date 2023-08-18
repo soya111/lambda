@@ -8,6 +8,7 @@ import (
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
+// PostbackData is the struct that represents the postback data.
 type PostbackData struct {
 	Action PostbackAction    `json:"a"`
 	Params map[string]string `json:"p,omitempty"`
@@ -22,6 +23,7 @@ const (
 
 const MemberKey = "member"
 
+// ParsePostbackData parses the postback data.
 func ParsePostbackData(event *linebot.Event) (*PostbackData, error) {
 	var data PostbackData
 	err := json.Unmarshal([]byte(event.Postback.Data), &data)
@@ -31,6 +33,7 @@ func ParsePostbackData(event *linebot.Event) (*PostbackData, error) {
 	return &data, nil
 }
 
+// NewPostbackDataString returns the string of postback data.
 func NewPostbackDataString(action PostbackAction, params map[string]string) (string, error) {
 	data := PostbackData{
 		Action: action,
@@ -44,6 +47,7 @@ func NewPostbackDataString(action PostbackAction, params map[string]string) (str
 	return string(dataBytes), nil
 }
 
+// NewPostbackAction returns the postback action.
 func NewPostbackAction(label, data, displayText string) *linebot.PostbackAction {
 	return linebot.NewPostbackAction(label, data, "", displayText, "", "")
 }

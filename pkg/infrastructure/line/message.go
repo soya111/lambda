@@ -3,7 +3,6 @@ package line
 import (
 	"fmt"
 	"notify/pkg/blog"
-	"notify/pkg/model"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
@@ -19,7 +18,7 @@ var MegaBubbleContainer = linebot.BubbleContainer{
 
 // CreateTextMessages creates text messages.
 func CreateTextMessages(messages ...string) []linebot.SendingMessage {
-	var sendingMessages []linebot.SendingMessage = []linebot.SendingMessage{}
+	sendingMessages := []linebot.SendingMessage{}
 	for _, message := range messages {
 		sendingMessages = append(sendingMessages, linebot.NewTextMessage(message))
 	}
@@ -39,7 +38,7 @@ func CreateFlexMessage(diary *blog.ScrapedDiary) linebot.SendingMessage {
 	}
 
 	message := linebot.NewFlexMessage(MessageBlogUpdate, outerContainer).WithSender(linebot.NewSender(diary.MemberName, diary.MemberIcon))
-	quickReply := createQuickReplies(diary)
+	quickReply := newQuickReplies(diary)
 	message.WithQuickReplies(quickReply)
 
 	return message
@@ -237,22 +236,18 @@ func createNewLabelComponent() *linebot.BoxComponent {
 	}
 }
 
-func createQuickReplies(diary *blog.ScrapedDiary) *linebot.QuickReplyItems {
+func newQuickReplies(diary *blog.ScrapedDiary) *linebot.QuickReplyItems {
 	quickReplies := linebot.NewQuickReplyItems(
 		linebot.NewQuickReplyButton("", linebot.NewMessageAction("👍", "👍")),
 		linebot.NewQuickReplyButton("", linebot.NewMessageAction("👎", "👎")),
 	)
 
-	postBackMap := map[string]string{
-		MemberKey: model.NormalizeName(diary.MemberName),
+	if subscribeAction := newSubscribeAction(diary.MemberName); subscribeAction != nil {
+		quickReplies.Items = append(quickReplies.Items, linebot.NewQuickReplyButton("", subscribeAction))
 	}
 
-	dataString, err := NewPostbackDataString(PostbackActionRegister, postBackMap)
-	if err != nil {
-		fmt.Printf("createQuickReplies: %v", err)
-	} else {
-		registerAction := NewPostbackAction("購読する", dataString, "購読する")
-		quickReplies.Items = append(quickReplies.Items, linebot.NewQuickReplyButton("", registerAction))
+	if unsubscribeAction := newUnsubscribeAction(diary.MemberName); unsubscribeAction != nil {
+		quickReplies.Items = append(quickReplies.Items, linebot.NewQuickReplyButton("", unsubscribeAction))
 	}
 
 	return quickReplies

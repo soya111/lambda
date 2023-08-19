@@ -18,7 +18,7 @@ type Linebot struct {
 	*linebot.Client
 }
 
-// 本番用コンストラクタ
+// NewLinebot creates a new Linebot struct.
 func NewLinebot(channelSecret string, channelToken string) (*Linebot, error) {
 	bot, err := linebot.New(channelSecret, channelToken)
 	if err != nil {

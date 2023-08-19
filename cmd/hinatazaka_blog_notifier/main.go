@@ -46,6 +46,7 @@ func main() {
 		notifier := notifier.NewNotifier(scraper, bot, subscriber, diary)
 		err := notifier.Execute(ctx)
 		if err != nil {
+			// TODO: spelling error
 			return fmt.Errorf("ApplicationError in Excute function: %v", err)
 		}
 

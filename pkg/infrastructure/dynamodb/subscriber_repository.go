@@ -9,15 +9,18 @@ import (
 	"github.com/guregu/dynamo"
 )
 
+// SubscriberRepository is the struct that represents the repository of subscriber.
 type SubscriberRepository struct {
 	db *dynamo.DB
 }
 
+// NewSubscriberRepository receives a session and returns a new SubscriberRepository.
 func NewSubscriberRepository(sess *session.Session) model.SubscriberRepository {
 	db := dynamo.New(sess)
 	return &SubscriberRepository{db}
 }
 
+// GetAllByMemberName returns the list of user IDs that subscribe the specified member.
 func (d *SubscriberRepository) GetAllByMemberName(memberName string) ([]string, error) {
 	table := d.db.Table("Subscriber")
 
@@ -35,6 +38,7 @@ func (d *SubscriberRepository) GetAllByMemberName(memberName string) ([]string, 
 	return userIds, nil
 }
 
+// Subscribe inserts the subscriber.
 func (d *SubscriberRepository) Subscribe(subscriber model.Subscriber) error {
 	table := d.db.Table("Subscriber")
 
@@ -45,6 +49,7 @@ func (d *SubscriberRepository) Subscribe(subscriber model.Subscriber) error {
 	return nil
 }
 
+// Unsubscribe deletes the subscriber.
 func (d *SubscriberRepository) Unsubscribe(memberName, userId string) error {
 	table := d.db.Table("Subscriber")
 
@@ -57,6 +62,7 @@ func (d *SubscriberRepository) Unsubscribe(memberName, userId string) error {
 	return nil
 }
 
+// GetAllById returns the list of subscribers that the specified user ID subscribes.
 func (d *SubscriberRepository) GetAllById(id string) ([]model.Subscriber, error) {
 	table := d.db.Table("Subscriber")
 

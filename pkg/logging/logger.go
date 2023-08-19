@@ -25,7 +25,7 @@ func InitializeLogger() *zap.Logger {
 		EncodeCaller:   zapcore.ShortCallerEncoder, // ファイル名と行数を表示
 	}
 
-	atom := zap.NewAtomicLevelAt(zap.DebugLevel)
+	atom := zap.NewAtomicLevelAt(zap.InfoLevel)
 
 	config := zap.Config{
 		Level:            atom,

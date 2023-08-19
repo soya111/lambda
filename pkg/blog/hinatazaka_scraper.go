@@ -1,6 +1,7 @@
 package blog
 
 import (
+	"context"
 	"fmt"
 	"notify/pkg/infrastructure/scrape"
 	"notify/pkg/model"
@@ -29,9 +30,8 @@ func NewHinatazakaScraper() *HinatazakaScraper {
 	return &HinatazakaScraper{}
 }
 
-// 古い順に記事を取得する
 // ScrapeLatestDiaries scrapes the latest diaries in order of old
-func (s *HinatazakaScraper) ScrapeLatestDiaries() ([]*ScrapedDiary, error) {
+func (s *HinatazakaScraper) ScrapeLatestDiaries(ctx context.Context) ([]*ScrapedDiary, error) {
 	url := fmt.Sprintf("%s/s/official/diary/member/list?ima=0000", RootURL)
 	document, err := scrape.GetDocumentFromURL(url)
 	if err != nil {

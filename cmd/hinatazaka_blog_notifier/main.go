@@ -7,16 +7,21 @@ import (
 	"notify/pkg/blog"
 	"notify/pkg/infrastructure/dynamodb"
 	"notify/pkg/infrastructure/line"
+	"notify/pkg/logging"
 	"notify/pkg/notifier"
 	"os"
 	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"go.uber.org/zap"
 )
 
-var bot *line.Linebot
-var sess *session.Session
+var (
+	bot    *line.Linebot
+	sess   *session.Session
+	logger *zap.Logger
+)
 
 func init() {
 	// set timezone
@@ -30,15 +35,15 @@ func init() {
 		log.Fatal(err)
 	}
 
-	sess, err = session.NewSession()
-	if err != nil {
-		log.Fatal(err)
-	}
+	sess = session.Must(session.NewSession())
+
+	logger = logging.InitializeLogger()
 
 }
 
 func main() {
 	lambda.Start(func(ctx context.Context) error {
+		ctx = logging.ContextWithLogger(ctx, logger)
 		diary := dynamodb.NewDiaryRepository(sess, "hinatazaka_blog")
 		scraper := blog.NewHinatazakaScraper()
 		subscriber := dynamodb.NewSubscriberRepository(sess)

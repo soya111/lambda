@@ -47,7 +47,7 @@ func (c *PostbackCommandRegister) Execute(ctx context.Context, event *linebot.Ev
 		return fmt.Errorf("invalid member: %s", member)
 	}
 
-	err := c.registerMember(member, event)
+	err := c.registerMember(ctx, member, event)
 	if err != nil {
 		return fmt.Errorf("PostbackCommandRegister.Execute: %w", err)
 	}
@@ -65,7 +65,7 @@ func (c *PostbackCommandUnregister) Execute(ctx context.Context, event *linebot.
 		return fmt.Errorf("invalid member: %s", member)
 	}
 
-	err := c.unregisterMember(member, event)
+	err := c.unregisterMember(ctx, member, event)
 	if err != nil {
 		return fmt.Errorf("PostbackCommandUnregister.Execute: %w", err)
 	}

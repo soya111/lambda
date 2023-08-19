@@ -22,7 +22,7 @@ func (h *Handler) getEventHandlers() EventHandlers {
 func (h *Handler) handleMessageEvent(ctx context.Context, event *linebot.Event) error {
 	switch message := event.Message.(type) {
 	case *linebot.TextMessage:
-		return h.handleTextMessage(message.Text, event)
+		return h.handleTextMessage(ctx, message.Text, event)
 	default:
 		// TextMessage以外は何もしない
 		return nil

@@ -1,13 +1,14 @@
 package blog
 
 import (
+	"context"
 	"notify/pkg/model"
 	"time"
 )
 
 // Scraper is an interface for scraping blogs.
 type Scraper interface {
-	ScrapeLatestDiaries() ([]*ScrapedDiary, error)
+	ScrapeLatestDiaries(context.Context) ([]*ScrapedDiary, error)
 }
 
 // ScrapedDiary is a struct that represents a scraped diary.

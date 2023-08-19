@@ -38,7 +38,6 @@ func init() {
 	sess = session.Must(session.NewSession())
 
 	logger = logging.InitializeLogger()
-
 }
 
 func main() {

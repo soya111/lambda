@@ -2,8 +2,10 @@ package webhook
 
 import (
 	"context"
+	"notify/pkg/logging"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
+	"go.uber.org/zap"
 )
 
 type EventHandler func(ctx context.Context, event *linebot.Event) error
@@ -20,18 +22,22 @@ func (h *Handler) getEventHandlers() EventHandlers {
 }
 
 func (h *Handler) handleMessageEvent(ctx context.Context, event *linebot.Event) error {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Handling message event")
+
 	switch message := event.Message.(type) {
 	case *linebot.TextMessage:
 		return h.handleTextMessage(ctx, message.Text, event)
 	default:
 		// TextMessage以外は何もしない
+		logger.Warn("Unsupported message type")
 		return nil
 	}
 }
 
 func (h *Handler) handleLeaveEvent(ctx context.Context, event *linebot.Event) error {
-	// EventTypeLeaveのときの処理を記述
-	// ...
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Handling leave event")
 	return nil
 }
 
@@ -41,7 +47,9 @@ func (h *Handler) HandleEvent(ctx context.Context, event *linebot.Event) error {
 	if ok {
 		return handler(ctx, event)
 	}
-	// 不明なイベントタイプに対するエラーハンドリング
-	// ...
+
+	logger := logging.LoggerFromContext(ctx)
+	logger.Error("Unknown event type", zap.String("EventType", string(event.Type)))
+
 	return nil
 }

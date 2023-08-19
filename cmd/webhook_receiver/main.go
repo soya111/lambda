@@ -97,7 +97,12 @@ func handleWebhook(ctx context.Context, request events.APIGatewayProxyRequest) (
 	for _, event := range events {
 		wg.Add(3)
 		handleEventWithProfile(event, &wg)
-		err := handler.HandleEvent(ctx, event)
+		logger.Info("Handling event", zap.String("eventType", string(event.Type)))
+		if err := handler.HandleEvent(ctx, event); err != nil {
+			logger.Error("Failed to handle event", zap.String("eventType", string(event.Type)), zap.Error(err))
+		} else {
+			logger.Info("Successfully handled event", zap.String("eventType", string(event.Type)))
+		}
 		result = multierror.Append(result, err)
 	}
 	wg.Wait()

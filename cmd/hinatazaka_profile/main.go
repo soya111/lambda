@@ -5,8 +5,6 @@ import (
 	"os"
 	"strings"
 
-	"golang.org/x/exp/slices"
-
 	"notify/pkg/infrastructure/scrape"
 	"notify/pkg/model"
 
@@ -25,7 +23,7 @@ func main() {
 	var name string
 	fmt.Scan(&name) //任意のメンバーを入力
 
-	if !slices.Contains(model.MemberList, name) {
+	if !model.IsMember(name) {
 		fmt.Println("人名でない文字列もしくは日向坂46に存在しないメンバーです。")
 		os.Exit(0)
 	}
@@ -52,5 +50,12 @@ func main() {
 	})
 
 	fmt.Println(name)
-	fmt.Println(member[0:5])
+
+	for index, m := range member {
+		fmt.Printf("%s:%s", m.X, m.Y)
+		if index == 4 {
+			os.Exit(0)
+		}
+		fmt.Printf(", ")
+	}
 }

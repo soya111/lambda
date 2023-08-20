@@ -34,18 +34,18 @@ func main() {
 	doc := document.Find(".l-contents")
 
 	// セレクタを使って要素を抽出
-	cnt_v := 0
+	cntv := 0
 	doc.Find(".c-member__info-td__text").Each(func(index int, element *goquery.Selection) {
 		v := strings.TrimSpace(element.Text())
-		member[cnt_v].value = v
-		cnt_v += 1
+		member[cntv].value = v
+		cntv += 1
 	})
 
-	cnt_e := 0
+	cnte := 0
 	doc.Find(".c-member__info-td__name").Each(func(index int, element *goquery.Selection) {
 		e := strings.TrimSpace(element.Text())
-		member[cnt_e].entry = e
-		cnt_e += 1
+		member[cnte].entry = e
+		cnte += 1
 	})
 
 	fmt.Println(name)

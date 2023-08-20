@@ -25,7 +25,7 @@ func main() {
 	var name string
 	fmt.Scan(&name) //任意のメンバーを入力
 
-	if !slices.Contains(model.MemberList, "name") {
+	if !slices.Contains(model.MemberList, name) {
 		fmt.Println("人名でない文字列もしくは日向坂46に存在しないメンバーです。")
 		os.Exit(0)
 	}

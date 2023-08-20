@@ -13,6 +13,7 @@ require (
 	github.com/line/line-bot-sdk-go/v7 v7.20.0
 	github.com/saintfish/chardet v0.0.0-20230101081208-5e3ef4b5456d
 	github.com/stretchr/testify v1.7.2
+	golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63
 	golang.org/x/net v0.14.0
 )
 

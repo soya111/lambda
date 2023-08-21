@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"notify/pkg/infrastructure/line"
+	"notify/pkg/logging"
 	"notify/pkg/model"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
@@ -24,6 +25,9 @@ func (h *Handler) getPostbackCommandMap() PostbackCommandMap {
 }
 
 func (h *Handler) handlePostbackEvent(ctx context.Context, event *linebot.Event) error {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Start handling postback event")
+
 	data, err := line.ParsePostbackData(event)
 	if err != nil {
 		return fmt.Errorf("handlePostbackEvent: %w", err)
@@ -42,12 +46,15 @@ type PostbackCommandRegister struct {
 }
 
 func (c *PostbackCommandRegister) Execute(ctx context.Context, event *linebot.Event, data *line.PostbackData) error {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Start executing postback command register")
+
 	member := data.Params[line.MemberKey]
 	if !model.IsMember(member) {
 		return fmt.Errorf("invalid member: %s", member)
 	}
 
-	err := c.registerMember(member, event)
+	err := c.registerMember(ctx, member, event)
 	if err != nil {
 		return fmt.Errorf("PostbackCommandRegister.Execute: %w", err)
 	}
@@ -60,12 +67,15 @@ type PostbackCommandUnregister struct {
 }
 
 func (c *PostbackCommandUnregister) Execute(ctx context.Context, event *linebot.Event, data *line.PostbackData) error {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Start executing postback command unregister")
+
 	member := data.Params[line.MemberKey]
 	if !model.IsMember(member) {
 		return fmt.Errorf("invalid member: %s", member)
 	}
 
-	err := c.unregisterMember(member, event)
+	err := c.unregisterMember(ctx, member, event)
 	if err != nil {
 		return fmt.Errorf("PostbackCommandUnregister.Execute: %w", err)
 	}

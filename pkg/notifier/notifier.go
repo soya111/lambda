@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"notify/pkg/blog"
 	"notify/pkg/infrastructure/line"
+	"notify/pkg/logging"
 	"notify/pkg/model"
+
+	"go.uber.org/zap"
 )
 
 // Notifier is a struct that notifies subscribers of new diaries.
@@ -28,7 +31,7 @@ func NewNotifier(scraper blog.Scraper, client *line.Linebot, subscriber model.Su
 
 // Execute executes the notifier.
 func (n *Notifier) Execute(ctx context.Context) error {
-	latestDiaries, err := n.getLatestDiaries()
+	latestDiaries, err := n.getLatestDiaries(ctx)
 	if err != nil {
 		return fmt.Errorf("error getting latest diaries: %v", err)
 	}
@@ -41,8 +44,10 @@ func (n *Notifier) Execute(ctx context.Context) error {
 }
 
 // getLatestDiaries gets the latest diaries from the scraper and stores them in the database.
-func (n *Notifier) getLatestDiaries() ([]*blog.ScrapedDiary, error) {
-	latestDiaries, err := n.scraper.ScrapeLatestDiaries()
+func (n *Notifier) getLatestDiaries(ctx context.Context) ([]*blog.ScrapedDiary, error) {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Getting latest diaries...")
+	latestDiaries, err := n.scraper.ScrapeLatestDiaries(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error scraping latest diaries: %v", err)
 	}
@@ -55,7 +60,7 @@ func (n *Notifier) getLatestDiaries() ([]*blog.ScrapedDiary, error) {
 			if err == model.ErrDiaryNotFound {
 				// The item is not in the database, so it's a new diary.
 				res = append(res, d)
-				fmt.Printf("New diary: %+v\n", d)
+				logger.Info("New diary", zap.Any("diary", d))
 				continue
 			}
 			// Some other error occurred.

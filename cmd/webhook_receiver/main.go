@@ -9,6 +9,7 @@ import (
 	"notify/app/webhook"
 	"notify/pkg/infrastructure/dynamodb"
 	"notify/pkg/infrastructure/line"
+	"notify/pkg/logging"
 	"os"
 	"sync"
 
@@ -20,10 +21,14 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/joho/godotenv"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
+	"go.uber.org/zap"
 )
 
-var bot *line.Linebot
-var sess *session.Session
+var (
+	bot    *line.Linebot
+	sess   *session.Session
+	logger *zap.Logger
+)
 
 func init() {
 	var err error
@@ -36,6 +41,8 @@ func init() {
 	}
 
 	sess = session.Must(session.NewSession())
+
+	logger = logging.InitializeLogger()
 }
 
 func main() {
@@ -44,6 +51,8 @@ func main() {
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	path := request.Path
+
+	ctx = logging.ContextWithLogger(ctx, logger)
 
 	switch path {
 	case "/webhook":
@@ -58,22 +67,24 @@ func handleWebhook(ctx context.Context, request events.APIGatewayProxyRequest) (
 	method := request.HTTPMethod
 	ip := request.RequestContext.Identity.SourceIP
 
+	logger := logging.LoggerFromContext(ctx)
+
 	lambdaCtx, _ := lambdacontext.FromContext(ctx)
 	requestId := lambdaCtx.AwsRequestID
-	fmt.Printf("RequestId: %s, IP: %s, Method: %s, Path: /webhook, Body: %s\n", requestId, ip, method, body)
+	logger.Info("request", zap.String("requestId", requestId), zap.String("ip", ip), zap.String("method", method), zap.String("path", "/webhook"), zap.String("body", body))
 
 	r := &core.RequestAccessor{}
 	httpRequest, err := r.EventToRequest(request)
 	if err != nil {
-		return handleError(err, "Failed to convert request", http.StatusInternalServerError)
+		return handleError(ctx, err, "Failed to convert request", http.StatusInternalServerError)
 	}
 
 	events, err := bot.ParseRequest(httpRequest)
 	if err != nil {
 		if err == linebot.ErrInvalidSignature {
-			return handleError(err, "Invalid signature", http.StatusBadRequest)
+			return handleError(ctx, err, "Invalid signature", http.StatusBadRequest)
 		} else {
-			return handleError(err, "Failed to parse request", http.StatusInternalServerError)
+			return handleError(ctx, err, "Failed to parse request", http.StatusInternalServerError)
 		}
 	}
 
@@ -86,7 +97,12 @@ func handleWebhook(ctx context.Context, request events.APIGatewayProxyRequest) (
 	for _, event := range events {
 		wg.Add(3)
 		handleEventWithProfile(event, &wg)
-		err := handler.HandleEvent(ctx, event)
+		logger.Info("Handling event", zap.String("eventType", string(event.Type)))
+		if err := handler.HandleEvent(ctx, event); err != nil {
+			logger.Error("Failed to handle event", zap.String("eventType", string(event.Type)), zap.Error(err))
+		} else {
+			logger.Info("Successfully handled event", zap.String("eventType", string(event.Type)))
+		}
 		result = multierror.Append(result, err)
 	}
 	wg.Wait()
@@ -114,8 +130,9 @@ func handleEventWithProfile(event *linebot.Event, wg *sync.WaitGroup) {
 	}()
 }
 
-func handleError(err error, msg string, statusCode int) (events.APIGatewayProxyResponse, error) {
-	fmt.Printf("%s: %v\n", msg, err)
+func handleError(ctx context.Context, err error, msg string, statusCode int) (events.APIGatewayProxyResponse, error) {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Error(msg, zap.Error(err))
 	return newResponse(statusCode), fmt.Errorf("%s: %v", msg, err)
 }
 
@@ -128,7 +145,7 @@ func newResponse(statusCode int) events.APIGatewayProxyResponse {
 func marshal(v interface{}) string {
 	b, err := json.Marshal(v)
 	if err != nil {
-		fmt.Printf("marshal: %s\n", err)
+		logger.Warn("marshal", zap.Error(err))
 	}
 	return string(b)
 }

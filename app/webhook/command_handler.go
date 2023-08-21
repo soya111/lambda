@@ -5,15 +5,17 @@ import (
 	"fmt"
 	"notify/pkg/blog"
 	"notify/pkg/infrastructure/line"
+	"notify/pkg/logging"
 	"notify/pkg/model"
 	"strings"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
+	"go.uber.org/zap"
 )
 
 // Command is the interface that wraps the basic Execute method.
 type Command interface {
-	Execute(*linebot.Event, []string) error
+	Execute(context.Context, *linebot.Event, []string) error
 	Description() string
 }
 
@@ -58,14 +60,14 @@ func (h *Handler) getCommandHandlers() CommandMap {
 	return cmdMap
 }
 
-func (h *Handler) handleTextMessage(param string, event *linebot.Event) error {
+func (h *Handler) handleTextMessage(ctx context.Context, param string, event *linebot.Event) error {
 	params := strings.Split(param, " ")
 	commandName := CommandName(params[0])
 	command, ok := h.getCommandHandlers()[commandName]
 	if !ok {
 		return nil
 	}
-	return command.Execute(event, params)
+	return command.Execute(ctx, event, params)
 }
 
 // RegCommand is the command that registers a member.
@@ -73,7 +75,10 @@ type RegCommand struct {
 	*BaseCommand
 }
 
-func (c *RegCommand) Execute(event *linebot.Event, args []string) error {
+func (c *RegCommand) Execute(ctx context.Context, event *linebot.Event, args []string) error {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Executing RegCommand with args", zap.Any("args", args))
+
 	if len(args) < 2 {
 		return nil
 	}
@@ -81,7 +86,7 @@ func (c *RegCommand) Execute(event *linebot.Event, args []string) error {
 	if !model.IsMember(member) {
 		return nil
 	}
-	err := c.registerMember(member, event)
+	err := c.registerMember(ctx, member, event)
 	if err != nil {
 		return fmt.Errorf("RegCommand.Execute: %w", err)
 	}
@@ -97,7 +102,10 @@ type UnregCommand struct {
 	*BaseCommand
 }
 
-func (c *UnregCommand) Execute(event *linebot.Event, args []string) error {
+func (c *UnregCommand) Execute(ctx context.Context, event *linebot.Event, args []string) error {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Executing UnregCommand with args", zap.Any("args", args))
+
 	if len(args) < 2 {
 		return nil
 	}
@@ -105,7 +113,7 @@ func (c *UnregCommand) Execute(event *linebot.Event, args []string) error {
 	if !model.IsMember(member) {
 		return nil
 	}
-	err := c.unregisterMember(member, event)
+	err := c.unregisterMember(ctx, member, event)
 	if err != nil {
 		return fmt.Errorf("UnregCommand.Execute: %w", err)
 	}
@@ -121,8 +129,11 @@ type ListCommand struct {
 	*BaseCommand
 }
 
-func (c *ListCommand) Execute(event *linebot.Event, args []string) error {
-	err := c.showSubscribeList(event)
+func (c *ListCommand) Execute(ctx context.Context, event *linebot.Event, args []string) error {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Executing ListCommand")
+
+	err := c.showSubscribeList(ctx, event)
 	if err != nil {
 		return fmt.Errorf("ListCommand.Execute: %w", err)
 	}
@@ -138,8 +149,11 @@ type WhoamiCommand struct {
 	*BaseCommand
 }
 
-func (c *WhoamiCommand) Execute(event *linebot.Event, args []string) error {
-	return c.sendWhoami(event)
+func (c *WhoamiCommand) Execute(ctx context.Context, event *linebot.Event, args []string) error {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Executing WhoamiCommand")
+
+	return c.sendWhoami(ctx, event)
 }
 
 func (c *WhoamiCommand) Description() string {
@@ -152,7 +166,10 @@ type HelpCommand struct {
 	handlers CommandMap
 }
 
-func (c *HelpCommand) Execute(event *linebot.Event, args []string) error {
+func (c *HelpCommand) Execute(ctx context.Context, event *linebot.Event, args []string) error {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Executing HelpCommand")
+
 	var replyTextBuilder strings.Builder
 	cmdMap := c.handlers
 	for commandName, command := range cmdMap {
@@ -178,7 +195,10 @@ type BlogCommand struct {
 	*BaseCommand
 }
 
-func (c *BlogCommand) Execute(event *linebot.Event, args []string) error {
+func (c *BlogCommand) Execute(ctx context.Context, event *linebot.Event, args []string) error {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Executing BlogCommand with args", zap.Any("args", args))
+
 	if len(args) < 2 {
 		return nil
 	}
@@ -214,8 +234,7 @@ func (c *BlogCommand) Description() string {
 // 	UserId     string `json:"user_id" dynamo:"user_id" index:"user_id-index,hash"`
 // }
 
-func (c *BaseCommand) registerMember(member string, event *linebot.Event) error {
-	ctx := context.TODO()
+func (c *BaseCommand) registerMember(ctx context.Context, member string, event *linebot.Event) error {
 	token := event.ReplyToken
 
 	id := line.ExtractEventSourceIdentifier(event)
@@ -229,15 +248,17 @@ func (c *BaseCommand) registerMember(member string, event *linebot.Event) error 
 		return c.bot.ReplyWithError(ctx, token, "登録できませんでした！", err)
 	}
 
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Registered member", zap.String("member", member), zap.String("id", id))
+
 	message := fmt.Sprintf("registered %s", member)
 	if err := c.bot.ReplyTextMessages(ctx, token, message); err != nil {
-		return fmt.Errorf("registerMember: %w", err)
+		return fmt.Errorf("registerMember: partial success, registration succeeded but failed to send message: %w", err)
 	}
 	return nil
 }
 
-func (c *BaseCommand) unregisterMember(member string, event *linebot.Event) error {
-	ctx := context.TODO()
+func (c *BaseCommand) unregisterMember(ctx context.Context, member string, event *linebot.Event) error {
 	token := event.ReplyToken
 
 	id := line.ExtractEventSourceIdentifier(event)
@@ -251,15 +272,17 @@ func (c *BaseCommand) unregisterMember(member string, event *linebot.Event) erro
 		return c.bot.ReplyWithError(ctx, token, "登録解除できませんでした！", err)
 	}
 
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Unregistered member", zap.String("member", member), zap.String("id", id))
+
 	message := fmt.Sprintf("unregistered %s", member)
 	if err := c.bot.ReplyTextMessages(ctx, token, message); err != nil {
-		return fmt.Errorf("unregisterMember: %w", err)
+		return fmt.Errorf("unregisterMember: partial success, unregistration succeeded but failed to send message: %w", err)
 	}
 	return nil
 }
 
-func (c *BaseCommand) showSubscribeList(event *linebot.Event) error {
-	ctx := context.TODO()
+func (c *BaseCommand) showSubscribeList(ctx context.Context, event *linebot.Event) error {
 	token := event.ReplyToken
 
 	id := line.ExtractEventSourceIdentifier(event)
@@ -280,9 +303,15 @@ func (c *BaseCommand) showSubscribeList(event *linebot.Event) error {
 	if err := c.bot.ReplyTextMessages(ctx, token, message); err != nil {
 		return fmt.Errorf("showSubscribeList: %w", err)
 	}
+
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Showed subscribe list", zap.String("id", id))
+
 	return nil
 }
 
-func (c *BaseCommand) sendWhoami(event *linebot.Event) error {
-	return c.bot.ReplyTextMessages(context.TODO(), event.ReplyToken, line.ExtractEventSourceIdentifier(event))
+func (c *BaseCommand) sendWhoami(ctx context.Context, event *linebot.Event) error {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Sending whoami")
+	return c.bot.ReplyTextMessages(ctx, event.ReplyToken, line.ExtractEventSourceIdentifier(event))
 }

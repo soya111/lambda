@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"strings"
 
@@ -19,15 +20,21 @@ type profile struct {
 var member [6]profile
 
 func main() {
-	var name string
-	fmt.Scan(&name) //任意のメンバーを入力
+	name := flag.String("name", "hinata", "名前を入力してください")
+	flag.Parse()
 
-	if !model.IsMember(name) {
+	if model.MemberToIdMap[*name] == "000" {
+		fmt.Println(*name)
+		fmt.Println("生年月日:2019年12月25日, 星座:山羊座, 身長:???, 出身地:???, 血液型:???")
+		return
+	}
+
+	if !model.IsMember(*name) {
 		fmt.Println("人名でない文字列もしくは日向坂46に存在しないメンバーです。")
 		return
 	}
 
-	url := "https://www.hinatazaka46.com/s/official/artist/" + model.MemberToIdMap[name] + "?ima=0000" // 任意のメンバーのURL
+	url := "https://www.hinatazaka46.com/s/official/artist/" + model.MemberToIdMap[*name] + "?ima=0000" // 任意のメンバーのURL
 
 	document, _ := scrape.GetDocumentFromURL(url)
 
@@ -48,7 +55,7 @@ func main() {
 		cnte += 1
 	})
 
-	fmt.Println(name)
+	fmt.Println(*name)
 
 	//プロフィールの項目と値をカンマで区切り出力
 	for index, prof := range member {

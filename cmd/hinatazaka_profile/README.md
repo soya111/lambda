@@ -13,16 +13,10 @@ hinatazaka_profileは日向坂46のメンバーのプロフィールを素早く
 
 ## 例
 
-実行コマンド
+実行コマンド例
 
 ```bash
-go run ./cmd/hinatazaka_profile/main.go
-```
-
-入力例
-
-```bash
-小西夏菜実
+go run ./cmd/hinatazaka_profile/main.go -name 小西夏菜実
 ```
 
 出力例

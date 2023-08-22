@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 	"strings"
 
 	"notify/pkg/infrastructure/scrape"
@@ -18,8 +17,8 @@ type profile struct {
 	value string //具体的な値
 }
 
-// InputNameはコマンド引数により名前を出力
-func InputName() string {
+// inputNameはコマンド引数により名前を取得
+func inputName() string {
 	var name string
 
 	flag.StringVar(&name, "name", "hinata", "名前を入力してください")
@@ -28,30 +27,27 @@ func InputName() string {
 	return name
 }
 
-// GetProfileSelectionはメンバーごとのプロフィールが記載されたセレクションを出力
-func GetProfileSelection(name string) *goquery.Selection {
+// getProfileSelectionはメンバーごとのプロフィールが記載されたセレクションを取得
+func getProfileSelection(name string) (*goquery.Selection, error) {
 	//入力がポカである場合
 	if model.MemberToIdMap[name] == "000" {
-		fmt.Println(name)
-		fmt.Println("生年月日:2019年12月25日, 星座:山羊座, 身長:???, 出身地:???, 血液型:???")
-		os.Exit(0)
+		return nil, fmt.Errorf("生年月日:2019年12月25日, 星座:山羊座, 身長:???, 出身地:???, 血液型:???")
 	}
 
 	//入力がメンバー名でない場合
 	if !model.IsMember(name) {
-		fmt.Println("日向坂46に存在しないメンバーです。")
-		os.Exit(0)
+		return nil, fmt.Errorf("日向坂46に存在しないメンバーです。")
 	}
 
 	url := "https://www.hinatazaka46.com/s/official/artist/" + model.MemberToIdMap[name] + "?ima=0000" // 任意のメンバーのURL
 	document, _ := scrape.GetDocumentFromURL(url)
 	selection := document.Find(".l-contents")
 
-	return selection
+	return selection, nil
 }
 
-// ScrapeProfileはセレクションからスクレイピングしたプロフィールを出力
-func ScrapeProfile(selection *goquery.Selection) [6]profile {
+// scrapeProfileはセレクションからスクレイピングしたプロフィールを取得
+func scrapeProfile(selection *goquery.Selection) [6]profile {
 	var member [6]profile
 	cntv := 0
 	cnte := 0
@@ -72,26 +68,29 @@ func ScrapeProfile(selection *goquery.Selection) [6]profile {
 	return member
 }
 
-// OutputProfileはプロフィールを標準形で出力
-func OutputProfile(name string, member [6]profile) {
+// outputProfileはプロフィールを標準形で出力
+func outputProfile(name string, member [6]profile) {
 	fmt.Println(name) //メンバーの名前を出力
 
 	//プロフィールの項目と値をカンマで区切り出力
-	for index, prof := range member {
-		fmt.Printf("%s:%s", prof.entry, prof.value)
-
-		if index == 4 {
-			os.Exit(0) //不要な項目を含むため途中で終了
-		}
-
-		fmt.Printf(", ")
+	var profile []string
+	for _, prof := range member[:5] {
+		profile = append(profile, prof.entry+":"+prof.value)
 	}
+
+	fmt.Println(strings.Join(profile, ", "))
 }
 
 func main() {
-	name := InputName()
-	selection := GetProfileSelection(name)
-	member := ScrapeProfile(selection)
+	name := inputName()
+	selection, err := getProfileSelection(name)
 
-	OutputProfile(name, member)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	member := scrapeProfile(selection)
+
+	outputProfile(name, member)
 }

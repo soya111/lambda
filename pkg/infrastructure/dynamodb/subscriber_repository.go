@@ -11,21 +11,21 @@ import (
 
 // SubscriberRepository is the struct that represents the repository of subscriber.
 type SubscriberRepository struct {
-	db *dynamo.DB
+	db    *dynamo.DB
+	table dynamo.Table
 }
 
 // NewSubscriberRepository receives a session and returns a new SubscriberRepository.
 func NewSubscriberRepository(sess *session.Session) model.SubscriberRepository {
 	db := dynamo.New(sess)
-	return &SubscriberRepository{db}
+	table := db.Table("Subscriber")
+	return &SubscriberRepository{db, table}
 }
 
 // GetAllByMemberName returns the list of user IDs that subscribe the specified member.
 func (d *SubscriberRepository) GetAllByMemberName(memberName string) ([]string, error) {
-	table := d.db.Table("Subscriber")
-
 	var subscribers []model.Subscriber
-	err := table.Get("member_name", memberName).All(&subscribers)
+	err := d.table.Get("member_name", memberName).All(&subscribers)
 	if err != nil {
 		return nil, err
 	}
@@ -40,9 +40,7 @@ func (d *SubscriberRepository) GetAllByMemberName(memberName string) ([]string, 
 
 // Subscribe inserts the subscriber.
 func (d *SubscriberRepository) Subscribe(subscriber model.Subscriber) error {
-	table := d.db.Table("Subscriber")
-
-	if err := table.Put(subscriber).Run(); err != nil {
+	if err := d.table.Put(subscriber).Run(); err != nil {
 		return fmt.Errorf("postSubscriber: %w", err)
 	}
 
@@ -51,9 +49,7 @@ func (d *SubscriberRepository) Subscribe(subscriber model.Subscriber) error {
 
 // Unsubscribe deletes the subscriber.
 func (d *SubscriberRepository) Unsubscribe(memberName, userId string) error {
-	table := d.db.Table("Subscriber")
-
-	err := table.Delete("member_name", memberName).Range("user_id", userId).Run()
+	err := d.table.Delete("member_name", memberName).Range("user_id", userId).Run()
 
 	if err != nil {
 		return fmt.Errorf("deleteSubscriber: %w", err)
@@ -64,10 +60,8 @@ func (d *SubscriberRepository) Unsubscribe(memberName, userId string) error {
 
 // GetAllById returns the list of subscribers that the specified user ID subscribes.
 func (d *SubscriberRepository) GetAllById(id string) ([]model.Subscriber, error) {
-	table := d.db.Table("Subscriber")
-
 	var res []model.Subscriber
-	err := table.Get("user_id", id).Index("user_id-index").All(&res)
+	err := d.table.Get("user_id", id).Index("user_id-index").All(&res)
 	if err != nil {
 		return nil, fmt.Errorf("getSubscribeList: %w", err)
 	}

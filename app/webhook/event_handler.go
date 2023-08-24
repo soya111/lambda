@@ -15,6 +15,9 @@ type EventHandlers map[linebot.EventType]EventHandler
 func (h *Handler) getEventHandlers() EventHandlers {
 	return EventHandlers{
 		linebot.EventTypeMessage:  h.handleMessageEvent,
+		linebot.EventTypeFollow:   h.handleFollowEvent,
+		linebot.EventTypeUnfollow: h.handleUnfollowEvent,
+		linebot.EventTypeJoin:     h.handleJoinEvent,
 		linebot.EventTypeLeave:    h.handleLeaveEvent,
 		linebot.EventTypePostback: h.handlePostbackEvent,
 		// 他のイベントタイプも同様に定義する
@@ -30,14 +33,34 @@ func (h *Handler) handleMessageEvent(ctx context.Context, event *linebot.Event) 
 		return h.handleTextMessage(ctx, message.Text, event)
 	default:
 		// TextMessage以外は何もしない
-		logger.Warn("Unsupported message type")
+		logger.Info("Unsupported message type")
 		return nil
 	}
+}
+
+func (h *Handler) handleFollowEvent(ctx context.Context, event *linebot.Event) error {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Handling follow event")
+	return nil
+}
+
+func (h *Handler) handleUnfollowEvent(ctx context.Context, event *linebot.Event) error {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Handling unfollow event")
+	// TODO: ユーザーがブロックしたときは購読情報を削除する
+	return nil
+}
+
+func (h *Handler) handleJoinEvent(ctx context.Context, event *linebot.Event) error {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Handling join event")
+	return nil
 }
 
 func (h *Handler) handleLeaveEvent(ctx context.Context, event *linebot.Event) error {
 	logger := logging.LoggerFromContext(ctx)
 	logger.Info("Handling leave event")
+	// TODO: グループから抜けたときは購読情報を削除する
 	return nil
 }
 

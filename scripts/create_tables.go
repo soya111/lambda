@@ -23,8 +23,21 @@ func main() {
 	}))
 	db := dynamo.New(sess)
 
-	tableName := "hinatazaka_blog"
-	// テーブルが存在するかチェック
+	// 作成するテーブルの一覧
+	tables := map[string]interface{}{
+		"hinatazaka_blog": model.Diary{},
+		"Subscriber":      model.Subscriber{},
+	}
+
+	for tableName, tableModel := range tables {
+		createTable(db, tableName, tableModel)
+	}
+
+	// テーブル一覧を表示
+	listTables(db)
+}
+
+func createTable(db *dynamo.DB, tableName string, tableModel interface{}) {
 	if _, err := db.Table(tableName).Describe().Run(); err == nil {
 		// テーブルが存在する場合、削除
 		fmt.Printf("Table %s exists, deleting...\n", tableName)
@@ -34,19 +47,20 @@ func main() {
 		fmt.Printf("Table %s deleted successfully.\n", tableName)
 	}
 
-	table := db.CreateTable(tableName, model.Diary{})
+	table := db.CreateTable(tableName, tableModel)
 	if err := table.Run(); err != nil {
 		panic(err)
 	}
 	fmt.Printf("Table %s created successfully.\n", tableName)
+}
 
-	// テーブル一覧を表示
-	tables, err := db.ListTables().All()
+func listTables(db *dynamo.DB) {
+	tableList, err := db.ListTables().All()
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("Tables:")
-	for _, table := range tables {
+	for _, table := range tableList {
 		fmt.Println(table)
 	}
 }

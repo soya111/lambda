@@ -9,6 +9,8 @@ import (
 	"github.com/guregu/dynamo"
 )
 
+const subscriberTableName = "Subscriber"
+
 // SubscriberRepository is the struct that represents the repository of subscriber.
 type SubscriberRepository struct {
 	db    *dynamo.DB
@@ -18,7 +20,7 @@ type SubscriberRepository struct {
 // NewSubscriberRepository receives a session and returns a new SubscriberRepository.
 func NewSubscriberRepository(sess *session.Session) model.SubscriberRepository {
 	db := dynamo.New(sess)
-	table := db.Table("Subscriber")
+	table := db.Table(subscriberTableName)
 	return &SubscriberRepository{db, table}
 }
 

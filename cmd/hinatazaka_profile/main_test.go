@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"flag"
+	"fmt"
 	"os"
 	"testing"
 
@@ -22,7 +23,10 @@ func Test_inputName(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			flag.CommandLine.Set("name", tt.input)
+			err := flag.CommandLine.Set("name", tt.input)
+			if err != nil {
+				fmt.Printf("Error setting command-line arguments: %v\n", err)
+			}
 			actual := inputName()
 			assert.Equal(t, tt.expected, actual)
 		})

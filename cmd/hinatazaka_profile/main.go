@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"strings"
@@ -17,30 +18,28 @@ type profile struct {
 	value string //具体的な値
 }
 
-// エラーメッセージのマップ
-var errormap = map[string]error{
-	"0": fmt.Errorf("日向坂46に存在しないメンバーです。"),
-	"1": fmt.Errorf("ポカは日向坂46の一員ですが、URLが存在しません。"),
-}
+var (
+	ErrNonExistentMember = errors.New("日向坂46に存在しないメンバーです。")
+	ErrNoUrl             = errors.New("ポカは日向坂46の一員ですが、URLが存在しません。")
+)
 
 // ポカのプロフィール
 var pokaprofile = [6]profile{
 	{"生年月日", "2019年12月25日"},
-	{"星座", "山羊座"},
+	{"星座", "やぎ座"},
 	{"身長", "???"},
 	{"出身地", "???"},
 	{"血液型", "???"},
 }
+var name string
 
-var errorcode string // エラーコード
+func init() {
+	flag.StringVar(&name, "name", "hinata", "名前を入力してください")
+}
 
 // inputNameはコマンド引数により名前を取得
 func inputName() string {
-	var name string
-
-	flag.StringVar(&name, "name", "hinata", "名前を入力してください")
 	flag.Parse()
-
 	return name
 }
 
@@ -48,14 +47,12 @@ func inputName() string {
 func getProfileSelection(name string) (*goquery.Selection, error) {
 	//入力がメンバー名でない場合
 	if !model.IsMember(name) {
-		errorcode = "0"
-		return nil, errormap[errorcode]
+		return nil, ErrNonExistentMember
 	}
 
 	//入力がポカである場合
 	if model.MemberToIdMap[name] == "000" {
-		errorcode = "1"
-		return nil, errormap[errorcode]
+		return nil, ErrNoUrl
 	}
 
 	url := "https://www.hinatazaka46.com/s/official/artist/" + model.MemberToIdMap[name] + "?ima=0000" // 任意のメンバーのURL
@@ -105,14 +102,12 @@ func main() {
 	selection, err := getProfileSelection(name)
 
 	if err != nil {
-		// ポカである場合のみポカのプロフィールを出力
-		if errorcode == "1" {
+		if errors.Is(err, ErrNoUrl) {
 			outputProfile(name, pokaprofile)
-			return
 		} else {
 			fmt.Println(err)
-			return
 		}
+		return
 	}
 
 	member := scrapeProfile(selection)

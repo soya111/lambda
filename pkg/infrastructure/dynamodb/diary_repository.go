@@ -14,7 +14,7 @@ type DiaryRepository struct {
 }
 
 // NewDiaryRepository receives a session and a table name, and returns a new DiaryRepository.
-func NewDiaryRepository(sess *session.Session, tableName string) *DiaryRepository {
+func NewDiaryRepository(sess *session.Session, tableName string) model.DiaryRepository {
 	db := dynamo.New(sess)
 	table := db.Table(tableName)
 	return &DiaryRepository{

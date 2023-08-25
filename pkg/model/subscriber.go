@@ -12,4 +12,5 @@ type SubscriberRepository interface {
 	Subscribe(subscriber Subscriber) error
 	Unsubscribe(memberName, userId string) error
 	GetAllById(id string) ([]Subscriber, error)
+	DeleteAllById(id string) error
 }

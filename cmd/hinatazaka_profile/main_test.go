@@ -58,7 +58,7 @@ func Test_scrapeProfile(t *testing.T) {
 		value string
 	}
 
-	var usiosarinaprofile = [6]profile{
+	var UsiosarinaProfile = [6]profile{
 		{"生年月日", "1997年12月26日"},
 		{"星座", "やぎ座"},
 		{"身長", "157.5cm"},
@@ -72,7 +72,7 @@ func Test_scrapeProfile(t *testing.T) {
 		input    string
 		expected [6]profile
 	}{
-		{"Nornal", "潮紗理菜", usiosarinaprofile},
+		{"Nornal", "潮紗理菜", UsiosarinaProfile},
 	}
 
 	for _, tt := range tests {
@@ -89,7 +89,7 @@ func Test_scrapeProfile(t *testing.T) {
 }
 
 func Test_outputProfile(t *testing.T) {
-	var usiosarinaprofile = [6]profile{
+	var UsiosarinaProfile = [6]profile{
 		{"生年月日", "1997年12月26日"},
 		{"星座", "やぎ座"},
 		{"身長", "157.5cm"},
@@ -98,7 +98,7 @@ func Test_outputProfile(t *testing.T) {
 		{"SNS", ""},
 	}
 
-	var pokaprofile = [6]profile{
+	var PokaProfile = [6]profile{
 		{"生年月日", "2019年12月25日"},
 		{"星座", "やぎ座"},
 		{"身長", "???"},
@@ -112,8 +112,8 @@ func Test_outputProfile(t *testing.T) {
 		inputparofile [6]profile
 		expected      string
 	}{
-		{"Nornal", "潮紗理菜", usiosarinaprofile, "潮紗理菜\n生年月日:1997年12月26日, 星座:やぎ座, 身長:157.5cm, 出身地:神奈川県, 血液型:O型\n"},
-		{"ポカ", "ポカ", pokaprofile, "ポカ\n生年月日:2019年12月25日, 星座:やぎ座, 身長:???, 出身地:???, 血液型:???\n"},
+		{"Nornal", "潮紗理菜", UsiosarinaProfile, "潮紗理菜\n生年月日:1997年12月26日, 星座:やぎ座, 身長:157.5cm, 出身地:神奈川県, 血液型:O型\n"},
+		{"ポカ", "ポカ", PokaProfile, "ポカ\n生年月日:2019年12月25日, 星座:やぎ座, 身長:???, 出身地:???, 血液型:???\n"},
 	}
 
 	for _, tt := range tests {

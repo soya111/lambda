@@ -24,7 +24,7 @@ var (
 )
 
 // ポカのプロフィール
-var pokaprofile = [6]profile{
+var PokaProfile = [6]profile{
 	{"生年月日", "2019年12月25日"},
 	{"星座", "やぎ座"},
 	{"身長", "???"},
@@ -103,7 +103,7 @@ func main() {
 
 	if err != nil {
 		if errors.Is(err, ErrNoUrl) {
-			outputProfile(name, pokaprofile)
+			outputProfile(name, PokaProfile)
 		} else {
 			fmt.Println(err)
 		}

@@ -14,8 +14,11 @@ import (
 
 // プロフィールのstruct
 type profile struct {
-	entry string // 生年月日、星座などのプロフィール項目
-	value string //具体的な値
+	birthday   string
+	sign       string
+	height     string
+	birthplace string
+	bloodtype  string
 }
 
 var (
@@ -24,13 +27,14 @@ var (
 )
 
 // ポカのプロフィール
-var PokaProfile = [6]profile{
-	{"生年月日", "2019年12月25日"},
-	{"星座", "やぎ座"},
-	{"身長", "???"},
-	{"出身地", "???"},
-	{"血液型", "???"},
+var pokaProfile = profile{
+	"2019年12月25日",
+	"やぎ座",
+	"???",
+	"???",
+	"???",
 }
+
 var name string
 
 func init() {
@@ -63,38 +67,22 @@ func getProfileSelection(name string) (*goquery.Selection, error) {
 }
 
 // scrapeProfileはセレクションからスクレイピングしたプロフィールを取得
-func scrapeProfile(selection *goquery.Selection) [6]profile {
-	var member [6]profile
-	cntv := 0
-	cnte := 0
-
+func scrapeProfile(selection *goquery.Selection) profile {
 	//セレクタを使って要素を抽出
+	var prof []string
 	selection.Find(".c-member__info-td__text").Each(func(index int, element *goquery.Selection) {
-		v := strings.TrimSpace(element.Text())
-		member[cntv].value = v
-		cntv += 1
+		prof = append(prof, strings.TrimSpace(element.Text()))
 	})
 
-	selection.Find(".c-member__info-td__name").Each(func(index int, element *goquery.Selection) {
-		e := strings.TrimSpace(element.Text())
-		member[cnte].entry = e
-		cnte += 1
-	})
+	member := profile{prof[0], prof[1], prof[2], prof[3], prof[4]}
 
 	return member
 }
 
 // outputProfileはプロフィールを標準形で出力
-func outputProfile(name string, member [6]profile) {
+func outputProfile(name string, member profile) {
 	fmt.Println(name) //メンバーの名前を出力
-
-	//プロフィールの項目と値をカンマで区切り出力
-	var profile []string
-	for _, prof := range member[:5] {
-		profile = append(profile, prof.entry+":"+prof.value)
-	}
-
-	fmt.Println(strings.Join(profile, ", "))
+	fmt.Printf("生年月日:%s, 星座:%s, 身長:%s, 出身地:%s, 血液型:%s", member.birthday, member.sign, member.height, member.birthplace, member.bloodtype)
 }
 
 func main() {
@@ -103,7 +91,7 @@ func main() {
 
 	if err != nil {
 		if errors.Is(err, ErrNoUrl) {
-			outputProfile(name, PokaProfile)
+			outputProfile(name, pokaProfile)
 		} else {
 			fmt.Println(err)
 		}

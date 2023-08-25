@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -40,8 +39,8 @@ func Test_getProfileSelection(t *testing.T) {
 		expectederror error
 	}{
 		{"ExistentMember", "潮紗理菜", nil},
-		{"NonExistentMember", "白石麻衣", errors.New("日向坂46に存在しないメンバーです。")},
-		{"ポカ", "ポカ", errors.New("ポカは日向坂46の一員ですが、URLが存在しません。")},
+		{"NonExistentMember", "白石麻衣", ErrNonExistentMember},
+		{"ポカ", "ポカ", ErrNoUrl},
 	}
 
 	for _, tt := range tests {

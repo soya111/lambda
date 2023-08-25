@@ -53,26 +53,20 @@ func Test_getProfileSelection(t *testing.T) {
 }
 
 func Test_scrapeProfile(t *testing.T) {
-	type profile struct {
-		entry string
-		value string
-	}
-
-	var UsiosarinaProfile = [6]profile{
-		{"生年月日", "1997年12月26日"},
-		{"星座", "やぎ座"},
-		{"身長", "157.5cm"},
-		{"出身地", "神奈川県"},
-		{"血液型", "O型"},
-		{"SNS", ""},
+	var usiosarinaProfile = profile{
+		"1997年12月26日",
+		"やぎ座",
+		"157.5cm",
+		"神奈川県",
+		"O型",
 	}
 
 	tests := []struct {
 		name     string
 		input    string
-		expected [6]profile
+		expected profile
 	}{
-		{"Nornal", "潮紗理菜", UsiosarinaProfile},
+		{"Nornal", "潮紗理菜", usiosarinaProfile},
 	}
 
 	for _, tt := range tests {
@@ -80,40 +74,27 @@ func Test_scrapeProfile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			selection, _ := getProfileSelection(tt.input)
 			actual := scrapeProfile(selection)
-			for i := 0; i < 6; i++ {
-				assert.Equal(t, tt.expected[i].entry, actual[i].entry)
-				assert.Equal(t, tt.expected[i].value, actual[i].value)
-			}
+			assert.Equal(t, tt.expected, actual)
 		})
 	}
 }
 
 func Test_outputProfile(t *testing.T) {
-	var UsiosarinaProfile = [6]profile{
-		{"生年月日", "1997年12月26日"},
-		{"星座", "やぎ座"},
-		{"身長", "157.5cm"},
-		{"出身地", "神奈川県"},
-		{"血液型", "O型"},
-		{"SNS", ""},
+	var usiosarinaProfile = profile{
+		"1997年12月26日",
+		"やぎ座",
+		"157.5cm",
+		"神奈川県",
+		"O型",
 	}
-
-	var PokaProfile = [6]profile{
-		{"生年月日", "2019年12月25日"},
-		{"星座", "やぎ座"},
-		{"身長", "???"},
-		{"出身地", "???"},
-		{"血液型", "???"},
-	}
-
 	tests := []struct {
 		name          string
 		inputname     string
-		inputparofile [6]profile
+		inputparofile profile
 		expected      string
 	}{
-		{"Nornal", "潮紗理菜", UsiosarinaProfile, "潮紗理菜\n生年月日:1997年12月26日, 星座:やぎ座, 身長:157.5cm, 出身地:神奈川県, 血液型:O型\n"},
-		{"ポカ", "ポカ", PokaProfile, "ポカ\n生年月日:2019年12月25日, 星座:やぎ座, 身長:???, 出身地:???, 血液型:???\n"},
+		{"Nornal", "潮紗理菜", usiosarinaProfile, "潮紗理菜\n生年月日:1997年12月26日, 星座:やぎ座, 身長:157.5cm, 出身地:神奈川県, 血液型:O型"},
+		{"ポカ", "ポカ", pokaProfile, "ポカ\n生年月日:2019年12月25日, 星座:やぎ座, 身長:???, 出身地:???, 血液型:???"},
 	}
 
 	for _, tt := range tests {

@@ -49,7 +49,20 @@ func (h *Handler) handleFollowEvent(ctx context.Context, event *linebot.Event) e
 func (h *Handler) handleUnfollowEvent(ctx context.Context, event *linebot.Event) error {
 	logger := logging.LoggerFromContext(ctx)
 	logger.Info("Handling unfollow event")
-	// TODO: ユーザーがブロックしたときは購読情報を削除する
+
+	id := line.ExtractEventSourceIdentifier(event)
+	if id == "" {
+		logger.Error("Failed to extract event source identifier")
+		return errors.New("failed to extract event source identifier")
+	}
+
+	if err := h.subscriber.DeleteAllById(id); err != nil {
+		logger.Error("Failed to delete subscriber", zap.Error(err))
+		return err
+	}
+
+	logger.Info("Successfully handled unfollow event")
+
 	return nil
 }
 

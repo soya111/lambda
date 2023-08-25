@@ -13,6 +13,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/guregu/dynamo"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 )
@@ -47,7 +48,7 @@ func TestExecute(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
-	diary := dynamodb.NewDiaryRepository(sess, "hinatazaka_blog")
+	diary := dynamodb.NewDiaryRepository(dynamo.New(sess), "hinatazaka_blog")
 
 	// Scraper settings
 	scraper := blog.NewHinatazakaScraper()

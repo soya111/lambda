@@ -14,6 +14,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/guregu/dynamo"
 	"go.uber.org/zap"
 )
 
@@ -43,7 +44,8 @@ func init() {
 func main() {
 	lambda.Start(func(ctx context.Context) error {
 		ctx = logging.ContextWithLogger(ctx, logger)
-		diary := dynamodb.NewDiaryRepository(sess, "hinatazaka_blog")
+		db := dynamo.New(sess)
+		diary := dynamodb.NewDiaryRepository(db, "hinatazaka_blog")
 		scraper := blog.NewHinatazakaScraper()
 		subscriber := dynamodb.NewSubscriberRepository(sess)
 

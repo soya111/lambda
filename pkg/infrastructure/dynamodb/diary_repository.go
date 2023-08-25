@@ -3,7 +3,6 @@ package dynamodb
 import (
 	"notify/pkg/model"
 
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/guregu/dynamo"
 )
 
@@ -13,9 +12,8 @@ type DiaryRepository struct {
 	table dynamo.Table
 }
 
-// NewDiaryRepository receives a session and a table name, and returns a new DiaryRepository.
-func NewDiaryRepository(sess *session.Session, tableName string) model.DiaryRepository {
-	db := dynamo.New(sess)
+// NewDiaryRepository receives a DynamoDB instance and a table name, and returns a new DiaryRepository.
+func NewDiaryRepository(db *dynamo.DB, tableName string) model.DiaryRepository {
 	table := db.Table(tableName)
 	return &DiaryRepository{
 		db:    db,

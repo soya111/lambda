@@ -88,10 +88,10 @@ func Test_outputProfile(t *testing.T) {
 		"O型",
 	}
 	tests := []struct {
-		name          string
-		inputname     string
-		inputparofile profile
-		expected      string
+		name         string
+		inputname    string
+		inputprofile profile
+		expected     string
 	}{
 		{"Nornal", "潮紗理菜", usiosarinaProfile, "潮紗理菜\n生年月日:1997年12月26日, 星座:やぎ座, 身長:157.5cm, 出身地:神奈川県, 血液型:O型"},
 		{"ポカ", "ポカ", pokaProfile, "ポカ\n生年月日:2019年12月25日, 星座:やぎ座, 身長:???, 出身地:???, 血液型:???"},
@@ -104,7 +104,7 @@ func Test_outputProfile(t *testing.T) {
 		os.Stdout = w
 
 		// テスト対象の関数呼び出し
-		outputProfile(tt.inputname, tt.inputparofile)
+		outputProfile(tt.inputname, tt.inputprofile)
 
 		// 標準出力を元に戻す
 		w.Close()

@@ -9,3 +9,9 @@ services:
     volumes:
       - "./docker/dynamodb:/home/dynamodblocal/data"
     working_dir: /home/dynamodblocal
+  create-tables:
+    build:
+      context: .
+    depends_on:
+      - dynamodb-local
+    restart: "no"

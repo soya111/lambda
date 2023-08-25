@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/stretchr/testify/assert"
 )
 
 // docker compose up -dをしてからテストを実行する
@@ -29,18 +30,6 @@ func TestDiaryRepository(t *testing.T) {
 	tableName := "hinatazaka_blog"
 
 	repo := NewDiaryRepository(sess, tableName)
-	db := repo.db
-
-	err = db.Table(tableName).DeleteTable().Run()
-	if err != nil {
-		// テーブルが存在しない場合はエラーになるので無視する
-		fmt.Println(err)
-	}
-
-	err = db.CreateTable(tableName, model.Diary{}).Run()
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	diary := model.NewDiary("https://www.hinatazaka46.com/s/official/diary/detail/34467", "タイトル", "小坂菜緒", time.Now(), 1)
 	err = repo.PostDiary(diary)
@@ -53,7 +42,8 @@ func TestDiaryRepository(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if diary.Title != "タイトル" {
-		t.Errorf("diary.Title = %s, want %s", diary.Title, "タイトル")
-	}
+	fmt.Printf("%+v\n", diary)
+
+	assert.Equal(t, "タイトル", diary.Title)
+	assert.Equal(t, "小坂菜緒", diary.MemberName)
 }

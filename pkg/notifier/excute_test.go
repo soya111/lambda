@@ -4,78 +4,58 @@ import (
 	"context"
 	"os"
 	"testing"
-	"time"
 
 	"notify/pkg/blog"
+	"notify/pkg/infrastructure/dynamodb"
 	"notify/pkg/infrastructure/line"
+	"notify/pkg/logging"
 	"notify/pkg/model"
 
-	"github.com/PuerkitoBio/goquery"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/joho/godotenv"
+	"github.com/stretchr/testify/assert"
 )
-
-type ScraperMock struct{}
-
-func (*ScraperMock) ScrapeLatestDiaries(ctx context.Context) ([]*blog.ScrapedDiary, error) {
-	// return []*model.Diary{
-	// 	model.NewDiary("https://www.hinatazaka46.com/s/official/diary/detail/20317", "ニャー0( =^ ・_・^)= 〇", "加藤 史帆", time.Now(), 20317),
-	// }, nil
-	return []*blog.ScrapedDiary{
-		blog.NewScrapedDiary("https://www.hinatazaka46.com/s/official/diary/detail/20317", "ニャー0( =^ ・_・^)= 〇", "加藤 史帆", time.Now(), 20317, []string{}, ""),
-	}, nil
-}
-
-func (*ScraperMock) PostDiaries(diaries []*blog.ScrapedDiary) error {
-	// モックなので何もしない
-	return nil
-}
-
-func (*ScraperMock) GetImages(document *goquery.Document) []string {
-	var s = &blog.HinatazakaScraper{}
-	return s.GetImages(document)
-}
-
-func (*ScraperMock) GetMemberIcon(document *goquery.Document) string {
-	return "https://cdn.hinatazaka46.com/images/14/0a0/472f1b55902a03c7b685fd958e085/400_320_102400.jpg"
-}
-
-type MockSubscriberRepository struct {
-	to string
-}
-
-func NewMockSubscriberRepository(to string) *MockSubscriberRepository {
-	return &MockSubscriberRepository{to}
-}
-
-func (s *MockSubscriberRepository) GetAllByMemberName(memberName string) ([]string, error) {
-	return []string{s.to}, nil
-}
-
-func (*MockSubscriberRepository) Subscribe(subscriber model.Subscriber) error {
-	return nil
-}
-
-func (*MockSubscriberRepository) Unsubscribe(memberName, userId string) error {
-	return nil
-}
-
-func (*MockSubscriberRepository) GetAllById(id string) ([]model.Subscriber, error) {
-	return []model.Subscriber{}, nil
-}
 
 func TestExecute(t *testing.T) {
 	t.Skip("skipping this test for now")
-	_ = godotenv.Load("../.env")
+	err := godotenv.Load("../.env")
+	assert.NoError(t, err)
+
+	// LINE settings
 	channelSecret := os.Getenv("CHANNEL_SECRET")
 	channelToken := os.Getenv("CHANNEL_TOKEN")
 	me := os.Getenv("ME")
 	bot, err := line.NewLinebot(channelSecret, channelToken)
-	if err != nil {
-		t.Fatal(err)
-	}
-	notifier := NewNotifier(&ScraperMock{}, bot, NewMockSubscriberRepository(me), nil)
-	err = notifier.Execute(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
+
+	// local dynamodb settings
+	DYNAMO_ENDPOINT := "http://localhost:8000"
+	DYNAMO_REGION := "ap-northeast-1"
+	sess, err := session.NewSession(&aws.Config{
+		Endpoint: aws.String(DYNAMO_ENDPOINT),
+		Region:   aws.String(DYNAMO_REGION),
+	})
+	assert.NoError(t, err)
+
+	subscriber := dynamodb.NewSubscriberRepository(sess)
+	name := "高瀬愛奈"
+	err = subscriber.Subscribe(model.Subscriber{MemberName: name, UserId: me})
+	assert.NoError(t, err)
+	defer func() {
+		err := subscriber.Unsubscribe(name, me)
+		assert.NoError(t, err)
+	}()
+
+	diary := dynamodb.NewDiaryRepository(sess, "hinatazaka_blog")
+
+	// Scraper settings
+	scraper := blog.NewHinatazakaScraper()
+
+	logger := logging.InitializeLogger()
+	ctx := logging.ContextWithLogger(context.Background(), logger)
+
+	notifier := NewNotifier(scraper, bot, subscriber, diary)
+	err = notifier.Execute(ctx)
+	assert.NoError(t, err)
 }

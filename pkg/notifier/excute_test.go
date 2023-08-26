@@ -38,8 +38,9 @@ func TestExecute(t *testing.T) {
 		Region:   aws.String(DYNAMO_REGION),
 	})
 	assert.NoError(t, err)
+	db := dynamo.New(sess)
 
-	subscriber := dynamodb.NewSubscriberRepository(sess)
+	subscriber := dynamodb.NewSubscriberRepository(db)
 	name := "高瀬愛奈"
 	err = subscriber.Subscribe(model.Subscriber{MemberName: name, UserId: me})
 	assert.NoError(t, err)
@@ -48,7 +49,7 @@ func TestExecute(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
-	diary := dynamodb.NewDiaryRepository(dynamo.New(sess), "hinatazaka_blog")
+	diary := dynamodb.NewDiaryRepository(db, "hinatazaka_blog")
 
 	// Scraper settings
 	scraper := blog.NewHinatazakaScraper()

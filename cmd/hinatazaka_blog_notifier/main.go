@@ -47,7 +47,7 @@ func main() {
 		db := dynamo.New(sess)
 		diary := dynamodb.NewDiaryRepository(db, "hinatazaka_blog")
 		scraper := blog.NewHinatazakaScraper()
-		subscriber := dynamodb.NewSubscriberRepository(sess)
+		subscriber := dynamodb.NewSubscriberRepository(db)
 
 		notifier := notifier.NewNotifier(scraper, bot, subscriber, diary)
 		err := notifier.Execute(ctx)

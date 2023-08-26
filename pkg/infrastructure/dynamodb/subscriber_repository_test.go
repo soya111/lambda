@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/guregu/dynamo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +19,8 @@ func TestSubscriberRepository(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	subscriber := NewSubscriberRepository(sess)
+	db := dynamo.New(sess)
+	subscriber := NewSubscriberRepository(db)
 
 	s := model.Subscriber{
 		MemberName: "小坂菜緒",

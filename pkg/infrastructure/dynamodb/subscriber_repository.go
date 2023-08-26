@@ -5,7 +5,6 @@ import (
 
 	"notify/pkg/model"
 
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/guregu/dynamo"
 )
 
@@ -17,9 +16,8 @@ type SubscriberRepository struct {
 	table dynamo.Table
 }
 
-// NewSubscriberRepository receives a session and returns a new SubscriberRepository.
-func NewSubscriberRepository(sess *session.Session) model.SubscriberRepository {
-	db := dynamo.New(sess)
+// NewSubscriberRepository receives a DynamoDB instance and returns a new SubscriberRepository.
+func NewSubscriberRepository(db *dynamo.DB) model.SubscriberRepository {
 	table := db.Table(subscriberTableName)
 	return &SubscriberRepository{db, table}
 }

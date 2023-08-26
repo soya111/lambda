@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/guregu/dynamo"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,7 +30,8 @@ func TestDiaryRepository(t *testing.T) {
 
 	tableName := "hinatazaka_blog"
 
-	repo := NewDiaryRepository(sess, tableName)
+	db := dynamo.New(sess)
+	repo := NewDiaryRepository(db, tableName)
 
 	diary := model.NewDiary("https://www.hinatazaka46.com/s/official/diary/detail/34467", "タイトル", "小坂菜緒", time.Now(), 1)
 	err = repo.PostDiary(diary)

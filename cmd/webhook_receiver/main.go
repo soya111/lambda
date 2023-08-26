@@ -18,6 +18,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambdacontext"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/awslabs/aws-lambda-go-api-proxy/core"
+	"github.com/guregu/dynamo"
 	"github.com/hashicorp/go-multierror"
 	"github.com/joho/godotenv"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
@@ -26,7 +27,7 @@ import (
 
 var (
 	bot    *line.Linebot
-	sess   *session.Session
+	db     *dynamo.DB
 	logger *zap.Logger
 )
 
@@ -40,7 +41,8 @@ func init() {
 		log.Fatal(err)
 	}
 
-	sess = session.Must(session.NewSession())
+	sess := session.Must(session.NewSession())
+	db = dynamo.New(sess)
 
 	logger = logging.InitializeLogger()
 }
@@ -91,7 +93,7 @@ func handleWebhook(ctx context.Context, request events.APIGatewayProxyRequest) (
 	var result *multierror.Error
 	var wg sync.WaitGroup
 
-	repo := dynamodb.NewSubscriberRepository(sess)
+	repo := dynamodb.NewSubscriberRepository(db)
 	handler := webhook.NewHandler(bot, repo)
 
 	for _, event := range events {

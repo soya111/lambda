@@ -2,6 +2,7 @@ package notifier
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"notify/pkg/blog"
 	"notify/pkg/infrastructure/line"
@@ -57,7 +58,7 @@ func (n *Notifier) getLatestDiaries(ctx context.Context) ([]*blog.ScrapedDiary, 
 		_, err := n.diary.GetDiary(d.MemberName, d.Id)
 		if err != nil {
 			// Check if the error is a "not found" error.
-			if err == model.ErrDiaryNotFound {
+			if errors.Is(err, model.ErrDiaryNotFound) {
 				// The item is not in the database, so it's a new diary.
 				res = append(res, d)
 				logger.Info("New diary", zap.Any("diary", d))

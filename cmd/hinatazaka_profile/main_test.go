@@ -55,6 +55,7 @@ func Test_getProfileSelection(t *testing.T) {
 func Test_scrapeProfile(t *testing.T) {
 	var usiosarinaProfile = profile{
 		"1997年12月26日",
+		"",
 		"やぎ座",
 		"157.5cm",
 		"神奈川県",
@@ -82,6 +83,7 @@ func Test_scrapeProfile(t *testing.T) {
 func Test_outputProfile(t *testing.T) {
 	var usiosarinaProfile = profile{
 		"1997年12月26日",
+		"",
 		"やぎ座",
 		"157.5cm",
 		"神奈川県",
@@ -93,8 +95,8 @@ func Test_outputProfile(t *testing.T) {
 		inputprofile profile
 		expected     string
 	}{
-		{"Nornal", "潮紗理菜", usiosarinaProfile, "潮紗理菜\n生年月日:1997年12月26日, 星座:やぎ座, 身長:157.5cm, 出身地:神奈川県, 血液型:O型"},
-		{"ポカ", "ポカ", pokaProfile, "ポカ\n生年月日:2019年12月25日, 星座:やぎ座, 身長:???, 出身地:???, 血液型:???"},
+		{"Nornal", "潮紗理菜", usiosarinaProfile, "潮紗理菜\n生年月日:1997年12月26日, 年齢:25歳, 星座:やぎ座, 身長:157.5cm, 出身地:神奈川県, 血液型:O型"},
+		{"ポカ", "ポカ", pokaProfile, "ポカ\n生年月日:2019年12月25日, 年齢:3歳, 星座:やぎ座, 身長:???, 出身地:???, 血液型:???"},
 	}
 
 	for _, tt := range tests {

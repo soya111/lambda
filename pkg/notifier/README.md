@@ -27,11 +27,11 @@
 
 前の手順で取得した値に書き換えるためのコマンドは次のとおりです。
 
-    ```bash
-    cd pkg
-    cp .env.sample .env
-    code .env
-    ```
+```bash
+cd pkg
+cp .env.sample .env
+code .env
+```
 
 ## 実行
 

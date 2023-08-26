@@ -34,12 +34,12 @@ func TestDiaryRepository(t *testing.T) {
 	repo := NewDiaryRepository(db, tableName)
 
 	diary := model.NewDiary("https://www.hinatazaka46.com/s/official/diary/detail/34467", "タイトル", "小坂菜緒", time.Now(), 1)
-	err = repo.PostDiary(diary)
+	err = repo.Post(diary)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	diary, err = repo.GetDiary("小坂菜緒", 1)
+	diary, err = repo.Get("小坂菜緒", 1)
 	if err != nil {
 		t.Fatal(err)
 	}

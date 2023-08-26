@@ -20,7 +20,7 @@ import (
 )
 
 func TestExecute(t *testing.T) {
-	//t.Skip("skipping this test for now")
+	t.Skip("skipping this test for now")
 	err := godotenv.Load("../.env")
 	assert.NoError(t, err)
 

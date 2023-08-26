@@ -22,7 +22,7 @@ func NewDiaryRepository(db *dynamo.DB, tableName string) model.DiaryRepository {
 }
 
 // GetDiary returns the diary of the specified member and diary ID.
-func (r *DiaryRepository) GetDiary(memberName string, diaryId int) (*model.Diary, error) {
+func (r *DiaryRepository) Get(memberName string, diaryId int) (*model.Diary, error) {
 	diary := new(model.Diary)
 	err := r.table.Get("member_name", memberName).Range("diary_id", dynamo.Equal, diaryId).One(diary)
 	if err != nil {
@@ -35,6 +35,6 @@ func (r *DiaryRepository) GetDiary(memberName string, diaryId int) (*model.Diary
 }
 
 // PostDiary posts the diary.
-func (r *DiaryRepository) PostDiary(diary *model.Diary) error {
+func (r *DiaryRepository) Post(diary *model.Diary) error {
 	return r.table.Put(diary).Run()
 }

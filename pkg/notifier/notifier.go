@@ -55,7 +55,7 @@ func (n *Notifier) getLatestDiaries(ctx context.Context) ([]*blog.ScrapedDiary, 
 
 	res := []*blog.ScrapedDiary{}
 	for _, d := range latestDiaries {
-		_, err := n.diary.GetDiary(d.MemberName, d.Id)
+		_, err := n.diary.Get(d.MemberName, d.Id)
 		if err != nil {
 			// Check if the error is a "not found" error.
 			if errors.Is(err, model.ErrDiaryNotFound) {
@@ -71,7 +71,7 @@ func (n *Notifier) getLatestDiaries(ctx context.Context) ([]*blog.ScrapedDiary, 
 
 	for _, sd := range res {
 		diary := blog.ConvertScrapedDiaryToDiary(sd)
-		if err := n.diary.PostDiary(diary); err != nil {
+		if err := n.diary.Post(diary); err != nil {
 			return nil, err
 		}
 	}

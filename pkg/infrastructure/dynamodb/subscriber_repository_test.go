@@ -49,7 +49,8 @@ func TestDeleteAllById(t *testing.T) {
 	session, err := createSession()
 	assert.NoError(t, err)
 
-	subscriber := NewSubscriberRepository(session)
+	db := dynamo.New(session)
+	subscriber := NewSubscriberRepository(db)
 
 	s := model.Subscriber{
 		MemberName: "小坂菜緒",

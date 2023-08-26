@@ -6,6 +6,7 @@ import (
 	"notify/pkg/infrastructure/line"
 	"notify/pkg/logging"
 	"notify/pkg/model"
+	"notify/pkg/service"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
@@ -17,10 +18,10 @@ type PostbackCommand interface {
 type PostbackCommandMap map[line.PostbackAction]PostbackCommand
 
 func (h *Handler) getPostbackCommandMap() PostbackCommandMap {
-	base := NewBaseCommand(h.bot, h.subscriber)
+	subscriptionService := service.NewSubscriptionService(h.bot, h.subscriber)
 	return PostbackCommandMap{
-		line.PostbackActionRegister:   &PostbackCommandRegister{base},
-		line.PostbackActionUnregister: &PostbackCommandUnregister{base},
+		line.PostbackActionRegister:   &PostbackCommandRegister{subscriptionService},
+		line.PostbackActionUnregister: &PostbackCommandUnregister{subscriptionService},
 	}
 }
 
@@ -42,7 +43,7 @@ func (h *Handler) handlePostbackEvent(ctx context.Context, event *linebot.Event)
 
 // PostbackCommandRegister is a command to register a member.
 type PostbackCommandRegister struct {
-	*BaseCommand
+	subscriptionService *service.SubscriptionService
 }
 
 func (c *PostbackCommandRegister) Execute(ctx context.Context, event *linebot.Event, data *line.PostbackData) error {
@@ -54,7 +55,7 @@ func (c *PostbackCommandRegister) Execute(ctx context.Context, event *linebot.Ev
 		return fmt.Errorf("invalid member: %s", member)
 	}
 
-	err := c.registerMember(ctx, member, event)
+	err := c.subscriptionService.RegisterMember(ctx, member, event)
 	if err != nil {
 		return fmt.Errorf("PostbackCommandRegister.Execute: %w", err)
 	}
@@ -63,7 +64,7 @@ func (c *PostbackCommandRegister) Execute(ctx context.Context, event *linebot.Ev
 
 // PostbackCommandUnregister is a command to unregister a member.
 type PostbackCommandUnregister struct {
-	*BaseCommand
+	subscriptionService *service.SubscriptionService
 }
 
 func (c *PostbackCommandUnregister) Execute(ctx context.Context, event *linebot.Event, data *line.PostbackData) error {
@@ -75,7 +76,7 @@ func (c *PostbackCommandUnregister) Execute(ctx context.Context, event *linebot.
 		return fmt.Errorf("invalid member: %s", member)
 	}
 
-	err := c.unregisterMember(ctx, member, event)
+	err := c.subscriptionService.UnregisterMember(ctx, member, event)
 	if err != nil {
 		return fmt.Errorf("PostbackCommandUnregister.Execute: %w", err)
 	}

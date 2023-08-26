@@ -22,8 +22,8 @@ func NewDiary(url string, title string, memberName string, date time.Time, id in
 
 // DiaryRepository provides an interface for database operations on Diaries
 type DiaryRepository interface {
-	GetDiary(memberName string, diaryId int) (*Diary, error)
-	PostDiary(diary *Diary) error
+	Get(memberName string, diaryId int) (*Diary, error)
+	Post(diary *Diary) error
 }
 
 // ErrDiaryNotFound is returned when the requested diary is not found

@@ -7,6 +7,7 @@ import (
 	"notify/pkg/infrastructure/line"
 	"notify/pkg/logging"
 	"notify/pkg/model"
+	"notify/pkg/service"
 	"strings"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
@@ -25,17 +26,6 @@ type CommandName string
 // CommandMap is the type that represents the map of command name and command.
 type CommandMap map[CommandName]Command
 
-// BaseCommand is the base struct for all commands.
-type BaseCommand struct {
-	bot        *line.Linebot
-	subscriber model.SubscriberRepository
-}
-
-// NewBaseCommand creates a new BaseCommand.
-func NewBaseCommand(bot *line.Linebot, subscriber model.SubscriberRepository) *BaseCommand {
-	return &BaseCommand{bot, subscriber}
-}
-
 const (
 	CmdReg    CommandName = "reg"
 	CmdUnreg  CommandName = "unreg"
@@ -47,16 +37,17 @@ const (
 )
 
 func (h *Handler) getCommandHandlers() CommandMap {
-	base := NewBaseCommand(h.bot, h.subscriber)
+	subscriptionService := service.NewSubscriptionService(h.bot, h.subscriber)
+	identityService := service.NewIdentityService(h.bot)
 	cmdMap := CommandMap{
-		CmdReg:    &RegCommand{base},
-		CmdUnreg:  &UnregCommand{base},
-		CmdList:   &ListCommand{base},
-		CmdWhoami: &WhoamiCommand{base},
-		CmdBlog:   &BlogCommand{base},
+		CmdReg:    &RegCommand{subscriptionService},
+		CmdUnreg:  &UnregCommand{subscriptionService},
+		CmdList:   &ListCommand{subscriptionService},
+		CmdWhoami: &WhoamiCommand{identityService},
+		CmdBlog:   &BlogCommand{h.bot},
 		// 新たに追加するコマンドも同様にここに追加します
 	}
-	cmdMap[CmdHelp] = &HelpCommand{base, cmdMap}
+	cmdMap[CmdHelp] = &HelpCommand{h.bot, cmdMap}
 	return cmdMap
 }
 
@@ -72,7 +63,7 @@ func (h *Handler) handleTextMessage(ctx context.Context, param string, event *li
 
 // RegCommand is the command that registers a member.
 type RegCommand struct {
-	*BaseCommand
+	subscriptionService *service.SubscriptionService
 }
 
 func (c *RegCommand) Execute(ctx context.Context, event *linebot.Event, args []string) error {
@@ -86,7 +77,7 @@ func (c *RegCommand) Execute(ctx context.Context, event *linebot.Event, args []s
 	if !model.IsMember(member) {
 		return nil
 	}
-	err := c.registerMember(ctx, member, event)
+	err := c.subscriptionService.RegisterMember(ctx, member, event)
 	if err != nil {
 		return fmt.Errorf("RegCommand.Execute: %w", err)
 	}
@@ -99,7 +90,7 @@ func (c *RegCommand) Description() string {
 
 // UnregCommand is the command that unregisters a member.
 type UnregCommand struct {
-	*BaseCommand
+	subscriptionService *service.SubscriptionService
 }
 
 func (c *UnregCommand) Execute(ctx context.Context, event *linebot.Event, args []string) error {
@@ -113,7 +104,7 @@ func (c *UnregCommand) Execute(ctx context.Context, event *linebot.Event, args [
 	if !model.IsMember(member) {
 		return nil
 	}
-	err := c.unregisterMember(ctx, member, event)
+	err := c.subscriptionService.UnregisterMember(ctx, member, event)
 	if err != nil {
 		return fmt.Errorf("UnregCommand.Execute: %w", err)
 	}
@@ -126,14 +117,14 @@ func (c *UnregCommand) Description() string {
 
 // ListCommand is the command that shows the list of registered members.
 type ListCommand struct {
-	*BaseCommand
+	subscriptionService *service.SubscriptionService
 }
 
 func (c *ListCommand) Execute(ctx context.Context, event *linebot.Event, args []string) error {
 	logger := logging.LoggerFromContext(ctx)
 	logger.Info("Executing ListCommand")
 
-	err := c.showSubscribeList(ctx, event)
+	err := c.subscriptionService.ShowSubscribeList(ctx, event)
 	if err != nil {
 		return fmt.Errorf("ListCommand.Execute: %w", err)
 	}
@@ -146,14 +137,14 @@ func (c *ListCommand) Description() string {
 
 // WhoamiCommand is the command that shows the user or group ID.
 type WhoamiCommand struct {
-	*BaseCommand
+	identityService *service.IdentityService
 }
 
 func (c *WhoamiCommand) Execute(ctx context.Context, event *linebot.Event, args []string) error {
 	logger := logging.LoggerFromContext(ctx)
 	logger.Info("Executing WhoamiCommand")
 
-	return c.sendWhoami(ctx, event)
+	return c.identityService.SendWhoami(ctx, event)
 }
 
 func (c *WhoamiCommand) Description() string {
@@ -162,7 +153,7 @@ func (c *WhoamiCommand) Description() string {
 
 // HelpCommand is the command that shows the list of available commands.
 type HelpCommand struct {
-	*BaseCommand
+	bot      *line.Linebot
 	handlers CommandMap
 }
 
@@ -192,7 +183,7 @@ func (c *HelpCommand) Description() string {
 
 // BlogCommand is the command that shows the latest blog entry of the specified member.
 type BlogCommand struct {
-	*BaseCommand
+	bot *line.Linebot
 }
 
 func (c *BlogCommand) Execute(ctx context.Context, event *linebot.Event, args []string) error {
@@ -233,85 +224,3 @@ func (c *BlogCommand) Description() string {
 // 	MemberName string `dynamo:"member_name" json:"member_name"  index:"user_id-index,range"`
 // 	UserId     string `json:"user_id" dynamo:"user_id" index:"user_id-index,hash"`
 // }
-
-func (c *BaseCommand) registerMember(ctx context.Context, member string, event *linebot.Event) error {
-	token := event.ReplyToken
-
-	id := line.ExtractEventSourceIdentifier(event)
-	if id == "" {
-		err := fmt.Errorf("invalid source type: %v", event.Source.Type)
-		return c.bot.ReplyWithError(ctx, token, "Invalid source type!", err)
-	}
-
-	err := c.subscriber.Subscribe(model.Subscriber{MemberName: member, UserId: id})
-	if err != nil {
-		return c.bot.ReplyWithError(ctx, token, "登録できませんでした！", err)
-	}
-
-	logger := logging.LoggerFromContext(ctx)
-	logger.Info("Registered member", zap.String("member", member), zap.String("id", id))
-
-	message := fmt.Sprintf("registered %s", member)
-	if err := c.bot.ReplyTextMessages(ctx, token, message); err != nil {
-		return fmt.Errorf("registerMember: partial success, registration succeeded but failed to send message: %w", err)
-	}
-	return nil
-}
-
-func (c *BaseCommand) unregisterMember(ctx context.Context, member string, event *linebot.Event) error {
-	token := event.ReplyToken
-
-	id := line.ExtractEventSourceIdentifier(event)
-	if id == "" {
-		err := fmt.Errorf("invalid source type: %v", event.Source.Type)
-		return c.bot.ReplyWithError(ctx, token, "Invalid source type!", err)
-	}
-
-	err := c.subscriber.Unsubscribe(member, id)
-	if err != nil {
-		return c.bot.ReplyWithError(ctx, token, "登録解除できませんでした！", err)
-	}
-
-	logger := logging.LoggerFromContext(ctx)
-	logger.Info("Unregistered member", zap.String("member", member), zap.String("id", id))
-
-	message := fmt.Sprintf("unregistered %s", member)
-	if err := c.bot.ReplyTextMessages(ctx, token, message); err != nil {
-		return fmt.Errorf("unregisterMember: partial success, unregistration succeeded but failed to send message: %w", err)
-	}
-	return nil
-}
-
-func (c *BaseCommand) showSubscribeList(ctx context.Context, event *linebot.Event) error {
-	token := event.ReplyToken
-
-	id := line.ExtractEventSourceIdentifier(event)
-	if id == "" {
-		err := fmt.Errorf("invalid source type: %v", event.Source.Type)
-		return c.bot.ReplyWithError(ctx, token, "Invalid source type!", err)
-	}
-
-	list, err := c.subscriber.GetAllById(id)
-	if err != nil {
-		return c.bot.ReplyWithError(ctx, token, "情報を取得できませんでした！", err)
-	}
-
-	message := "登録リスト"
-	for _, v := range list {
-		message += fmt.Sprintf("\n%s", v.MemberName)
-	}
-	if err := c.bot.ReplyTextMessages(ctx, token, message); err != nil {
-		return fmt.Errorf("showSubscribeList: %w", err)
-	}
-
-	logger := logging.LoggerFromContext(ctx)
-	logger.Info("Showed subscribe list", zap.String("id", id))
-
-	return nil
-}
-
-func (c *BaseCommand) sendWhoami(ctx context.Context, event *linebot.Event) error {
-	logger := logging.LoggerFromContext(ctx)
-	logger.Info("Sending whoami")
-	return c.bot.ReplyTextMessages(ctx, event.ReplyToken, line.ExtractEventSourceIdentifier(event))
-}

@@ -2,6 +2,8 @@ package webhook
 
 import (
 	"context"
+	"errors"
+	"notify/pkg/infrastructure/line"
 	"notify/pkg/logging"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
@@ -15,6 +17,9 @@ type EventHandlers map[linebot.EventType]EventHandler
 func (h *Handler) getEventHandlers() EventHandlers {
 	return EventHandlers{
 		linebot.EventTypeMessage:  h.handleMessageEvent,
+		linebot.EventTypeFollow:   h.handleFollowEvent,
+		linebot.EventTypeUnfollow: h.handleUnfollowEvent,
+		linebot.EventTypeJoin:     h.handleJoinEvent,
 		linebot.EventTypeLeave:    h.handleLeaveEvent,
 		linebot.EventTypePostback: h.handlePostbackEvent,
 		// 他のイベントタイプも同様に定義する
@@ -30,14 +35,60 @@ func (h *Handler) handleMessageEvent(ctx context.Context, event *linebot.Event) 
 		return h.handleTextMessage(ctx, message.Text, event)
 	default:
 		// TextMessage以外は何もしない
-		logger.Warn("Unsupported message type")
+		logger.Info("Unsupported message type")
 		return nil
 	}
+}
+
+func (h *Handler) handleFollowEvent(ctx context.Context, event *linebot.Event) error {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Handling follow event")
+	return nil
+}
+
+func (h *Handler) handleUnfollowEvent(ctx context.Context, event *linebot.Event) error {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Handling unfollow event")
+
+	id := line.ExtractEventSourceIdentifier(event)
+	if id == "" {
+		logger.Error("Failed to extract event source identifier")
+		return errors.New("failed to extract event source identifier")
+	}
+
+	if err := h.subscriber.DeleteAllById(id); err != nil {
+		logger.Error("Failed to delete subscriber", zap.Error(err))
+		return err
+	}
+
+	logger.Info("Successfully handled unfollow event")
+
+	return nil
+}
+
+func (h *Handler) handleJoinEvent(ctx context.Context, event *linebot.Event) error {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Handling join event")
+	return nil
 }
 
 func (h *Handler) handleLeaveEvent(ctx context.Context, event *linebot.Event) error {
 	logger := logging.LoggerFromContext(ctx)
 	logger.Info("Handling leave event")
+
+	id := line.ExtractEventSourceIdentifier(event)
+	if id == "" {
+		logger.Error("Failed to extract event source identifier")
+		return errors.New("failed to extract event source identifier")
+	}
+
+	if err := h.subscriber.DeleteAllById(id); err != nil {
+		logger.Error("Failed to delete subscriber", zap.Error(err))
+		return err
+	}
+
+	logger.Info("Successfully handled leave event")
+
 	return nil
 }
 

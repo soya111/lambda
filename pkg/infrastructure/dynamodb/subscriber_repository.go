@@ -25,9 +25,9 @@ func NewSubscriberRepository(sess *session.Session) model.SubscriberRepository {
 }
 
 // GetAllByMemberName returns the list of user IDs that subscribe the specified member.
-func (d *SubscriberRepository) GetAllByMemberName(memberName string) ([]string, error) {
+func (r *SubscriberRepository) GetAllByMemberName(memberName string) ([]string, error) {
 	var subscribers []model.Subscriber
-	err := d.table.Get("member_name", memberName).All(&subscribers)
+	err := r.table.Get("member_name", memberName).All(&subscribers)
 	if err != nil {
 		return nil, err
 	}
@@ -41,8 +41,8 @@ func (d *SubscriberRepository) GetAllByMemberName(memberName string) ([]string, 
 }
 
 // Subscribe inserts the subscriber.
-func (d *SubscriberRepository) Subscribe(subscriber model.Subscriber) error {
-	if err := d.table.Put(subscriber).Run(); err != nil {
+func (r *SubscriberRepository) Subscribe(subscriber model.Subscriber) error {
+	if err := r.table.Put(subscriber).Run(); err != nil {
 		return fmt.Errorf("postSubscriber: %w", err)
 	}
 
@@ -50,8 +50,8 @@ func (d *SubscriberRepository) Subscribe(subscriber model.Subscriber) error {
 }
 
 // Unsubscribe deletes the subscriber.
-func (d *SubscriberRepository) Unsubscribe(memberName, userId string) error {
-	err := d.table.Delete("member_name", memberName).Range("user_id", userId).Run()
+func (r *SubscriberRepository) Unsubscribe(memberName, userId string) error {
+	err := r.table.Delete("member_name", memberName).Range("user_id", userId).Run()
 
 	if err != nil {
 		return fmt.Errorf("deleteSubscriber: %w", err)
@@ -61,12 +61,37 @@ func (d *SubscriberRepository) Unsubscribe(memberName, userId string) error {
 }
 
 // GetAllById returns the list of subscribers that the specified user ID subscribes.
-func (d *SubscriberRepository) GetAllById(id string) ([]model.Subscriber, error) {
+func (r *SubscriberRepository) GetAllById(id string) ([]model.Subscriber, error) {
 	var res []model.Subscriber
-	err := d.table.Get("user_id", id).Index("user_id-index").All(&res)
+	err := r.table.Get("user_id", id).Index("user_id-index").All(&res)
 	if err != nil {
 		return nil, fmt.Errorf("getSubscribeList: %w", err)
 	}
 
 	return res, nil
+}
+
+// DeleteAllById deletes all the subscribers that the specified user ID subscribes.
+func (r *SubscriberRepository) DeleteAllById(id string) error {
+	var subscribers []model.Subscriber
+
+	// クエリで特定のuserIdのレコードを取得
+	err := r.table.Get("user_id", id).Index("user_id-index").All(&subscribers)
+	if err != nil {
+		return fmt.Errorf("querying by user_id: %w", err)
+	}
+
+	for _, subscriber := range subscribers {
+		fmt.Printf("deleting: %s\n", subscriber.MemberName)
+	}
+
+	// 取得した各レコードを削除
+	for _, subscriber := range subscribers {
+		err := r.table.Delete("member_name", subscriber.MemberName).Range("user_id", id).Run()
+		if err != nil {
+			return fmt.Errorf("deleting by member_name and user_id: %w", err)
+		}
+	}
+
+	return nil
 }

@@ -26,17 +26,6 @@ type CommandName string
 // CommandMap is the type that represents the map of command name and command.
 type CommandMap map[CommandName]Command
 
-// BaseCommand is the base struct for all commands.
-type BaseCommand struct {
-	bot        *line.Linebot
-	subscriber model.SubscriberRepository
-}
-
-// NewBaseCommand creates a new BaseCommand.
-func NewBaseCommand(bot *line.Linebot, subscriber model.SubscriberRepository) *BaseCommand {
-	return &BaseCommand{bot, subscriber}
-}
-
 const (
 	CmdReg    CommandName = "reg"
 	CmdUnreg  CommandName = "unreg"
@@ -48,7 +37,6 @@ const (
 )
 
 func (h *Handler) getCommandHandlers() CommandMap {
-	base := NewBaseCommand(h.bot, h.subscriber)
 	subscriptionService := service.NewSubscriptionService(h.bot, h.subscriber)
 	identityService := service.NewIdentityService(h.bot)
 	cmdMap := CommandMap{
@@ -56,10 +44,10 @@ func (h *Handler) getCommandHandlers() CommandMap {
 		CmdUnreg:  &UnregCommand{subscriptionService},
 		CmdList:   &ListCommand{subscriptionService},
 		CmdWhoami: &WhoamiCommand{identityService},
-		CmdBlog:   &BlogCommand{base},
+		CmdBlog:   &BlogCommand{h.bot},
 		// 新たに追加するコマンドも同様にここに追加します
 	}
-	cmdMap[CmdHelp] = &HelpCommand{base, cmdMap}
+	cmdMap[CmdHelp] = &HelpCommand{h.bot, cmdMap}
 	return cmdMap
 }
 
@@ -165,7 +153,7 @@ func (c *WhoamiCommand) Description() string {
 
 // HelpCommand is the command that shows the list of available commands.
 type HelpCommand struct {
-	*BaseCommand
+	bot      *line.Linebot
 	handlers CommandMap
 }
 
@@ -195,7 +183,7 @@ func (c *HelpCommand) Description() string {
 
 // BlogCommand is the command that shows the latest blog entry of the specified member.
 type BlogCommand struct {
-	*BaseCommand
+	bot *line.Linebot
 }
 
 func (c *BlogCommand) Execute(ctx context.Context, event *linebot.Event, args []string) error {

@@ -36,8 +36,8 @@ func TestExecute(t *testing.T) {
 	AWS_REGION := "ap-northeast-1"
 
 	sess, err := session.NewSession(&aws.Config{
-		Region:      aws.String(AWS_REGION),
 		Endpoint:    aws.String(DYNAMO_ENDPOINT),
+		Region:      aws.String(AWS_REGION),
 		Credentials: credentials.NewStaticCredentials("dummy", "dummy", "dummy"),
 	})
 	assert.NoError(t, err)

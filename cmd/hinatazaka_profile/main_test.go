@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -55,7 +56,7 @@ func Test_getProfileSelection(t *testing.T) {
 func Test_scrapeProfile(t *testing.T) {
 	var usiosarinaProfile = profile{
 		"1997年12月26日",
-		"",
+		calcAge(normalizeDate("1997年12月26日")),
 		"やぎ座",
 		"157.5cm",
 		"神奈川県",
@@ -80,10 +81,70 @@ func Test_scrapeProfile(t *testing.T) {
 	}
 }
 
+func Test_normalizeDate(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected time.Time
+	}{
+		{"YYYY年MM月DD日", "2000年12月12日", time.Date(2000, 12, 12, 0, 0, 0, 0, time.UTC)},
+		{"YYYY年M月DD日", "2000年2月12日", time.Date(2000, 2, 12, 0, 0, 0, 0, time.UTC)},
+		{"YYYY年MM月D日", "2000年12月2日", time.Date(2000, 12, 2, 0, 0, 0, 0, time.UTC)},
+		{"YYYY年M月D日", "2000年2月2日", time.Date(2000, 2, 2, 0, 0, 0, 0, time.UTC)},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			actual := normalizeDate(tt.input)
+			assert.Equal(t, tt.expected, actual)
+		})
+	}
+}
+
+func Test_calcAge(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    time.Time
+		expected string
+	}{
+		{"BeforeBirthday", time.Now().AddDate(-20, 0, 1), "19"},
+		{"AfterBirthday", time.Now().AddDate(-20, 0, -1), "20"},
+		{"TodayIsBirthday", time.Now().AddDate(-20, 0, 0), "20"},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			actual := calcAge(tt.input)
+			assert.Equal(t, tt.expected, actual)
+		})
+	}
+}
+
+func Test_isTodayBirthday(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    time.Time
+		expected bool
+	}{
+		{"Birthday", time.Now(), true},
+		{"NotBirthday", time.Now().AddDate(0, 0, 1), false},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			actual := isTodayBirthday(tt.input)
+			assert.Equal(t, tt.expected, actual)
+		})
+	}
+}
+
 func Test_outputProfile(t *testing.T) {
 	var usiosarinaProfile = profile{
 		"1997年12月26日",
-		"",
+		calcAge(normalizeDate("1997年12月26日")),
 		"やぎ座",
 		"157.5cm",
 		"神奈川県",

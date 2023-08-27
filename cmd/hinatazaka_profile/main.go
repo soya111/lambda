@@ -4,7 +4,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -33,7 +32,7 @@ var (
 // ポカのプロフィール
 var pokaProfile = profile{
 	"2019年12月25日",
-	"",
+	calcAge(normalizeDate("2019年12月25日")),
 	"やぎ座",
 	"???",
 	"???",
@@ -79,65 +78,58 @@ func scrapeProfile(selection *goquery.Selection) profile {
 		prof = append(prof, strings.TrimSpace(element.Text()))
 	})
 
-	member := profile{prof[0], "", prof[1], prof[2], prof[3], prof[4]}
+	member := profile{prof[0], calcAge(normalizeDate(prof[0])), prof[1], prof[2], prof[3], prof[4]}
 
 	return member
 }
 
+// normalizeDateは"YYYY年MM月DD日"を標準化したtime.Time型で出力
+func normalizeDate(date string) time.Time {
+	layout := "2006年1月2日"
+
+	normalizedDate, err := time.Parse(layout, date)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return normalizedDate
+}
+
 // calcAgeは生年月日から年齢を取得
-func calcAge(birthday string) string {
+func calcAge(birthday time.Time) string {
 	//今日の年月日を取得
 	now := time.Now()
 	thisYear, thisMonth, day := now.Date()
 
-	//YYYY年MM月DD日をYYYY-MM-DDに標準化
-	re := regexp.MustCompile(`\d+`)
-	capturedBirthday := re.FindAllString(birthday, -1)
-
-	birthYear, _ := strconv.Atoi(capturedBirthday[0])
-	birthMonth, _ := strconv.Atoi(capturedBirthday[1])
-	birthDate, _ := strconv.Atoi(capturedBirthday[2])
-
-	normalizedBirthday := time.Date(birthYear, time.Month(birthMonth), birthDate, 00, 00, 00, 0, time.Local)
-
 	//年から年齢を計算
-	age := thisYear - normalizedBirthday.Year()
+	age := thisYear - birthday.Year()
 
 	// 誕生日を迎えていない場合はageを「−1」する
-	if thisMonth < normalizedBirthday.Month() || (thisMonth == normalizedBirthday.Month() && day < normalizedBirthday.Day()) {
+	if thisMonth < birthday.Month() || (thisMonth == birthday.Month() && day < birthday.Day()) {
 		age -= 1
 	}
 
 	return strconv.Itoa(age)
 }
 
-// isTodayBirthdayは今日が誕生日の場合にメッセージを出力
-func isTodayBirthday(birthday string) {
+// isTodayBirthdayは今日が誕生日の場合にtrueを返す
+func isTodayBirthday(birthday time.Time) bool {
 	//今日の年月日を取得
 	now := time.Now()
 	_, thisMonth, day := now.Date()
 
-	//YYYY年MM月DD日をYYYY-MM-DDに標準化
-	re := regexp.MustCompile(`\d+`)
-	capturedBirthday := re.FindAllString(birthday, -1)
-
-	birthYear, _ := strconv.Atoi(capturedBirthday[0])
-	birthMonth, _ := strconv.Atoi(capturedBirthday[1])
-	birthDate, _ := strconv.Atoi(capturedBirthday[2])
-
-	normalizedBirthday := time.Date(birthYear, time.Month(birthMonth), birthDate, 00, 00, 00, 0, time.Local)
-
-	//今日が誕生日ならばメッセージを出力
-	if thisMonth == normalizedBirthday.Month() && day == normalizedBirthday.Day() {
-		fmt.Print("\nHappy birthday!!")
-	}
+	//今日が誕生日の場合にtrueを返す
+	return thisMonth == birthday.Month() && day == birthday.Day()
 }
 
 // outputProfileはプロフィールを標準形で出力
 func outputProfile(name string, member profile) {
 	fmt.Println(name) //メンバーの名前を出力
-	fmt.Printf("生年月日:%s, 年齢:%s歳, 星座:%s, 身長:%s, 出身地:%s, 血液型:%s", member.birthday, calcAge(member.birthday), member.sign, member.height, member.birthplace, member.bloodtype)
-	isTodayBirthday(member.birthday)
+	fmt.Printf("生年月日:%s, 年齢:%s歳, 星座:%s, 身長:%s, 出身地:%s, 血液型:%s", member.birthday, member.age, member.sign, member.height, member.birthplace, member.bloodtype)
+	if isTodayBirthday(normalizeDate(member.birthday)) {
+		fmt.Print("\nHappy birthday!!")
+	}
 }
 
 func main() {

@@ -25,13 +25,13 @@
 
 ### 4. envファイル変更
 
-前の手順で取得した値に書き換えるためのコマンドは次のとおりです。
+- **ファイルの編集**: 前の手順で取得した値に書き換えるためのコマンドは次のとおりです。
 
-```bash
-cd pkg
-cp .env.sample .env
-code .env
-```
+    ```bash
+    cd pkg
+    cp .env.sample .env
+    code .env
+    ```
 
 ## 実行
 

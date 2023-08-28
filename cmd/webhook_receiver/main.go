@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -13,10 +12,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
-	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/gin-gonic/gin"
 	"github.com/guregu/dynamo"
 	"github.com/hashicorp/go-multierror"
@@ -26,10 +22,9 @@ import (
 )
 
 var (
-	bot       *line.Linebot
-	db        *dynamo.DB
-	logger    *zap.Logger
-	ginLambda *ginadapter.GinLambda
+	bot    *line.Linebot
+	db     *dynamo.DB
+	logger *zap.Logger
 )
 
 func init() {
@@ -46,9 +41,6 @@ func init() {
 	db = dynamo.New(sess)
 
 	logger = logging.InitializeLogger()
-
-	r := initEngine()
-	ginLambda = ginadapter.New(r)
 }
 
 func initEngine() *gin.Engine {
@@ -57,10 +49,14 @@ func initEngine() *gin.Engine {
 		body, _ := c.GetRawData()
 		method := c.Request.Method
 		ip := c.ClientIP()
+		header := c.Request.Header
+
+		println(header.Get("x-line-signature"))
 
 		logger.Info("request", zap.String("ip", ip), zap.String("method", method), zap.String("path", "/webhook"), zap.String("body", string(body)))
 
-		events, err := bot.ParseRequest(c.Request)
+		events, err := line.ParseRequestWithoutSignatureValidation(c.Request)
+
 		if err != nil {
 			if err == linebot.ErrInvalidSignature {
 				logger.Error("Invalid signature", zap.Error(err))
@@ -104,11 +100,8 @@ func initEngine() *gin.Engine {
 }
 
 func main() {
-	lambda.Start(handler)
-}
-
-func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	return ginLambda.ProxyWithContext(ctx, request)
+	r := initEngine()
+	r.Run(":8888")
 }
 
 func handleEventWithProfile(event *linebot.Event, wg *sync.WaitGroup) {

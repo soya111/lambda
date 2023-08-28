@@ -32,7 +32,7 @@ var (
 // ポカのプロフィール
 var pokaProfile = profile{
 	"2019年12月25日",
-	calcAge(normalizeDate("2019年12月25日")),
+	calcAge(time.Date(2019, 12, 25, 0, 0, 0, 0, time.Local), time.Now()),
 	"やぎ座",
 	"???",
 	"???",
@@ -71,35 +71,48 @@ func getProfileSelection(name string) (*goquery.Selection, error) {
 }
 
 // scrapeProfileはセレクションからスクレイピングしたプロフィールを取得
-func scrapeProfile(selection *goquery.Selection) profile {
-	//セレクタを使って要素を抽出
-	var prof []string
-	selection.Find(".c-member__info-td__text").Each(func(index int, element *goquery.Selection) {
-		prof = append(prof, strings.TrimSpace(element.Text()))
-	})
+func scrapeProfile(selection *goquery.Selection) *profile {
+	member := new(profile)
 
-	member := profile{prof[0], calcAge(normalizeDate(prof[0])), prof[1], prof[2], prof[3], prof[4]}
+	//セレクタを使って要素を抽出
+	selection.Find(".c-member__info-td__text").Each(func(index int, element *goquery.Selection) {
+		text := strings.TrimSpace(element.Text())
+
+		switch index {
+		case 0:
+			member.birthday = text
+			normalizedBirthday, _ := normalizeDate(member.birthday)
+			member.age = calcAge(normalizedBirthday, time.Now())
+		case 1:
+			member.sign = text
+		case 2:
+			member.height = text
+		case 3:
+			member.birthplace = text
+		case 4:
+			member.bloodtype = text
+		}
+	})
 
 	return member
 }
 
 // normalizeDateは"YYYY年MM月DD日"を標準化したtime.Time型で出力
-func normalizeDate(date string) time.Time {
+func normalizeDate(date string) (time.Time, error) {
 	layout := "2006年1月2日"
 
 	normalizedDate, err := time.Parse(layout, date)
 
 	if err != nil {
-		fmt.Println(err)
+		return time.Time{}, err
 	}
 
-	return normalizedDate
+	return normalizedDate, err
 }
 
 // calcAgeは生年月日から年齢を取得
-func calcAge(birthday time.Time) string {
+func calcAge(birthday time.Time, now time.Time) string {
 	//今日の年月日を取得
-	now := time.Now()
 	thisYear, thisMonth, day := now.Date()
 
 	//年から年齢を計算
@@ -126,9 +139,16 @@ func isTodayBirthday(birthday time.Time) bool {
 // outputProfileはプロフィールを標準形で出力
 func outputProfile(name string, member profile) {
 	fmt.Println(name) //メンバーの名前を出力
-	fmt.Printf("生年月日:%s, 年齢:%s歳, 星座:%s, 身長:%s, 出身地:%s, 血液型:%s", member.birthday, member.age, member.sign, member.height, member.birthplace, member.bloodtype)
-	if isTodayBirthday(normalizeDate(member.birthday)) {
-		fmt.Print("\nHappy birthday!!")
+	fmt.Printf("生年月日:%s, 年齢:%s歳, 星座:%s, 身長:%s, 出身地:%s, 血液型:%s\n", member.birthday, member.age, member.sign, member.height, member.birthplace, member.bloodtype)
+
+	normalizedBirthday, err := normalizeDate(member.birthday)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	if isTodayBirthday(normalizedBirthday) {
+		fmt.Println("Happy birthday!!")
 	}
 }
 
@@ -147,5 +167,5 @@ func main() {
 
 	member := scrapeProfile(selection)
 
-	outputProfile(name, member)
+	outputProfile(name, *member)
 }

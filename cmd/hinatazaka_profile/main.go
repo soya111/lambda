@@ -30,7 +30,7 @@ var (
 )
 
 // ポカのプロフィール
-var pokaProfile = profile{
+var pokaProfile = &profile{
 	"2019年12月25日",
 	calcAge(time.Date(2019, 12, 25, 0, 0, 0, 0, time.Local), time.Now()),
 	"やぎ座",
@@ -135,7 +135,7 @@ func isTodayBirthday(birthday time.Time) bool {
 }
 
 // outputProfileはプロフィールを標準形で出力
-func outputProfile(name string, member profile) {
+func outputProfile(name string, member *profile) {
 	fmt.Println(name) //メンバーの名前を出力
 	fmt.Printf("生年月日:%s, 年齢:%s歳, 星座:%s, 身長:%s, 出身地:%s, 血液型:%s\n", member.birthday, member.age, member.sign, member.height, member.birthplace, member.bloodtype)
 
@@ -165,5 +165,5 @@ func main() {
 
 	member := scrapeProfile(selection)
 
-	outputProfile(name, *member)
+	outputProfile(name, member)
 }

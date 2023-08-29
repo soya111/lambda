@@ -86,15 +86,16 @@ func Test_scrapeProfile(t *testing.T) {
 
 func Test_normalizeDate(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    string
-		expected time.Time
+		name         string
+		input        string
+		expecteddate time.Time
+		expectederr  bool
 	}{
-		{"YYYY年MM月DD日", "2000年12月12日", time.Date(2000, 12, 12, 0, 0, 0, 0, time.UTC)},
-		{"YYYY年M月DD日", "2000年2月12日", time.Date(2000, 2, 12, 0, 0, 0, 0, time.UTC)},
-		{"YYYY年MM月D日", "2000年12月2日", time.Date(2000, 12, 2, 0, 0, 0, 0, time.UTC)},
-		{"YYYY年M月D日", "2000年2月2日", time.Date(2000, 2, 2, 0, 0, 0, 0, time.UTC)},
-		{"YYYY/M/D日", "2000/2/2", time.Date(0001, 1, 1, 0, 0, 0, 0, time.UTC)},
+		{"YYYY年MM月DD日", "2000年12月12日", time.Date(2000, 12, 12, 0, 0, 0, 0, time.UTC), false},
+		{"YYYY年M月DD日", "2000年2月12日", time.Date(2000, 2, 12, 0, 0, 0, 0, time.UTC), false},
+		{"YYYY年MM月D日", "2000年12月2日", time.Date(2000, 12, 2, 0, 0, 0, 0, time.UTC), false},
+		{"YYYY年M月D日", "2000年2月2日", time.Date(2000, 2, 2, 0, 0, 0, 0, time.UTC), false},
+		{"YYYY/M/D日", "2000/2/2", time.Time{}, true},
 	}
 
 	for _, tt := range tests {
@@ -102,12 +103,12 @@ func Test_normalizeDate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			actual, err := normalizeDate(tt.input)
-			if err != nil {
+			if tt.expectederr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
+				assert.Equal(t, tt.expecteddate, actual)
 			}
-			assert.Equal(t, tt.expected, actual)
 		})
 	}
 }
@@ -155,7 +156,7 @@ func Test_isTodayBirthday(t *testing.T) {
 }
 
 func Test_outputProfile(t *testing.T) {
-	var ushiosarinaProfile = profile{
+	var ushiosarinaProfile = &profile{
 		"1997年12月26日",
 		calcAge(time.Date(1997, 12, 26, 0, 0, 0, 0, time.Local), time.Now()),
 		"やぎ座",
@@ -167,7 +168,7 @@ func Test_outputProfile(t *testing.T) {
 	tests := []struct {
 		name         string
 		inputname    string
-		inputprofile profile
+		inputprofile *profile
 		expected     string
 	}{
 		{"Nornal", "潮紗理菜", ushiosarinaProfile, "潮紗理菜\n生年月日:1997年12月26日, 年齢:25歳, 星座:やぎ座, 身長:157.5cm, 出身地:神奈川県, 血液型:O型\n"},

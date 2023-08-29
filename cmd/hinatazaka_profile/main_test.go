@@ -101,7 +101,12 @@ func Test_normalizeDate(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			actual, _ := normalizeDate(tt.input)
+			actual, err := normalizeDate(tt.input)
+			if err != nil {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
 			assert.Equal(t, tt.expected, actual)
 		})
 	}

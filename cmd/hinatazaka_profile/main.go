@@ -70,30 +70,34 @@ func getProfileSelection(name string) (*goquery.Selection, error) {
 	return selection, nil
 }
 
-// scrapeProfileはセレクションからスクレイピングしたプロフィールを取得
-func scrapeProfile(selection *goquery.Selection) *profile {
+// newProfileは新しいprofileをつくるコンストラクタ
+func newProfile(birthday, sign, height, birthplace, bloodtype string) (*profile, error) {
 	member := new(profile)
 
+	member.birthday = birthday
+	normalizedBirthday, err := normalizeDate(member.birthday)
+	if err != nil {
+		member.age = "???"
+	} else {
+		member.age = calcAge(normalizedBirthday, time.Now())
+	}
+	member.sign = sign
+	member.height = height
+	member.birthplace = birthplace
+	member.bloodtype = bloodtype
+
+	return member, err
+}
+
+// scrapeProfileはセレクションからスクレイピングしたプロフィールを取得
+func scrapeProfile(selection *goquery.Selection) *profile {
+	texts := make(map[int]string)
 	//セレクタを使って要素を抽出
 	selection.Find(".c-member__info-td__text").Each(func(index int, element *goquery.Selection) {
 		text := strings.TrimSpace(element.Text())
-
-		switch index {
-		case 0:
-			member.birthday = text
-			normalizedBirthday, _ := normalizeDate(member.birthday)
-			member.age = calcAge(normalizedBirthday, time.Now())
-		case 1:
-			member.sign = text
-		case 2:
-			member.height = text
-		case 3:
-			member.birthplace = text
-		case 4:
-			member.bloodtype = text
-		}
+		texts[index] = text
 	})
-
+	member, _ := newProfile(texts[0], texts[1], texts[2], texts[3], texts[4])
 	return member
 }
 

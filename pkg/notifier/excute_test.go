@@ -12,6 +12,7 @@ import (
 	"notify/pkg/model"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/guregu/dynamo"
 	"github.com/joho/godotenv"
@@ -32,10 +33,12 @@ func TestExecute(t *testing.T) {
 
 	// local dynamodb settings
 	DYNAMO_ENDPOINT := "http://localhost:8000"
-	DYNAMO_REGION := "ap-northeast-1"
+	AWS_REGION := "ap-northeast-1"
+
 	sess, err := session.NewSession(&aws.Config{
-		Endpoint: aws.String(DYNAMO_ENDPOINT),
-		Region:   aws.String(DYNAMO_REGION),
+		Endpoint:    aws.String(DYNAMO_ENDPOINT),
+		Region:      aws.String(AWS_REGION),
+		Credentials: credentials.NewStaticCredentials("dummy", "dummy", "dummy"),
 	})
 	assert.NoError(t, err)
 	db := dynamo.New(sess)

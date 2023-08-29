@@ -4,7 +4,9 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"strconv"
 	"strings"
+	"time"
 
 	"notify/pkg/infrastructure/scrape"
 	"notify/pkg/model"
@@ -15,6 +17,7 @@ import (
 // プロフィールのstruct
 type profile struct {
 	birthday   string
+	age        string
 	sign       string
 	height     string
 	birthplace string
@@ -27,8 +30,9 @@ var (
 )
 
 // ポカのプロフィール
-var pokaProfile = profile{
+var pokaProfile = &profile{
 	"2019年12月25日",
+	calcAge(time.Date(2019, 12, 25, 0, 0, 0, 0, time.Local), time.Now()),
 	"やぎ座",
 	"???",
 	"???",
@@ -66,23 +70,84 @@ func getProfileSelection(name string) (*goquery.Selection, error) {
 	return selection, nil
 }
 
+// newProfileは新しいprofileをつくるコンストラクタ
+func newProfile(birthday, sign, height, birthplace, bloodtype string) (*profile, error) {
+	member := new(profile)
+
+	member.birthday = birthday
+	normalizedBirthday, err := normalizeDate(member.birthday)
+	if err != nil {
+		member.age = "???"
+	} else {
+		member.age = calcAge(normalizedBirthday, time.Now())
+	}
+	member.sign = sign
+	member.height = height
+	member.birthplace = birthplace
+	member.bloodtype = bloodtype
+
+	return member, err
+}
+
 // scrapeProfileはセレクションからスクレイピングしたプロフィールを取得
-func scrapeProfile(selection *goquery.Selection) profile {
+func scrapeProfile(selection *goquery.Selection) *profile {
+	texts := make(map[int]string)
 	//セレクタを使って要素を抽出
-	var prof []string
 	selection.Find(".c-member__info-td__text").Each(func(index int, element *goquery.Selection) {
-		prof = append(prof, strings.TrimSpace(element.Text()))
+		text := strings.TrimSpace(element.Text())
+		texts[index] = text
 	})
-
-	member := profile{prof[0], prof[1], prof[2], prof[3], prof[4]}
-
+	member, _ := newProfile(texts[0], texts[1], texts[2], texts[3], texts[4])
 	return member
 }
 
+// normalizeDateは"YYYY年MM月DD日"を標準化したtime.Time型で出力
+func normalizeDate(date string) (time.Time, error) {
+	layout := "2006年1月2日"
+
+	return time.Parse(layout, date)
+}
+
+// calcAgeは生年月日から年齢を取得
+func calcAge(birthday time.Time, now time.Time) string {
+	//今日の年月日を取得
+	thisYear, thisMonth, day := now.Date()
+
+	//年から年齢を計算
+	age := thisYear - birthday.Year()
+
+	// 誕生日を迎えていない場合はageを「−1」する
+	if thisMonth < birthday.Month() || (thisMonth == birthday.Month() && day < birthday.Day()) {
+		age -= 1
+	}
+
+	return strconv.Itoa(age)
+}
+
+// isTodayBirthdayは今日が誕生日の場合にtrueを返す
+func isTodayBirthday(birthday time.Time) bool {
+	//今日の年月日を取得
+	now := time.Now()
+	_, thisMonth, day := now.Date()
+
+	//今日が誕生日の場合にtrueを返す
+	return thisMonth == birthday.Month() && day == birthday.Day()
+}
+
 // outputProfileはプロフィールを標準形で出力
-func outputProfile(name string, member profile) {
+func outputProfile(name string, member *profile) {
 	fmt.Println(name) //メンバーの名前を出力
-	fmt.Printf("生年月日:%s, 星座:%s, 身長:%s, 出身地:%s, 血液型:%s", member.birthday, member.sign, member.height, member.birthplace, member.bloodtype)
+	fmt.Printf("生年月日:%s, 年齢:%s歳, 星座:%s, 身長:%s, 出身地:%s, 血液型:%s\n", member.birthday, member.age, member.sign, member.height, member.birthplace, member.bloodtype)
+
+	normalizedBirthday, err := normalizeDate(member.birthday)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	if isTodayBirthday(normalizedBirthday) {
+		fmt.Println("Happy birthday!!")
+	}
 }
 
 func main() {

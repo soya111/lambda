@@ -101,13 +101,7 @@ func scrapeProfile(selection *goquery.Selection) *profile {
 func normalizeDate(date string) (time.Time, error) {
 	layout := "2006年1月2日"
 
-	normalizedDate, err := time.Parse(layout, date)
-
-	if err != nil {
-		return time.Time{}, err
-	}
-
-	return normalizedDate, err
+	return time.Parse(layout, date)
 }
 
 // calcAgeは生年月日から年齢を取得

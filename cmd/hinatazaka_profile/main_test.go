@@ -63,6 +63,7 @@ func Test_scrapeProfile(t *testing.T) {
 		"157.5cm",
 		"神奈川県",
 		"O型",
+		"https://cdn.hinatazaka46.com/images/14/9d4/dc3eef1e11944f0ee69459463a4cb/1000_1000_102400.jpg",
 	}
 
 	tests := []struct {
@@ -163,6 +164,7 @@ func Test_outputProfile(t *testing.T) {
 		"157.5cm",
 		"神奈川県",
 		"O型",
+		"https://cdn.hinatazaka46.com/images/14/9d4/dc3eef1e11944f0ee69459463a4cb/1000_1000_102400.jpg",
 	}
 
 	tests := []struct {
@@ -171,8 +173,8 @@ func Test_outputProfile(t *testing.T) {
 		inputprofile *profile
 		expected     string
 	}{
-		{"Nornal", "潮紗理菜", ushiosarinaProfile, "潮紗理菜\n生年月日:1997年12月26日, 年齢:25歳, 星座:やぎ座, 身長:157.5cm, 出身地:神奈川県, 血液型:O型\n"},
-		{"ポカ", "ポカ", pokaProfile, "ポカ\n生年月日:2019年12月25日, 年齢:3歳, 星座:やぎ座, 身長:???, 出身地:???, 血液型:???\n"},
+		{"Nornal", "潮紗理菜", ushiosarinaProfile, "潮紗理菜\n生年月日:1997年12月26日, 年齢:25歳, 星座:やぎ座, 身長:157.5cm, 出身地:神奈川県, 血液型:O型\nhttps://cdn.hinatazaka46.com/images/14/9d4/dc3eef1e11944f0ee69459463a4cb/1000_1000_102400.jpg<---画像はここをクリック\n"},
+		{"ポカ", "ポカ", pokaProfile, "ポカ\n生年月日:2019年12月25日, 年齢:3歳, 星座:やぎ座, 身長:???, 出身地:???, 血液型:???\nhttps://cdn.hinatazaka46.com/images/14/8e6/b044f0e534295d2d91700d8613270/1000_1000_102400.jpg<---画像はここをクリック\n"},
 	}
 
 	for _, tt := range tests {

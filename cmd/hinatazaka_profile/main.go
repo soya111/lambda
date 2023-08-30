@@ -22,6 +22,7 @@ type profile struct {
 	height     string
 	birthplace string
 	bloodtype  string
+	imageUrl   string
 }
 
 var (
@@ -37,6 +38,7 @@ var pokaProfile = &profile{
 	"???",
 	"???",
 	"???",
+	"https://cdn.hinatazaka46.com/images/14/8e6/b044f0e534295d2d91700d8613270/1000_1000_102400.jpg",
 }
 
 var name string
@@ -71,7 +73,7 @@ func getProfileSelection(name string) (*goquery.Selection, error) {
 }
 
 // newProfileは新しいprofileをつくるコンストラクタ
-func newProfile(birthday, sign, height, birthplace, bloodtype string) (*profile, error) {
+func newProfile(birthday, sign, height, birthplace, bloodtype, imageUrl string) (*profile, error) {
 	member := new(profile)
 
 	member.birthday = birthday
@@ -85,6 +87,7 @@ func newProfile(birthday, sign, height, birthplace, bloodtype string) (*profile,
 	member.height = height
 	member.birthplace = birthplace
 	member.bloodtype = bloodtype
+	member.imageUrl = imageUrl
 
 	return member, err
 }
@@ -97,7 +100,17 @@ func scrapeProfile(selection *goquery.Selection) *profile {
 		text := strings.TrimSpace(element.Text())
 		texts[index] = text
 	})
-	member, _ := newProfile(texts[0], texts[1], texts[2], texts[3], texts[4])
+
+	var srcs []string
+	selection = selection.Find(".c-member__thumb.c-member__thumb__large")
+	selection.Find("img").Each(func(index int, element *goquery.Selection) {
+		src, exists := element.Attr("src")
+		if exists {
+			srcs = append(srcs, src)
+		}
+	})
+
+	member, _ := newProfile(texts[0], texts[1], texts[2], texts[3], texts[4], srcs[0])
 	return member
 }
 
@@ -137,7 +150,7 @@ func isTodayBirthday(birthday time.Time) bool {
 // outputProfileはプロフィールを標準形で出力
 func outputProfile(name string, member *profile) {
 	fmt.Println(name) //メンバーの名前を出力
-	fmt.Printf("生年月日:%s, 年齢:%s歳, 星座:%s, 身長:%s, 出身地:%s, 血液型:%s\n", member.birthday, member.age, member.sign, member.height, member.birthplace, member.bloodtype)
+	fmt.Printf("生年月日:%s, 年齢:%s歳, 星座:%s, 身長:%s, 出身地:%s, 血液型:%s\n%s<---画像はここをクリック\n", member.birthday, member.age, member.sign, member.height, member.birthplace, member.bloodtype, member.imageUrl)
 
 	normalizedBirthday, err := normalizeDate(member.birthday)
 

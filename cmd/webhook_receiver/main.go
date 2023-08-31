@@ -101,7 +101,10 @@ func initEngine() *gin.Engine {
 
 func main() {
 	r := initEngine()
-	r.Run(":8888")
+	err := r.Run(":8080")
+	if err != nil {
+		logger.Fatal("Failed to run server", zap.Error(err))
+	}
 }
 
 func handleEventWithProfile(event *linebot.Event, wg *sync.WaitGroup) {

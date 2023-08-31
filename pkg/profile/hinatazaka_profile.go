@@ -1,8 +1,7 @@
-package main
+package profile
 
 import (
 	"errors"
-	"flag"
 	"fmt"
 	"strconv"
 	"strings"
@@ -15,7 +14,7 @@ import (
 )
 
 // プロフィールのstruct
-type profile struct {
+type Profile struct {
 	birthday   string
 	age        string
 	sign       string
@@ -31,7 +30,7 @@ var (
 )
 
 // ポカのプロフィール
-var pokaProfile = &profile{
+var PokaProfile = &Profile{
 	"2019年12月25日",
 	calcAge(time.Date(2019, 12, 25, 0, 0, 0, 0, time.Local), time.Now()),
 	"やぎ座",
@@ -41,20 +40,8 @@ var pokaProfile = &profile{
 	"https://cdn.hinatazaka46.com/images/14/8e6/b044f0e534295d2d91700d8613270/1000_1000_102400.jpg",
 }
 
-var name string
-
-func init() {
-	flag.StringVar(&name, "name", "hinata", "名前を入力してください")
-}
-
-// inputNameはコマンド引数により名前を取得
-func inputName() string {
-	flag.Parse()
-	return name
-}
-
 // getProfileSelectionはメンバーごとのプロフィールが記載されたセレクションを取得
-func getProfileSelection(name string) (*goquery.Selection, error) {
+func GetProfileSelection(name string) (*goquery.Selection, error) {
 	//入力がメンバー名でない場合
 	if !model.IsMember(name) {
 		return nil, ErrNonExistentMember
@@ -73,8 +60,8 @@ func getProfileSelection(name string) (*goquery.Selection, error) {
 }
 
 // newProfileは新しいprofileをつくるコンストラクタ
-func newProfile(birthday, sign, height, birthplace, bloodtype, imageUrl string) (*profile, error) {
-	member := new(profile)
+func newProfile(birthday, sign, height, birthplace, bloodtype, imageUrl string) (*Profile, error) {
+	member := new(Profile)
 
 	member.birthday = birthday
 	normalizedBirthday, err := normalizeDate(member.birthday)
@@ -93,7 +80,7 @@ func newProfile(birthday, sign, height, birthplace, bloodtype, imageUrl string) 
 }
 
 // scrapeProfileはセレクションからスクレイピングしたプロフィールを取得
-func scrapeProfile(selection *goquery.Selection) *profile {
+func ScrapeProfile(selection *goquery.Selection) *Profile {
 	texts := make(map[int]string)
 	//セレクタを使って要素を抽出
 	selection.Find(".c-member__info-td__text").Each(func(index int, element *goquery.Selection) {
@@ -132,46 +119,9 @@ func calcAge(birthday time.Time, now time.Time) string {
 	return strconv.Itoa(age)
 }
 
-// isTodayBirthdayは今日が誕生日の場合にtrueを返す
-func isTodayBirthday(birthday time.Time) bool {
-	//今日の年月日を取得
-	now := time.Now()
-	_, thisMonth, day := now.Date()
-
-	//今日が誕生日の場合にtrueを返す
-	return thisMonth == birthday.Month() && day == birthday.Day()
-}
-
-// outputProfileはプロフィールを標準形で出力
-func outputProfile(name string, member *profile) {
+// outputProfileはプロフィールを標準形で取得
+func OutputProfile(name string, member *Profile) string {
 	fmt.Println(name) //メンバーの名前を出力
-	fmt.Printf("生年月日:%s, 年齢:%s歳, 星座:%s, 身長:%s, 出身地:%s, 血液型:%s\n%s<---画像はここをクリック\n", member.birthday, member.age, member.sign, member.height, member.birthplace, member.bloodtype, member.imageUrl)
-
-	normalizedBirthday, err := normalizeDate(member.birthday)
-
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	if isTodayBirthday(normalizedBirthday) {
-		fmt.Println("Happy birthday!!")
-	}
-}
-
-func main() {
-	name := inputName()
-	selection, err := getProfileSelection(name)
-
-	if err != nil {
-		if errors.Is(err, ErrNoUrl) {
-			outputProfile(name, pokaProfile)
-		} else {
-			fmt.Println(err)
-		}
-		return
-	}
-
-	member := scrapeProfile(selection)
-
-	outputProfile(name, member)
+	message := fmt.Sprintf("%s\n生年月日:%s\n年齢:%s歳\n星座:%s\n身長:%s\n出身地:%s\n血液型:%s\n%s", name, member.birthday, member.age, member.sign, member.height, member.birthplace, member.bloodtype, member.imageUrl)
+	return message
 }

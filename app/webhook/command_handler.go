@@ -2,11 +2,13 @@ package webhook
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"notify/pkg/blog"
 	"notify/pkg/infrastructure/line"
 	"notify/pkg/logging"
 	"notify/pkg/model"
+	"notify/pkg/profile"
 	"notify/pkg/service"
 	"strings"
 
@@ -27,12 +29,13 @@ type CommandName string
 type CommandMap map[CommandName]Command
 
 const (
-	CmdReg    CommandName = "reg"
-	CmdUnreg  CommandName = "unreg"
-	CmdList   CommandName = "list"
-	CmdWhoami CommandName = "whoami"
-	CmdHelp   CommandName = "help"
-	CmdBlog   CommandName = "blog"
+	CmdReg     CommandName = "reg"
+	CmdUnreg   CommandName = "unreg"
+	CmdList    CommandName = "list"
+	CmdWhoami  CommandName = "whoami"
+	CmdHelp    CommandName = "help"
+	CmdBlog    CommandName = "blog"
+	CmdProfile CommandName = "profile"
 	// 新しいコマンドを追加する場合はここに定義する
 )
 
@@ -40,11 +43,12 @@ func (h *Handler) getCommandHandlers() CommandMap {
 	subscriptionService := service.NewSubscriptionService(h.bot, h.subscriber)
 	identityService := service.NewIdentityService(h.bot)
 	cmdMap := CommandMap{
-		CmdReg:    &RegCommand{subscriptionService},
-		CmdUnreg:  &UnregCommand{subscriptionService},
-		CmdList:   &ListCommand{subscriptionService},
-		CmdWhoami: &WhoamiCommand{identityService},
-		CmdBlog:   &BlogCommand{h.bot},
+		CmdReg:     &RegCommand{subscriptionService},
+		CmdUnreg:   &UnregCommand{subscriptionService},
+		CmdList:    &ListCommand{subscriptionService},
+		CmdWhoami:  &WhoamiCommand{identityService},
+		CmdBlog:    &BlogCommand{h.bot},
+		CmdProfile: &ProfileCommand{},
 		// 新たに追加するコマンドも同様にここに追加します
 	}
 	cmdMap[CmdHelp] = &HelpCommand{h.bot, cmdMap}
@@ -218,6 +222,52 @@ func (c *BlogCommand) Execute(ctx context.Context, event *linebot.Event, args []
 
 func (c *BlogCommand) Description() string {
 	return "Get the latest blog of a member. Usage: blog [member]"
+}
+
+// ProfileCommand is the command that shows the profile of the specified member.
+type ProfileCommand struct {
+	bot *line.Linebot
+}
+
+func (c *ProfileCommand) Execute(ctx context.Context, event *linebot.Event, args []string) error {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Executing ProfileCommand with args", zap.Any("args", args))
+
+	if len(args) < 2 {
+		return nil
+	}
+
+	member := args[1]
+	if !model.IsMember(member) {
+		if err := c.bot.ReplyTextMessages(context.TODO(), event.ReplyToken, fmt.Sprintf("%sは存在しません。", member)); err != nil {
+			return fmt.Errorf("ProfileCommand.Execute: %w", err)
+		}
+	}
+
+	selection, pokaerr := profile.GetProfileSelection(member)
+
+	if errors.Is(pokaerr, profile.ErrNoUrl) {
+		message := profile.OutputProfile(member, profile.PokaProfile)
+
+		err := c.bot.ReplyTextMessages(context.TODO(), event.ReplyToken, message)
+		if err != nil {
+			return fmt.Errorf("ProfileCommand.Execute: %w", err)
+		}
+		return nil
+	}
+
+	prof := profile.ScrapeProfile(selection)
+	message := profile.OutputProfile(member, prof)
+
+	err := c.bot.ReplyTextMessages(context.TODO(), event.ReplyToken, message)
+	if err != nil {
+		return fmt.Errorf("ProfileCommand.Execute: %w", err)
+	}
+	return nil
+}
+
+func (c *ProfileCommand) Description() string {
+	return "Get the profile of a member. Usage: profile [member]"
 }
 
 // type Subscriber struct {

@@ -6,6 +6,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/aws/aws-lambda-go v1.41.0
 	github.com/aws/aws-sdk-go v1.44.317
+	github.com/awslabs/aws-lambda-go-api-proxy v0.14.0
 	github.com/gin-gonic/gin v1.7.7
 	github.com/guregu/dynamo v1.20.1
 	github.com/hashicorp/go-multierror v1.1.1
@@ -26,7 +27,6 @@ require (
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-playground/validator/v10 v10.4.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -42,9 +42,7 @@ require (
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.11.0 // indirect
 	golang.org/x/text v0.12.0 // indirect
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

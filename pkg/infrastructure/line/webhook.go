@@ -2,6 +2,7 @@ package line
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -9,7 +10,14 @@ import (
 )
 
 // ParseRequest without signature validation
+// This function is used for testing
+// Dangerous: This function does not validate the signature
+// If you want to validate the signature, use ParseRequest instead
+// When you get dangerous message, you should exit the program
+// TODO: remove this function
 func ParseRequestWithoutSignatureValidation(r *http.Request) ([]*linebot.Event, error) {
+	fmt.Println("Dangerous: This function does not validate the signature")
+
 	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {

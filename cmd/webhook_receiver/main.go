@@ -15,9 +15,9 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-lambda-go/lambdacontext"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/awslabs/aws-lambda-go-api-proxy/core"
+	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
+	"github.com/gin-gonic/gin"
 	"github.com/guregu/dynamo"
 	"github.com/hashicorp/go-multierror"
 	"github.com/joho/godotenv"
@@ -26,9 +26,10 @@ import (
 )
 
 var (
-	bot    *line.Linebot
-	db     *dynamo.DB
-	logger *zap.Logger
+	bot       *line.Linebot
+	db        *dynamo.DB
+	logger    *zap.Logger
+	ginLambda *ginadapter.GinLambda
 )
 
 func init() {
@@ -45,6 +46,17 @@ func init() {
 	db = dynamo.New(sess)
 
 	logger = logging.InitializeLogger()
+
+	r := initEngine()
+	ginLambda = ginadapter.New(r)
+}
+
+func initEngine() *gin.Engine {
+	r := gin.Default()
+	r.POST("/webhook", func(c *gin.Context) {
+		handleWebhook(c.Writer, c.Request)
+	})
+	return r
 }
 
 func main() {
@@ -52,42 +64,26 @@ func main() {
 }
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	path := request.Path
-
-	ctx = logging.ContextWithLogger(ctx, logger)
-
-	switch path {
-	case "/webhook":
-		return handleWebhook(ctx, request)
-	default:
-		return newResponse(http.StatusBadRequest), nil
-	}
+	return ginLambda.ProxyWithContext(ctx, request)
 }
 
-func handleWebhook(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	body := request.Body
-	method := request.HTTPMethod
-	ip := request.RequestContext.Identity.SourceIP
+func handleWebhook(w http.ResponseWriter, r *http.Request) {
+	method := r.Method
+	ip := r.RemoteAddr
 
-	logger := logging.LoggerFromContext(ctx)
+	logger.Info("request", zap.String("ip", ip), zap.String("method", method), zap.String("path", "/webhook"))
 
-	lambdaCtx, _ := lambdacontext.FromContext(ctx)
-	requestId := lambdaCtx.AwsRequestID
-	logger.Info("request", zap.String("requestId", requestId), zap.String("ip", ip), zap.String("method", method), zap.String("path", "/webhook"), zap.String("body", body))
+	events, err := bot.ParseRequest(r)
 
-	r := &core.RequestAccessor{}
-	httpRequest, err := r.EventToRequest(request)
-	if err != nil {
-		return handleError(ctx, err, "Failed to convert request", http.StatusInternalServerError)
-	}
-
-	events, err := bot.ParseRequest(httpRequest)
 	if err != nil {
 		if err == linebot.ErrInvalidSignature {
-			return handleError(ctx, err, "Invalid signature", http.StatusBadRequest)
+			logger.Error("Invalid signature", zap.Error(err))
+			writeResponse(w, http.StatusBadRequest, "Invalid signature")
 		} else {
-			return handleError(ctx, err, "Failed to parse request", http.StatusInternalServerError)
+			logger.Error("Failed to parse request", zap.Error(err))
+			writeResponse(w, http.StatusInternalServerError, "Failed to parse request")
 		}
+		return
 	}
 
 	var result *multierror.Error
@@ -95,6 +91,8 @@ func handleWebhook(ctx context.Context, request events.APIGatewayProxyRequest) (
 
 	repo := dynamodb.NewSubscriberRepository(db)
 	handler := webhook.NewHandler(bot, repo)
+
+	ctx := logging.ContextWithLogger(r.Context(), logger)
 
 	for _, event := range events {
 		wg.Add(3)
@@ -109,7 +107,11 @@ func handleWebhook(ctx context.Context, request events.APIGatewayProxyRequest) (
 	}
 	wg.Wait()
 
-	return newResponse(http.StatusOK), result.ErrorOrNil()
+	if result.ErrorOrNil() != nil {
+		writeResponse(w, http.StatusInternalServerError, "Failed to handle event")
+	} else {
+		writeResponse(w, http.StatusOK, "Successfully handled event")
+	}
 }
 
 func handleEventWithProfile(event *linebot.Event, wg *sync.WaitGroup) {
@@ -132,16 +134,11 @@ func handleEventWithProfile(event *linebot.Event, wg *sync.WaitGroup) {
 	}()
 }
 
-func handleError(ctx context.Context, err error, msg string, statusCode int) (events.APIGatewayProxyResponse, error) {
-	logger := logging.LoggerFromContext(ctx)
-	logger.Error(msg, zap.Error(err))
-	return newResponse(statusCode), fmt.Errorf("%s: %v", msg, err)
-}
-
-func newResponse(statusCode int) events.APIGatewayProxyResponse {
-	res := events.APIGatewayProxyResponse{Headers: make(map[string]string), MultiValueHeaders: make(map[string][]string), Body: ""}
-	res.StatusCode = statusCode
-	return res
+func writeResponse(w http.ResponseWriter, status int, message string) {
+	w.WriteHeader(status)
+	if _, err := w.Write([]byte(message)); err != nil {
+		logger.Error("Failed to write response", zap.Error(err))
+	}
 }
 
 func marshal(v interface{}) string {

@@ -21,7 +21,7 @@ type Profile struct {
 	height     string
 	birthplace string
 	bloodtype  string
-	imageUrl   string
+	ImageUrl   string
 }
 
 var (
@@ -40,7 +40,7 @@ var PokaProfile = &Profile{
 	"https://cdn.hinatazaka46.com/images/14/8e6/b044f0e534295d2d91700d8613270/1000_1000_102400.jpg",
 }
 
-// getProfileSelectionはメンバーごとのプロフィールが記載されたセレクションを取得
+// GetProfileSelectionはメンバーごとのプロフィールが記載されたセレクションを取得
 func GetProfileSelection(name string) (*goquery.Selection, error) {
 	//入力がメンバー名でない場合
 	if !model.IsMember(name) {
@@ -74,12 +74,12 @@ func newProfile(birthday, sign, height, birthplace, bloodtype, imageUrl string) 
 	member.height = height
 	member.birthplace = birthplace
 	member.bloodtype = bloodtype
-	member.imageUrl = imageUrl
+	member.ImageUrl = imageUrl
 
 	return member, err
 }
 
-// scrapeProfileはセレクションからスクレイピングしたプロフィールを取得
+// ScrapeProfileはセレクションからスクレイピングしたプロフィールを取得
 func ScrapeProfile(selection *goquery.Selection) *Profile {
 	texts := make(map[int]string)
 	//セレクタを使って要素を抽出
@@ -119,9 +119,8 @@ func calcAge(birthday time.Time, now time.Time) string {
 	return strconv.Itoa(age)
 }
 
-// outputProfileはプロフィールを標準形で取得
-func OutputProfile(name string, member *Profile) string {
-	fmt.Println(name) //メンバーの名前を出力
-	message := fmt.Sprintf("%s\n生年月日:%s\n年齢:%s歳\n星座:%s\n身長:%s\n出身地:%s\n血液型:%s\n%s", name, member.birthday, member.age, member.sign, member.height, member.birthplace, member.bloodtype, member.imageUrl)
+// CreateProfileMessageはプロフィールメッセージを生成
+func CreateProfileMessage(name string, member *Profile) string {
+	message := fmt.Sprintf("%s\n生年月日:%s\n年齢:%s歳\n星座:%s\n身長:%s\n出身地:%s\n血液型:%s\n", name, member.birthday, member.age, member.sign, member.height, member.birthplace, member.bloodtype)
 	return message
 }

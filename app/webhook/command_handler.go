@@ -48,7 +48,7 @@ func (h *Handler) getCommandHandlers() CommandMap {
 		CmdList:    &ListCommand{subscriptionService},
 		CmdWhoami:  &WhoamiCommand{identityService},
 		CmdBlog:    &BlogCommand{h.bot},
-		CmdProfile: &ProfileCommand{},
+		CmdProfile: &ProfileCommand{h.bot},
 		// 新たに追加するコマンドも同様にここに追加します
 	}
 	cmdMap[CmdHelp] = &HelpCommand{h.bot, cmdMap}
@@ -247,9 +247,11 @@ func (c *ProfileCommand) Execute(ctx context.Context, event *linebot.Event, args
 	selection, pokaerr := profile.GetProfileSelection(member)
 
 	if errors.Is(pokaerr, profile.ErrNoUrl) {
-		message := profile.OutputProfile(member, profile.PokaProfile)
+		prof := profile.PokaProfile
+		message := profile.CreateProfileMessage(member, prof)
+		imgurl := prof.ImageUrl
 
-		err := c.bot.ReplyTextMessages(context.TODO(), event.ReplyToken, message)
+		err := c.bot.ReplyTextandImageMessages(context.TODO(), event.ReplyToken, message, imgurl)
 		if err != nil {
 			return fmt.Errorf("ProfileCommand.Execute: %w", err)
 		}
@@ -257,9 +259,10 @@ func (c *ProfileCommand) Execute(ctx context.Context, event *linebot.Event, args
 	}
 
 	prof := profile.ScrapeProfile(selection)
-	message := profile.OutputProfile(member, prof)
+	message := profile.CreateProfileMessage(member, prof)
+	imgurl := prof.ImageUrl
 
-	err := c.bot.ReplyTextMessages(context.TODO(), event.ReplyToken, message)
+	err := c.bot.ReplyTextandImageMessages(context.TODO(), event.ReplyToken, message, imgurl)
 	if err != nil {
 		return fmt.Errorf("ProfileCommand.Execute: %w", err)
 	}

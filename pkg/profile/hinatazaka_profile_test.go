@@ -1,40 +1,13 @@
-package main
+package profile
 
 import (
-	"bytes"
-	"flag"
-	"fmt"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_inputName(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    string
-		expected string
-	}{
-		{"Nomal", "潮紗理菜", "潮紗理菜"},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			err := flag.CommandLine.Set("name", tt.input)
-			if err != nil {
-				fmt.Printf("Error setting command-line arguments: %v\n", err)
-			}
-			t.Parallel()
-			actual := inputName()
-			assert.Equal(t, tt.expected, actual)
-		})
-	}
-}
-
-func Test_getProfileSelection(t *testing.T) {
+func TestGetProfileSelection(t *testing.T) {
 	tests := []struct {
 		name          string
 		input         string
@@ -49,14 +22,14 @@ func Test_getProfileSelection(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			_, actual := getProfileSelection(tt.input)
+			_, actual := GetProfileSelection(tt.input)
 			assert.Equal(t, tt.expectederror, actual)
 		})
 	}
 }
 
-func Test_scrapeProfile(t *testing.T) {
-	var ushiosarinaProfile = profile{
+func TestScrapeProfile(t *testing.T) {
+	var ushiosarinaProfile = Profile{
 		"1997年12月26日",
 		calcAge(time.Date(1997, 12, 26, 0, 0, 0, 0, time.Local), time.Now()),
 		"やぎ座",
@@ -69,7 +42,7 @@ func Test_scrapeProfile(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
-		expected profile
+		expected Profile
 	}{
 		{"Nornal", "潮紗理菜", ushiosarinaProfile},
 	}
@@ -78,8 +51,8 @@ func Test_scrapeProfile(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			selection, _ := getProfileSelection(tt.input)
-			actual := scrapeProfile(selection)
+			selection, _ := GetProfileSelection(tt.input)
+			actual := ScrapeProfile(selection)
 			assert.Equal(t, tt.expected, *actual)
 		})
 	}
@@ -136,28 +109,8 @@ func Test_calcAge(t *testing.T) {
 	}
 }
 
-func Test_isTodayBirthday(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    time.Time
-		expected bool
-	}{
-		{"Birthday", time.Now(), true},
-		{"NotBirthday", time.Now().AddDate(0, 0, 1), false},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			actual := isTodayBirthday(tt.input)
-			assert.Equal(t, tt.expected, actual)
-		})
-	}
-}
-
-func Test_outputProfile(t *testing.T) {
-	var ushiosarinaProfile = &profile{
+func TestCreateProfileMessage(t *testing.T) {
+	var ushiosarinaProfile = &Profile{
 		"1997年12月26日",
 		calcAge(time.Date(1997, 12, 26, 0, 0, 0, 0, time.Local), time.Now()),
 		"やぎ座",
@@ -170,36 +123,18 @@ func Test_outputProfile(t *testing.T) {
 	tests := []struct {
 		name         string
 		inputname    string
-		inputprofile *profile
+		inputprofile *Profile
 		expected     string
 	}{
-		{"Nornal", "潮紗理菜", ushiosarinaProfile, "潮紗理菜\n生年月日:1997年12月26日, 年齢:25歳, 星座:やぎ座, 身長:157.5cm, 出身地:神奈川県, 血液型:O型\nhttps://cdn.hinatazaka46.com/images/14/9d4/dc3eef1e11944f0ee69459463a4cb/1000_1000_102400.jpg<---画像はここをクリック\n"},
-		{"ポカ", "ポカ", pokaProfile, "ポカ\n生年月日:2019年12月25日, 年齢:3歳, 星座:やぎ座, 身長:???, 出身地:???, 血液型:???\nhttps://cdn.hinatazaka46.com/images/14/8e6/b044f0e534295d2d91700d8613270/1000_1000_102400.jpg<---画像はここをクリック\n"},
+		{"Nornal", "潮紗理菜", ushiosarinaProfile, "潮紗理菜\n生年月日:1997年12月26日\n年齢:25歳\n星座:やぎ座\n身長:157.5cm\n出身地:神奈川県\n血液型:O型\n"},
+		{"ポカ", "ポカ", PokaProfile, "ポカ\n生年月日:2019年12月25日\n年齢:3歳\n星座:やぎ座\n身長:???\n出身地:???\n血液型:???\n"},
 	}
 
 	for _, tt := range tests {
-		// 標準出力をキャプチャ
-		old := os.Stdout
-		r, w, _ := os.Pipe()
-		os.Stdout = w
-
-		// テスト対象の関数呼び出し
-		outputProfile(tt.inputname, tt.inputprofile)
-
-		// 標準出力を元に戻す
-		w.Close()
-		os.Stdout = old
-
-		// キャプチャした出力を読み取る
-		var capturedOutput string
-		buf := new(bytes.Buffer)
-		_, _ = buf.ReadFrom(r)
-		capturedOutput = buf.String()
-
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			actual := capturedOutput
+			actual := CreateProfileMessage(tt.inputname, tt.inputprofile)
 			assert.Equal(t, tt.expected, actual)
 		})
 	}

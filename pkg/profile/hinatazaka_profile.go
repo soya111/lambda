@@ -2,6 +2,7 @@ package profile
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -119,6 +120,12 @@ func calcAge(birthday time.Time, now time.Time) string {
 	return strconv.Itoa(age)
 }
 
+// CreateProfileMessageはプロフィールメッセージを生成
+func CreateProfileMessage(name string, member *Profile) string {
+	message := fmt.Sprintf("%s\n生年月日:%s\n年齢:%s歳\n星座:%s\n身長:%s\n出身地:%s\n血液型:%s\n", name, member.birthday, member.age, member.sign, member.height, member.birthplace, member.bloodtype)
+	return message
+}
+
 var MegaBubbleContainer = linebot.BubbleContainer{
 	Type: linebot.FlexContainerTypeBubble,
 	Size: linebot.FlexBubbleSizeTypeMega,
@@ -182,7 +189,7 @@ func createFlexTextMessage(name string, prof *Profile) *linebot.BubbleContainer 
 								Contents: []linebot.FlexComponent{
 									&linebot.TextComponent{
 										Type:   linebot.FlexComponentTypeText,
-										Size:   linebot.FlexTextSizeTypeXl,
+										Size:   linebot.FlexTextSizeTypeSm,
 										Wrap:   true,
 										Text:   name,
 										Color:  "#ffffff",
@@ -190,49 +197,49 @@ func createFlexTextMessage(name string, prof *Profile) *linebot.BubbleContainer 
 									},
 									&linebot.TextComponent{
 										Type:   linebot.FlexComponentTypeText,
-										Size:   linebot.FlexTextSizeTypeXl,
+										Size:   linebot.FlexTextSizeTypeSm,
 										Wrap:   true,
-										Text:   prof.birthday,
+										Text:   fmt.Sprintf("生年月日:%s", prof.birthday),
 										Color:  "#ffffff",
 										Weight: linebot.FlexTextWeightTypeBold,
 									},
 									&linebot.TextComponent{
 										Type:   linebot.FlexComponentTypeText,
-										Size:   linebot.FlexTextSizeTypeXl,
+										Size:   linebot.FlexTextSizeTypeSm,
 										Wrap:   true,
-										Text:   prof.age,
+										Text:   fmt.Sprintf("年齢:%s歳", prof.age),
 										Color:  "#ffffff",
 										Weight: linebot.FlexTextWeightTypeBold,
 									},
 									&linebot.TextComponent{
 										Type:   linebot.FlexComponentTypeText,
-										Size:   linebot.FlexTextSizeTypeXl,
+										Size:   linebot.FlexTextSizeTypeSm,
 										Wrap:   true,
-										Text:   prof.sign,
+										Text:   fmt.Sprintf("星座:%s", prof.sign),
 										Color:  "#ffffff",
 										Weight: linebot.FlexTextWeightTypeBold,
 									},
 									&linebot.TextComponent{
 										Type:   linebot.FlexComponentTypeText,
-										Size:   linebot.FlexTextSizeTypeXl,
+										Size:   linebot.FlexTextSizeTypeSm,
 										Wrap:   true,
-										Text:   prof.height,
+										Text:   fmt.Sprintf("身長:%s", prof.height),
 										Color:  "#ffffff",
 										Weight: linebot.FlexTextWeightTypeBold,
 									},
 									&linebot.TextComponent{
 										Type:   linebot.FlexComponentTypeText,
-										Size:   linebot.FlexTextSizeTypeXl,
+										Size:   linebot.FlexTextSizeTypeSm,
 										Wrap:   true,
-										Text:   prof.birthplace,
+										Text:   fmt.Sprintf("出身地:%s", prof.birthplace),
 										Color:  "#ffffff",
 										Weight: linebot.FlexTextWeightTypeBold,
 									},
 									&linebot.TextComponent{
 										Type:   linebot.FlexComponentTypeText,
-										Size:   linebot.FlexTextSizeTypeXl,
+										Size:   linebot.FlexTextSizeTypeSm,
 										Wrap:   true,
-										Text:   prof.bloodtype,
+										Text:   fmt.Sprintf("血液型:%s", prof.bloodtype),
 										Color:  "#ffffff",
 										Weight: linebot.FlexTextWeightTypeBold,
 									},

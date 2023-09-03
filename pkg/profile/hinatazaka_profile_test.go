@@ -108,3 +108,34 @@ func Test_calcAge(t *testing.T) {
 		})
 	}
 }
+
+func TestCreateProfileMessage(t *testing.T) {
+	var ushiosarinaProfile = &Profile{
+		"1997年12月26日",
+		calcAge(time.Date(1997, 12, 26, 0, 0, 0, 0, time.Local), time.Now()),
+		"やぎ座",
+		"157.5cm",
+		"神奈川県",
+		"O型",
+		"https://cdn.hinatazaka46.com/images/14/9d4/dc3eef1e11944f0ee69459463a4cb/1000_1000_102400.jpg",
+	}
+
+	tests := []struct {
+		name         string
+		inputname    string
+		inputprofile *Profile
+		expected     string
+	}{
+		{"Nornal", "潮紗理菜", ushiosarinaProfile, "潮紗理菜\n生年月日:1997年12月26日\n年齢:25歳\n星座:やぎ座\n身長:157.5cm\n出身地:神奈川県\n血液型:O型\n"},
+		{"ポカ", "ポカ", PokaProfile, "ポカ\n生年月日:2019年12月25日\n年齢:3歳\n星座:やぎ座\n身長:???\n出身地:???\n血液型:???\n"},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			actual := CreateProfileMessage(tt.inputname, tt.inputprofile)
+			assert.Equal(t, tt.expected, actual)
+		})
+	}
+}

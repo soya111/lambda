@@ -2,11 +2,13 @@ package webhook
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"notify/pkg/blog"
 	"notify/pkg/infrastructure/line"
 	"notify/pkg/logging"
 	"notify/pkg/model"
+	"notify/pkg/profile"
 	"notify/pkg/service"
 	"strings"
 
@@ -33,6 +35,7 @@ const (
 	CmdWhoami CommandName = "whoami"
 	CmdHelp   CommandName = "help"
 	CmdBlog   CommandName = "blog"
+	CmdProf   CommandName = "prof"
 	// 新しいコマンドを追加する場合はここに定義する
 )
 
@@ -45,6 +48,7 @@ func (h *Handler) getCommandHandlers() CommandMap {
 		CmdList:   &ListCommand{subscriptionService},
 		CmdWhoami: &WhoamiCommand{identityService},
 		CmdBlog:   &BlogCommand{h.bot},
+		CmdProf:   &ProfCommand{h.bot},
 		// 新たに追加するコマンドも同様にここに追加します
 	}
 	cmdMap[CmdHelp] = &HelpCommand{h.bot, cmdMap}
@@ -218,6 +222,53 @@ func (c *BlogCommand) Execute(ctx context.Context, event *linebot.Event, args []
 
 func (c *BlogCommand) Description() string {
 	return "Get the latest blog of a member. Usage: blog [member]"
+}
+
+// ProfCommand is the command that shows the profile of the specified member.
+type ProfCommand struct {
+	bot *line.Linebot
+}
+
+func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []string) error {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Executing ProfCommand with args", zap.Any("args", args))
+
+	if len(args) < 2 {
+		return nil
+	}
+
+	member := args[1]
+	if !model.IsMember(member) {
+		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは存在しません。", member)); err != nil {
+			return fmt.Errorf("ProfCommand.Execute: %w", err)
+		}
+	}
+
+	selection, pokaerr := profile.GetProfileSelection(member)
+
+	if errors.Is(pokaerr, profile.ErrNoUrl) {
+		prof := profile.ScrapeProfile(selection)
+		message := profile.CreateProfileFlexMessage(member, prof)
+
+		err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
+		if err != nil {
+			return fmt.Errorf("ProfCommand.Execute: %w", err)
+		}
+		return nil
+	}
+
+	prof := profile.ScrapeProfile(selection)
+	message := profile.CreateProfileFlexMessage(member, prof)
+
+	err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
+	if err != nil {
+		return fmt.Errorf("ProfCommand.Execute: %w", err)
+	}
+	return nil
+}
+
+func (c *ProfCommand) Description() string {
+	return "Get the profile of a member. Usage: profile [member]"
 }
 
 // type Subscriber struct {

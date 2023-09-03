@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"notify/pkg/infrastructure/line"
 	"notify/pkg/infrastructure/scrape"
 	"notify/pkg/model"
 
@@ -122,13 +123,8 @@ func calcAge(birthday time.Time, now time.Time) string {
 
 // CreateProfileMessageはプロフィールメッセージを生成
 func CreateProfileMessage(name string, member *Profile) string {
-	message := fmt.Sprintf("%s\n生年月日:%s\n年齢:%s歳\n星座:%s\n身長:%s\n出身地:%s\n血液型:%s\n", name, member.birthday, member.age, member.sign, member.height, member.birthplace, member.bloodtype)
+	message := fmt.Sprintf("%s\n生年月日:%s\n年齢:%s歳\n星座:%s\n身長:%s\n出身地:%s\n血液型:%s", name, member.birthday, member.age, member.sign, member.height, member.birthplace, member.bloodtype)
 	return message
-}
-
-var MegaBubbleContainer = linebot.BubbleContainer{
-	Type: linebot.FlexContainerTypeBubble,
-	Size: linebot.FlexBubbleSizeTypeMega,
 }
 
 // CreateProfileFlexMessageはプロフィールメッセージを生成
@@ -147,7 +143,7 @@ func CreateProfileFlexMessage(name string, prof *Profile) linebot.SendingMessage
 }
 
 func createFlexTextMessage(name string, prof *Profile) *linebot.BubbleContainer {
-	container := MegaBubbleContainer
+	container := line.MegaBubbleContainer
 
 	container.Body = &linebot.BoxComponent{
 		Type:       linebot.FlexComponentTypeBox,

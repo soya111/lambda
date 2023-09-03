@@ -26,7 +26,7 @@ func main() {
 
 	if err != nil {
 		if errors.Is(err, profile.ErrNoUrl) {
-			fmt.Print(profile.CreateProfileMessage(name, profile.PokaProfile))
+			fmt.Println(profile.CreateProfileMessage(name, profile.PokaProfile))
 		} else {
 			fmt.Println(err)
 		}
@@ -35,5 +35,5 @@ func main() {
 
 	member := profile.ScrapeProfile(selection)
 
-	fmt.Print(profile.CreateProfileMessage(name, member))
+	fmt.Println(profile.CreateProfileMessage(name, member))
 }

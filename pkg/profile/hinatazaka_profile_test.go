@@ -126,8 +126,8 @@ func TestCreateProfileMessage(t *testing.T) {
 		inputprofile *Profile
 		expected     string
 	}{
-		{"Nornal", "潮紗理菜", ushiosarinaProfile, "潮紗理菜\n生年月日:1997年12月26日\n年齢:25歳\n星座:やぎ座\n身長:157.5cm\n出身地:神奈川県\n血液型:O型\n"},
-		{"ポカ", "ポカ", PokaProfile, "ポカ\n生年月日:2019年12月25日\n年齢:3歳\n星座:やぎ座\n身長:???\n出身地:???\n血液型:???\n"},
+		{"Nornal", "潮紗理菜", ushiosarinaProfile, "潮紗理菜\n生年月日:1997年12月26日\n年齢:25歳\n星座:やぎ座\n身長:157.5cm\n出身地:神奈川県\n血液型:O型"},
+		{"ポカ", "ポカ", PokaProfile, "ポカ\n生年月日:2019年12月25日\n年齢:3歳\n星座:やぎ座\n身長:???\n出身地:???\n血液型:???"},
 	}
 
 	for _, tt := range tests {

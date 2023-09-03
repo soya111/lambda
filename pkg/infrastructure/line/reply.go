@@ -15,14 +15,6 @@ func (b *Linebot) ReplyTextMessages(ctx context.Context, token string, message s
 	return nil
 }
 
-// ReplyTextandImageMessages reply text and image messages to LINE
-func (b *Linebot) ReplyTextandImageMessages(ctx context.Context, token string, message, imgurl string) error {
-	if _, err := b.Client.ReplyMessage(token, linebot.NewTextMessage(message), linebot.NewImageMessage(imgurl, imgurl)).WithContext(ctx).Do(); err != nil {
-		return err
-	}
-	return nil
-}
-
 // ReplyMessage reply messages to LINE
 func (b *Linebot) ReplyMessage(ctx context.Context, token string, messages ...linebot.SendingMessage) error {
 	if _, err := b.Client.ReplyMessage(token, messages...).WithContext(ctx).Do(); err != nil {

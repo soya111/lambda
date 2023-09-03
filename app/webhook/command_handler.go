@@ -239,7 +239,7 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 
 	member := args[1]
 	if !model.IsMember(member) {
-		if err := c.bot.ReplyTextMessages(context.TODO(), event.ReplyToken, fmt.Sprintf("%sは存在しません。", member)); err != nil {
+		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは存在しません。", member)); err != nil {
 			return fmt.Errorf("ProfCommand.Execute: %w", err)
 		}
 	}
@@ -250,7 +250,7 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 		prof := profile.ScrapeProfile(selection)
 		message := profile.CreateProfileFlexMessage(member, prof)
 
-		err := c.bot.ReplyMessage(context.TODO(), event.ReplyToken, message)
+		err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
 		if err != nil {
 			return fmt.Errorf("ProfCommand.Execute: %w", err)
 		}
@@ -260,7 +260,7 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 	prof := profile.ScrapeProfile(selection)
 	message := profile.CreateProfileFlexMessage(member, prof)
 
-	err := c.bot.ReplyMessage(context.TODO(), event.ReplyToken, message)
+	err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
 	if err != nil {
 		return fmt.Errorf("ProfCommand.Execute: %w", err)
 	}

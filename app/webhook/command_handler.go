@@ -268,7 +268,7 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 }
 
 func (c *ProfCommand) Description() string {
-	return "Get the profile of a member. Usage: profile [member]"
+	return "Get the profile of a member. Usage: prof [member]"
 }
 
 // type Subscriber struct {

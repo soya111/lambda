@@ -148,22 +148,23 @@ func createFlexTextMessage(name string, prof *Profile) *linebot.BubbleContainer 
 	container.Body = &linebot.BoxComponent{
 		Type:       linebot.FlexComponentTypeBox,
 		Layout:     linebot.FlexBoxLayoutTypeVertical,
+		Height:     "450px",
 		PaddingAll: "0px",
 		Contents: []linebot.FlexComponent{
 			&linebot.BoxComponent{
 				Type:   linebot.FlexComponentTypeBox,
 				Layout: linebot.FlexBoxLayoutTypeVertical,
+				Height: "70%",
 				Contents: []linebot.FlexComponent{
 					&linebot.BoxComponent{
 						Type:   linebot.FlexComponentTypeBox,
 						Layout: linebot.FlexBoxLayoutTypeHorizontal,
 						Contents: []linebot.FlexComponent{
 							&linebot.ImageComponent{
-								Type:        linebot.FlexComponentTypeImage,
-								URL:         prof.ImageUrl,
-								Size:        linebot.FlexImageSizeTypeFull,
-								AspectMode:  linebot.FlexImageAspectModeTypeCover,
-								AspectRatio: linebot.FlexImageAspectRatioType4to3,
+								Type:       linebot.FlexComponentTypeImage,
+								URL:        prof.ImageUrl,
+								Size:       linebot.FlexImageSizeTypeFull,
+								AspectMode: linebot.FlexImageAspectModeTypeCover,
 							},
 						},
 					},
@@ -239,6 +240,16 @@ func createFlexTextMessage(name string, prof *Profile) *linebot.BubbleContainer 
 										Color:  "#ffffff",
 										Weight: linebot.FlexTextWeightTypeBold,
 									},
+									&linebot.ButtonComponent{
+										Type: linebot.FlexComponentTypeButton,
+										Action: &linebot.MessageAction{
+											Label: "購読する",
+											Text:  "reg " + name,
+										},
+										Margin: linebot.FlexComponentMarginTypeMd,
+										Style:  linebot.FlexButtonStyleTypeSecondary,
+										Color:  "#ffffff",
+									},
 								},
 							},
 						},
@@ -257,5 +268,38 @@ func createFlexTextMessage(name string, prof *Profile) *linebot.BubbleContainer 
 			},
 		},
 	}
+
+	profileLabel := createProfileLabelComponent()
+	firstBox := container.Body.Contents[0].(*linebot.BoxComponent)
+	firstBox.Contents = append(firstBox.Contents, profileLabel)
+
 	return &container
+}
+
+func createProfileLabelComponent() *linebot.BoxComponent {
+	return &linebot.BoxComponent{
+		Type:   linebot.FlexComponentTypeBox,
+		Layout: linebot.FlexBoxLayoutTypeHorizontal,
+		Contents: []linebot.FlexComponent{
+			&linebot.TextComponent{
+				Type:    linebot.FlexComponentTypeText,
+				Text:    "PROFILE",
+				Size:    linebot.FlexTextSizeTypeXs,
+				Color:   "#ffffff",
+				Align:   linebot.FlexComponentAlignTypeCenter,
+				Gravity: linebot.FlexComponentGravityTypeCenter,
+			},
+		},
+		BackgroundColor: "#EC3D44",
+		PaddingAll:      "2px",
+		PaddingStart:    "4px",
+		PaddingEnd:      "4px",
+		Flex:            linebot.IntPtr(0),
+		Position:        linebot.FlexComponentPositionTypeAbsolute,
+		OffsetStart:     "18px",
+		OffsetTop:       "18px",
+		CornerRadius:    "100px",
+		Width:           "80px",
+		Height:          "25px",
+	}
 }

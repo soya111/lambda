@@ -247,11 +247,10 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 	selection, pokaerr := profile.GetProfileSelection(member)
 
 	if errors.Is(pokaerr, profile.ErrNoUrl) {
-		prof := profile.PokaProfile
-		message := profile.CreateProfileMessage(member, prof)
-		imgurl := prof.ImageUrl
+		prof := profile.ScrapeProfile(selection)
+		message := profile.CreateProfileFlexMessage(member, prof)
 
-		err := c.bot.ReplyMessage(context.TODO(), event.ReplyToken, linebot.NewTextMessage(message), linebot.NewImageMessage(imgurl, imgurl))
+		err := c.bot.ReplyMessage(context.TODO(), event.ReplyToken, message)
 		if err != nil {
 			return fmt.Errorf("ProfCommand.Execute: %w", err)
 		}
@@ -259,10 +258,9 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 	}
 
 	prof := profile.ScrapeProfile(selection)
-	message := profile.CreateProfileMessage(member, prof)
-	imgurl := prof.ImageUrl
+	message := profile.CreateProfileFlexMessage(member, prof)
 
-	err := c.bot.ReplyMessage(context.TODO(), event.ReplyToken, linebot.NewTextMessage(message), linebot.NewImageMessage(imgurl, imgurl))
+	err := c.bot.ReplyMessage(context.TODO(), event.ReplyToken, message)
 	if err != nil {
 		return fmt.Errorf("ProfCommand.Execute: %w", err)
 	}

@@ -2,7 +2,6 @@ package profile
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -11,6 +10,7 @@ import (
 	"notify/pkg/model"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
 // プロフィールのstruct
@@ -119,8 +119,140 @@ func calcAge(birthday time.Time, now time.Time) string {
 	return strconv.Itoa(age)
 }
 
-// CreateProfileMessageはプロフィールメッセージを生成
-func CreateProfileMessage(name string, member *Profile) string {
-	message := fmt.Sprintf("%s\n生年月日:%s\n年齢:%s歳\n星座:%s\n身長:%s\n出身地:%s\n血液型:%s\n", name, member.birthday, member.age, member.sign, member.height, member.birthplace, member.bloodtype)
+var MegaBubbleContainer = linebot.BubbleContainer{
+	Type: linebot.FlexContainerTypeBubble,
+	Size: linebot.FlexBubbleSizeTypeMega,
+}
+
+// CreateProfileFlexMessageはプロフィールメッセージを生成
+func CreateProfileFlexMessage(name string, prof *Profile) linebot.SendingMessage {
+	var container []*linebot.BubbleContainer
+	container = append(container, createFlexTextMessage(name, prof))
+
+	outerContainer := &linebot.CarouselContainer{
+		Type:     linebot.FlexContainerTypeCarousel,
+		Contents: container,
+	}
+
+	message := linebot.NewFlexMessage(name+"のプロフィール", outerContainer).WithSender(linebot.NewSender(name, prof.ImageUrl))
+
 	return message
+}
+
+func createFlexTextMessage(name string, prof *Profile) *linebot.BubbleContainer {
+	container := MegaBubbleContainer
+
+	container.Body = &linebot.BoxComponent{
+		Type:       linebot.FlexComponentTypeBox,
+		Layout:     linebot.FlexBoxLayoutTypeVertical,
+		PaddingAll: "0px",
+		Contents: []linebot.FlexComponent{
+			&linebot.BoxComponent{
+				Type:   linebot.FlexComponentTypeBox,
+				Layout: linebot.FlexBoxLayoutTypeVertical,
+				Contents: []linebot.FlexComponent{
+					&linebot.BoxComponent{
+						Type:   linebot.FlexComponentTypeBox,
+						Layout: linebot.FlexBoxLayoutTypeHorizontal,
+						Contents: []linebot.FlexComponent{
+							&linebot.ImageComponent{
+								Type:        linebot.FlexComponentTypeImage,
+								URL:         prof.ImageUrl,
+								Size:        linebot.FlexImageSizeTypeFull,
+								AspectMode:  linebot.FlexImageAspectModeTypeCover,
+								AspectRatio: linebot.FlexImageAspectRatioType4to3,
+							},
+						},
+					},
+				},
+				PaddingAll: "0px",
+			},
+			&linebot.BoxComponent{
+				Type:   linebot.FlexComponentTypeBox,
+				Layout: linebot.FlexBoxLayoutTypeVertical,
+				Contents: []linebot.FlexComponent{
+
+					&linebot.BoxComponent{
+						Type:   linebot.FlexComponentTypeBox,
+						Layout: linebot.FlexBoxLayoutTypeVertical,
+						Contents: []linebot.FlexComponent{
+							&linebot.BoxComponent{
+								Type:   linebot.FlexComponentTypeBox,
+								Layout: linebot.FlexBoxLayoutTypeVertical,
+								Contents: []linebot.FlexComponent{
+									&linebot.TextComponent{
+										Type:   linebot.FlexComponentTypeText,
+										Size:   linebot.FlexTextSizeTypeXl,
+										Wrap:   true,
+										Text:   name,
+										Color:  "#ffffff",
+										Weight: linebot.FlexTextWeightTypeBold,
+									},
+									&linebot.TextComponent{
+										Type:   linebot.FlexComponentTypeText,
+										Size:   linebot.FlexTextSizeTypeXl,
+										Wrap:   true,
+										Text:   prof.birthday,
+										Color:  "#ffffff",
+										Weight: linebot.FlexTextWeightTypeBold,
+									},
+									&linebot.TextComponent{
+										Type:   linebot.FlexComponentTypeText,
+										Size:   linebot.FlexTextSizeTypeXl,
+										Wrap:   true,
+										Text:   prof.age,
+										Color:  "#ffffff",
+										Weight: linebot.FlexTextWeightTypeBold,
+									},
+									&linebot.TextComponent{
+										Type:   linebot.FlexComponentTypeText,
+										Size:   linebot.FlexTextSizeTypeXl,
+										Wrap:   true,
+										Text:   prof.sign,
+										Color:  "#ffffff",
+										Weight: linebot.FlexTextWeightTypeBold,
+									},
+									&linebot.TextComponent{
+										Type:   linebot.FlexComponentTypeText,
+										Size:   linebot.FlexTextSizeTypeXl,
+										Wrap:   true,
+										Text:   prof.height,
+										Color:  "#ffffff",
+										Weight: linebot.FlexTextWeightTypeBold,
+									},
+									&linebot.TextComponent{
+										Type:   linebot.FlexComponentTypeText,
+										Size:   linebot.FlexTextSizeTypeXl,
+										Wrap:   true,
+										Text:   prof.birthplace,
+										Color:  "#ffffff",
+										Weight: linebot.FlexTextWeightTypeBold,
+									},
+									&linebot.TextComponent{
+										Type:   linebot.FlexComponentTypeText,
+										Size:   linebot.FlexTextSizeTypeXl,
+										Wrap:   true,
+										Text:   prof.bloodtype,
+										Color:  "#ffffff",
+										Weight: linebot.FlexTextWeightTypeBold,
+									},
+								},
+							},
+						},
+					},
+				},
+				PaddingAll:      "20px",
+				BackgroundColor: "#464F69",
+				Action: &linebot.URIAction{
+					Label: "action",
+					URI:   "https://www.hinatazaka46.com/s/official/artist/" + model.MemberToIdMap[name] + "?ima=0000",
+				},
+				Position:     linebot.FlexComponentPositionTypeAbsolute,
+				OffsetBottom: "0px",
+				OffsetStart:  "0px",
+				OffsetEnd:    "0px",
+			},
+		},
+	}
+	return &container
 }

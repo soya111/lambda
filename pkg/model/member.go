@@ -85,6 +85,45 @@ var MemberToIdMap = map[string]string{
 	"ポカ":    "000",
 }
 
+// MemberToGenerationMap is a map of member name to member generation.
+var MemberToGenerationMap = map[string]string{
+	"潮紗理菜":  "1",
+	"影山優佳":  "1",
+	"加藤史帆":  "1",
+	"齊藤京子":  "1",
+	"佐々木久美": "1",
+	"佐々木美玲": "1",
+	"高瀬愛奈":  "1",
+	"高本彩花":  "1",
+	"東村芽依":  "1",
+	"金村美玖":  "2",
+	"河田陽菜":  "2",
+	"小坂菜緒":  "2",
+	"富田鈴花":  "2",
+	"丹生明里":  "2",
+	"濱岸ひより": "2",
+	"松田好花":  "2",
+	"宮田愛萌":  "2",
+	"渡邉美穂":  "2",
+	"上村ひなの": "3",
+	"髙橋未来虹": "3",
+	"森本茉莉":  "3",
+	"山口陽世":  "3",
+	"石塚瑶季":  "4",
+	"岸帆夏":   "4",
+	"小西夏菜実": "4",
+	"清水理央":  "4",
+	"正源司陽子": "4",
+	"竹内希来里": "4",
+	"平尾帆夏":  "4",
+	"平岡海月":  "4",
+	"藤嶌果歩":  "4",
+	"宮地すみれ": "4",
+	"山下葉留花": "4",
+	"渡辺莉奈":  "4",
+	"ポカ":    "?",
+}
+
 // NormalizeName normalizes a member name.
 func NormalizeName(name string) string {
 	name = strings.TrimSpace(name)

@@ -247,7 +247,7 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 	selection, pokaerr := profile.GetProfileSelection(member)
 
 	if errors.Is(pokaerr, profile.ErrNoUrl) {
-		prof := profile.ScrapeProfile(selection)
+		prof := profile.PokaProfile
 		message := profile.CreateProfileFlexMessage(member, prof)
 
 		err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)

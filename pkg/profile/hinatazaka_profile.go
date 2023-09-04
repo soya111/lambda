@@ -269,21 +269,21 @@ func createFlexTextMessage(name string, prof *Profile) *linebot.BubbleContainer 
 		},
 	}
 
-	profileLabel := createProfileLabelComponent()
+	generationLabel := createGenerationLabelComponent(name)
 	firstBox := container.Body.Contents[0].(*linebot.BoxComponent)
-	firstBox.Contents = append(firstBox.Contents, profileLabel)
+	firstBox.Contents = append(firstBox.Contents, generationLabel)
 
 	return &container
 }
 
-func createProfileLabelComponent() *linebot.BoxComponent {
+func createGenerationLabelComponent(name string) *linebot.BoxComponent {
 	return &linebot.BoxComponent{
 		Type:   linebot.FlexComponentTypeBox,
 		Layout: linebot.FlexBoxLayoutTypeHorizontal,
 		Contents: []linebot.FlexComponent{
 			&linebot.TextComponent{
 				Type:    linebot.FlexComponentTypeText,
-				Text:    "PROFILE",
+				Text:    model.MemberToGenerationMap[name] + "期生",
 				Size:    linebot.FlexTextSizeTypeXs,
 				Color:   "#ffffff",
 				Align:   linebot.FlexComponentAlignTypeCenter,
@@ -299,7 +299,7 @@ func createProfileLabelComponent() *linebot.BoxComponent {
 		OffsetStart:     "18px",
 		OffsetTop:       "18px",
 		CornerRadius:    "100px",
-		Width:           "80px",
+		Width:           "48px",
 		Height:          "25px",
 	}
 }

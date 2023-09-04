@@ -242,8 +242,9 @@ func createFlexTextMessage(name string, prof *Profile) *linebot.BubbleContainer 
 									},
 									&linebot.ButtonComponent{
 										Type: linebot.FlexComponentTypeButton,
-										Action: &linebot.MessageAction{
+										Action: &linebot.PostbackAction{
 											Label: "購読する",
+											Data:  "reg " + name,
 											Text:  "reg " + name,
 										},
 										Margin: linebot.FlexComponentMarginTypeMd,
@@ -269,37 +270,10 @@ func createFlexTextMessage(name string, prof *Profile) *linebot.BubbleContainer 
 		},
 	}
 
-	generationLabel := createGenerationLabelComponent(name)
+	generationLabelText := model.MemberToGenerationMap[name] + "期生"
+	generationLabel := line.CreateLabelComponent(generationLabelText, "#ffffff", "#EC3D44")
 	firstBox := container.Body.Contents[0].(*linebot.BoxComponent)
 	firstBox.Contents = append(firstBox.Contents, generationLabel)
 
 	return &container
-}
-
-func createGenerationLabelComponent(name string) *linebot.BoxComponent {
-	return &linebot.BoxComponent{
-		Type:   linebot.FlexComponentTypeBox,
-		Layout: linebot.FlexBoxLayoutTypeHorizontal,
-		Contents: []linebot.FlexComponent{
-			&linebot.TextComponent{
-				Type:    linebot.FlexComponentTypeText,
-				Text:    model.MemberToGenerationMap[name] + "期生",
-				Size:    linebot.FlexTextSizeTypeXs,
-				Color:   "#ffffff",
-				Align:   linebot.FlexComponentAlignTypeCenter,
-				Gravity: linebot.FlexComponentGravityTypeCenter,
-			},
-		},
-		BackgroundColor: "#EC3D44",
-		PaddingAll:      "2px",
-		PaddingStart:    "4px",
-		PaddingEnd:      "4px",
-		Flex:            linebot.IntPtr(0),
-		Position:        linebot.FlexComponentPositionTypeAbsolute,
-		OffsetStart:     "18px",
-		OffsetTop:       "18px",
-		CornerRadius:    "100px",
-		Width:           "48px",
-		Height:          "25px",
-	}
 }

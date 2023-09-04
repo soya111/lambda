@@ -244,9 +244,9 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 		}
 	}
 
-	selection, pokaerr := profile.GetProfileSelection(member)
+	selection, err := profile.GetProfileSelection(member)
 
-	if errors.Is(pokaerr, profile.ErrNoUrl) {
+	if errors.Is(err, profile.ErrNoUrl) {
 		prof := profile.PokaProfile
 		message := profile.CreateProfileFlexMessage(member, prof)
 
@@ -260,7 +260,7 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 	prof := profile.ScrapeProfile(selection)
 	message := profile.CreateProfileFlexMessage(member, prof)
 
-	err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
+	err = c.bot.ReplyMessage(ctx, event.ReplyToken, message)
 	if err != nil {
 		return fmt.Errorf("ProfCommand.Execute: %w", err)
 	}

@@ -3,6 +3,8 @@ package line
 import (
 	"fmt"
 	"notify/pkg/blog"
+	"strconv"
+	"unicode/utf8"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
@@ -145,7 +147,7 @@ func createFlexTextMessage(diary *blog.ScrapedDiary, showNewLabel bool) *linebot
 
 	if showNewLabel {
 		// バッチのコンポーネント
-		newLabel := createNewLabelComponent()
+		newLabel := CreateLabelComponent("NEW", "#ffffff", "#EC3D44")
 		firstBox := container.Body.Contents[0].(*linebot.BoxComponent)
 		firstBox.Contents = append(firstBox.Contents, newLabel)
 	}
@@ -208,21 +210,21 @@ func createFlexImagesMessage(urls []string) []*linebot.BubbleContainer {
 	return contents
 }
 
-func createNewLabelComponent() *linebot.BoxComponent {
+func CreateLabelComponent(text, textcolor, backgroundcolor string) *linebot.BoxComponent {
 	return &linebot.BoxComponent{
 		Type:   linebot.FlexComponentTypeBox,
 		Layout: linebot.FlexBoxLayoutTypeHorizontal,
 		Contents: []linebot.FlexComponent{
 			&linebot.TextComponent{
 				Type:    linebot.FlexComponentTypeText,
-				Text:    "NEW",
+				Text:    text,
 				Size:    linebot.FlexTextSizeTypeXs,
-				Color:   "#ffffff",
+				Color:   textcolor,
 				Align:   linebot.FlexComponentAlignTypeCenter,
 				Gravity: linebot.FlexComponentGravityTypeCenter,
 			},
 		},
-		BackgroundColor: "#EC3D44",
+		BackgroundColor: backgroundcolor,
 		PaddingAll:      "2px",
 		PaddingStart:    "4px",
 		PaddingEnd:      "4px",
@@ -231,7 +233,7 @@ func createNewLabelComponent() *linebot.BoxComponent {
 		OffsetStart:     "18px",
 		OffsetTop:       "18px",
 		CornerRadius:    "100px",
-		Width:           "48px",
+		Width:           strconv.Itoa(8*utf8.RuneCountInString(text)+24) + "px",
 		Height:          "25px",
 	}
 }

@@ -244,7 +244,7 @@ func newQuickReplies(diary *blog.ScrapedDiary) *linebot.QuickReplyItems {
 		linebot.NewQuickReplyButton("", linebot.NewMessageAction("👎", "👎")),
 	)
 
-	if subscribeAction := newSubscribeAction(diary.MemberName); subscribeAction != nil {
+	if subscribeAction := NewSubscribeAction(diary.MemberName); subscribeAction != nil {
 		quickReplies.Items = append(quickReplies.Items, linebot.NewQuickReplyButton("", subscribeAction))
 	}
 

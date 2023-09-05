@@ -59,7 +59,7 @@ const (
 	UnsubscribeLabel = "解除する"
 )
 
-func newSubscribeAction(diaryMemberName string) *linebot.PostbackAction {
+func NewSubscribeAction(diaryMemberName string) *linebot.PostbackAction {
 	postBackMap := map[string]string{
 		MemberKey: model.NormalizeName(diaryMemberName),
 	}

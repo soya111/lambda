@@ -241,12 +241,8 @@ func createFlexTextMessage(name string, prof *Profile) *linebot.BubbleContainer 
 										Weight: linebot.FlexTextWeightTypeBold,
 									},
 									&linebot.ButtonComponent{
-										Type: linebot.FlexComponentTypeButton,
-										Action: &linebot.PostbackAction{
-											Label: "購読する",
-											Data:  "reg " + name,
-											Text:  "reg " + name,
-										},
+										Type:   linebot.FlexComponentTypeButton,
+										Action: line.NewSubscribeAction(name),
 										Margin: linebot.FlexComponentMarginTypeMd,
 										Style:  linebot.FlexButtonStyleTypeSecondary,
 										Color:  "#ffffff",

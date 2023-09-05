@@ -203,6 +203,8 @@ func (c *BlogCommand) Execute(ctx context.Context, event *linebot.Event, args []
 		if err := c.bot.ReplyTextMessages(context.TODO(), event.ReplyToken, fmt.Sprintf("%sは存在しません。", member)); err != nil {
 			return fmt.Errorf("BlogCommand.Execute: %w", err)
 		}
+		err := profile.ErrNonExistentMember
+		return fmt.Errorf("ProfCommand.Execute: %w", err)
 	}
 
 	scraper := blog.NewHinatazakaScraper()
@@ -242,6 +244,8 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは存在しません。", member)); err != nil {
 			return fmt.Errorf("ProfCommand.Execute: %w", err)
 		}
+		err := profile.ErrNonExistentMember
+		return fmt.Errorf("ProfCommand.Execute: %w", err)
 	}
 
 	selection, err := profile.GetProfileSelection(member)

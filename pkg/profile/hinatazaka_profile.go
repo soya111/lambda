@@ -26,10 +26,7 @@ type Profile struct {
 	ImageUrl   string
 }
 
-var (
-	ErrNonExistentMember = errors.New("日向坂46に存在しないメンバーです。")
-	ErrNoUrl             = errors.New("ポカは日向坂46の一員ですが、URLが存在しません。")
-)
+var ErrNoUrl = errors.New("ポカは日向坂46の一員ですが、URLが存在しません。")
 
 // ポカのプロフィール
 var PokaProfile = &Profile{
@@ -46,7 +43,7 @@ var PokaProfile = &Profile{
 func GetProfileSelection(name string) (*goquery.Selection, error) {
 	//入力がメンバー名でない場合
 	if !model.IsMember(name) {
-		return nil, ErrNonExistentMember
+		return nil, model.ErrNonExistentMember
 	}
 
 	//入力がポカである場合

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -123,6 +124,8 @@ var MemberToGenerationMap = map[string]string{
 	"渡辺莉奈":  "4",
 	"ポカ":    "?",
 }
+
+var ErrNonExistentMember = errors.New("日向坂46に存在しないメンバーです。")
 
 // NormalizeName normalizes a member name.
 func NormalizeName(name string) string {

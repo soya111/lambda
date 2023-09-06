@@ -15,6 +15,8 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/gin-gonic/gin"
@@ -26,6 +28,9 @@ import (
 )
 
 var (
+	executeFn func()
+	parser    line.RequestParser
+	r         *gin.Engine
 	bot       *line.Linebot
 	db        *dynamo.DB
 	logger    *zap.Logger
@@ -43,12 +48,30 @@ func init() {
 	}
 
 	sess := session.Must(session.NewSession())
-	db = dynamo.New(sess)
 
 	logger = logging.InitializeLogger()
 
-	r := initEngine()
-	ginLambda = ginadapter.New(r)
+	r = initEngine()
+
+	if os.Getenv("IS_LOCAL") != "" {
+		const (
+			// local dynamodb settings
+			AWS_REGION      = "ap-northeast-1"
+			DYNAMO_ENDPOINT = "http://localhost:8000"
+		)
+		db = dynamo.New(sess, &aws.Config{
+			Region:      aws.String(AWS_REGION),
+			Endpoint:    aws.String(DYNAMO_ENDPOINT),
+			Credentials: credentials.NewStaticCredentials("dummy", "dummy", "dummy"),
+		})
+		executeFn = runAsServer
+		parser = &line.LocalParser{}
+	} else {
+		db = dynamo.New(sess)
+		ginLambda = ginadapter.New(r)
+		executeFn = runAsLambda
+		parser = bot
+	}
 }
 
 func initEngine() *gin.Engine {
@@ -60,7 +83,17 @@ func initEngine() *gin.Engine {
 }
 
 func main() {
+	executeFn()
+}
+
+func runAsLambda() {
 	lambda.Start(handler)
+}
+
+func runAsServer() {
+	if err := r.Run(":8080"); err != nil {
+		logger.Fatal("Failed to run server", zap.Error(err))
+	}
 }
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
@@ -73,7 +106,7 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 
 	logger.Info("request", zap.String("ip", ip), zap.String("method", method), zap.String("path", "/webhook"))
 
-	events, err := bot.ParseRequest(r)
+	events, err := parser.ParseRequest(r)
 
 	if err != nil {
 		if err == linebot.ErrInvalidSignature {

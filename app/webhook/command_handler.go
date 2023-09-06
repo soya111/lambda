@@ -78,7 +78,7 @@ func (c *RegCommand) Execute(ctx context.Context, event *linebot.Event, args []s
 		return nil
 	}
 	member := args[1]
-	if !model.IsMember(member) || model.IsGrad(member) {
+	if !model.IsMember(member) {
 		return nil
 	}
 	err := c.subscriptionService.RegisterMember(ctx, member, event)
@@ -105,7 +105,7 @@ func (c *UnregCommand) Execute(ctx context.Context, event *linebot.Event, args [
 		return nil
 	}
 	member := args[1]
-	if !model.IsMember(member) || model.IsGrad(member) {
+	if !model.IsMember(member) {
 		return nil
 	}
 	err := c.subscriptionService.UnregisterMember(ctx, member, event)
@@ -199,13 +199,14 @@ func (c *BlogCommand) Execute(ctx context.Context, event *linebot.Event, args []
 	}
 
 	member := args[1]
-	if !model.IsMember(member) {
-		if model.IsGrad(member) {
-			if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは卒業メンバーです。", member)); err != nil {
-				return fmt.Errorf("BlogCommand.Execute: %w", err)
-			}
-			return nil
+	if model.IsGrad(member) {
+		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは卒業メンバーです。", member)); err != nil {
+			return fmt.Errorf("BlogCommand.Execute: %w", err)
 		}
+		return nil
+	}
+
+	if !model.IsMember(member) {
 		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは存在しません。", member)); err != nil {
 			return fmt.Errorf("BlogCommand.Execute: %w", err)
 		}
@@ -245,13 +246,14 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 	}
 
 	member := args[1]
-	if !model.IsMember(member) {
-		if model.IsGrad(member) {
-			if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは卒業メンバーです。", member)); err != nil {
-				return fmt.Errorf("ProfCommand.Execute: %w", err)
-			}
-			return nil
+	if model.IsGrad(member) {
+		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは卒業メンバーです。", member)); err != nil {
+			return fmt.Errorf("ProfCommand.Execute: %w", err)
 		}
+		return nil
+	}
+
+	if !model.IsMember(member) {
 		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは存在しません。", member)); err != nil {
 			return fmt.Errorf("ProfCommand.Execute: %w", err)
 		}

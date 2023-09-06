@@ -52,9 +52,6 @@ func (c *PostbackCommandRegister) Execute(ctx context.Context, event *linebot.Ev
 
 	member := data.Params[line.MemberKey]
 	if !model.IsMember(member) {
-		if model.IsGrad(member) {
-			return fmt.Errorf("graduated member: %s", member)
-		}
 		return fmt.Errorf("invalid member: %s", member)
 	}
 
@@ -76,9 +73,6 @@ func (c *PostbackCommandUnregister) Execute(ctx context.Context, event *linebot.
 
 	member := data.Params[line.MemberKey]
 	if !model.IsMember(member) {
-		if model.IsGrad(member) {
-			return fmt.Errorf("graduated member: %s", member)
-		}
 		return fmt.Errorf("invalid member: %s", member)
 	}
 

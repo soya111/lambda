@@ -34,6 +34,11 @@ func TestIsMember(t *testing.T) {
 	assert.False(t, model.IsMember("非メンバー"))
 }
 
+func TestIsGrad(t *testing.T) {
+	assert.True(t, model.IsGrad("柿崎芽実"))
+	assert.False(t, model.IsGrad("非卒業メンバー"))
+}
+
 func TestGetMemberId(t *testing.T) {
 	id, err := model.GetMemberId("潮紗理菜")
 	assert.NoError(t, err)

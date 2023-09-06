@@ -43,6 +43,9 @@ var PokaProfile = &Profile{
 func GetProfileSelection(name string) (*goquery.Selection, error) {
 	//入力がメンバー名でない場合
 	if !model.IsMember(name) {
+		if model.IsGrad(name) {
+			return nil, model.ErrGraduatedMember
+		}
 		return nil, model.ErrNonExistentMember
 	}
 

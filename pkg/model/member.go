@@ -10,7 +10,6 @@ var (
 	// MemberList is a list of all members.
 	MemberList = []string{
 		"潮紗理菜",
-		"影山優佳",
 		"加藤史帆",
 		"齊藤京子",
 		"佐々木久美",
@@ -25,8 +24,6 @@ var (
 		"丹生明里",
 		"濱岸ひより",
 		"松田好花",
-		"宮田愛萌",
-		"渡邉美穂",
 		"上村ひなの",
 		"髙橋未来虹",
 		"森本茉莉",
@@ -45,12 +42,20 @@ var (
 		"渡辺莉奈",
 		"ポカ",
 	}
+
+	gradList = []string{
+		"井口眞緒",
+		"柿崎芽実",
+		"影山優佳",
+		"長濱ねる",
+		"宮田愛萌",
+		"渡邉美穂",
+	}
 )
 
 // MemberToIdMap is a map of member name to member ID.
 var MemberToIdMap = map[string]string{
 	"潮紗理菜":  "2",
-	"影山優佳":  "4",
 	"加藤史帆":  "5",
 	"齊藤京子":  "6",
 	"佐々木久美": "7",
@@ -65,8 +70,6 @@ var MemberToIdMap = map[string]string{
 	"丹生明里":  "16",
 	"濱岸ひより": "17",
 	"松田好花":  "18",
-	"宮田愛萌":  "19",
-	"渡邉美穂":  "20",
 	"上村ひなの": "21",
 	"髙橋未来虹": "22",
 	"森本茉莉":  "23",
@@ -89,7 +92,6 @@ var MemberToIdMap = map[string]string{
 // MemberToGenerationMap is a map of member name to member generation.
 var MemberToGenerationMap = map[string]string{
 	"潮紗理菜":  "1",
-	"影山優佳":  "1",
 	"加藤史帆":  "1",
 	"齊藤京子":  "1",
 	"佐々木久美": "1",
@@ -104,8 +106,6 @@ var MemberToGenerationMap = map[string]string{
 	"丹生明里":  "2",
 	"濱岸ひより": "2",
 	"松田好花":  "2",
-	"宮田愛萌":  "2",
-	"渡邉美穂":  "2",
 	"上村ひなの": "3",
 	"髙橋未来虹": "3",
 	"森本茉莉":  "3",
@@ -125,7 +125,10 @@ var MemberToGenerationMap = map[string]string{
 	"ポカ":    "?",
 }
 
-var ErrNonExistentMember = errors.New("日向坂46に存在しないメンバーです。")
+var (
+	ErrNonExistentMember = errors.New("日向坂46に存在しないメンバーです。")
+	ErrGraduatedMember   = errors.New("日向坂46の卒業メンバーです。")
+)
 
 // NormalizeName normalizes a member name.
 func NormalizeName(name string) string {
@@ -137,6 +140,16 @@ func NormalizeName(name string) string {
 // IsMember returns true if the given text is a member name.
 func IsMember(text string) bool {
 	_, exists := MemberToIdMap[text]
+	return exists
+}
+
+// IsGrad returns true if the given text is a guraduated member name.
+func IsGrad(text string) bool {
+	m := map[string]struct{}{}
+	for _, s := range gradList {
+		m[s] = struct{}{}
+	}
+	_, exists := m[text]
 	return exists
 }
 

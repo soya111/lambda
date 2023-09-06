@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"notify/pkg/model"
 	"testing"
 	"time"
 
@@ -14,7 +15,7 @@ func TestGetProfileSelection(t *testing.T) {
 		expectederror error
 	}{
 		{"ExistentMember", "潮紗理菜", nil},
-		{"NonExistentMember", "白石麻衣", ErrNonExistentMember},
+		{"NonExistentMember", "白石麻衣", model.ErrNonExistentMember},
 		{"ポカ", "ポカ", ErrNoUrl},
 	}
 

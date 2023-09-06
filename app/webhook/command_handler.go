@@ -200,20 +200,21 @@ func (c *BlogCommand) Execute(ctx context.Context, event *linebot.Event, args []
 
 	member := args[1]
 	if !model.IsMember(member) {
-		if err := c.bot.ReplyTextMessages(context.TODO(), event.ReplyToken, fmt.Sprintf("%sは存在しません。", member)); err != nil {
+		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは存在しません。", member)); err != nil {
 			return fmt.Errorf("BlogCommand.Execute: %w", err)
 		}
+		return nil
 	}
 
 	scraper := blog.NewHinatazakaScraper()
 	diary, err := scraper.GetLatestDiaryByMember(member)
 	if err != nil {
-		return c.bot.ReplyWithError(context.TODO(), event.ReplyToken, "内部エラー", err)
+		return c.bot.ReplyWithError(ctx, event.ReplyToken, "内部エラー", err)
 	}
 
 	message := line.CreateFlexMessage(diary)
 
-	err = c.bot.ReplyMessage(context.TODO(), event.ReplyToken, message)
+	err = c.bot.ReplyMessage(ctx, event.ReplyToken, message)
 	if err != nil {
 		return fmt.Errorf("BlogCommand.Execute: %w", err)
 	}
@@ -242,12 +243,13 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは存在しません。", member)); err != nil {
 			return fmt.Errorf("ProfCommand.Execute: %w", err)
 		}
+		return nil
 	}
 
-	selection, pokaerr := profile.GetProfileSelection(member)
+	selection, err := profile.GetProfileSelection(member)
 
-	if errors.Is(pokaerr, profile.ErrNoUrl) {
-		prof := profile.ScrapeProfile(selection)
+	if errors.Is(err, profile.ErrNoUrl) {
+		prof := profile.PokaProfile
 		message := profile.CreateProfileFlexMessage(member, prof)
 
 		err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
@@ -260,7 +262,7 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 	prof := profile.ScrapeProfile(selection)
 	message := profile.CreateProfileFlexMessage(member, prof)
 
-	err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
+	err = c.bot.ReplyMessage(ctx, event.ReplyToken, message)
 	if err != nil {
 		return fmt.Errorf("ProfCommand.Execute: %w", err)
 	}
@@ -268,7 +270,7 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 }
 
 func (c *ProfCommand) Description() string {
-	return "Get the profile of a member. Usage: profile [member]"
+	return "Get the profile of a member. Usage: prof [member]"
 }
 
 // type Subscriber struct {

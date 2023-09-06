@@ -26,10 +26,7 @@ type Profile struct {
 	ImageUrl   string
 }
 
-var (
-	ErrNonExistentMember = errors.New("日向坂46に存在しないメンバーです。")
-	ErrNoUrl             = errors.New("ポカは日向坂46の一員ですが、URLが存在しません。")
-)
+var ErrNoUrl = errors.New("ポカは日向坂46の一員ですが、URLが存在しません。")
 
 // ポカのプロフィール
 var PokaProfile = &Profile{
@@ -46,7 +43,7 @@ var PokaProfile = &Profile{
 func GetProfileSelection(name string) (*goquery.Selection, error) {
 	//入力がメンバー名でない場合
 	if !model.IsMember(name) {
-		return nil, ErrNonExistentMember
+		return nil, model.ErrNonExistentMember
 	}
 
 	//入力がポカである場合
@@ -148,22 +145,23 @@ func createFlexTextMessage(name string, prof *Profile) *linebot.BubbleContainer 
 	container.Body = &linebot.BoxComponent{
 		Type:       linebot.FlexComponentTypeBox,
 		Layout:     linebot.FlexBoxLayoutTypeVertical,
+		Height:     "450px",
 		PaddingAll: "0px",
 		Contents: []linebot.FlexComponent{
 			&linebot.BoxComponent{
 				Type:   linebot.FlexComponentTypeBox,
 				Layout: linebot.FlexBoxLayoutTypeVertical,
+				Height: "70%",
 				Contents: []linebot.FlexComponent{
 					&linebot.BoxComponent{
 						Type:   linebot.FlexComponentTypeBox,
 						Layout: linebot.FlexBoxLayoutTypeHorizontal,
 						Contents: []linebot.FlexComponent{
 							&linebot.ImageComponent{
-								Type:        linebot.FlexComponentTypeImage,
-								URL:         prof.ImageUrl,
-								Size:        linebot.FlexImageSizeTypeFull,
-								AspectMode:  linebot.FlexImageAspectModeTypeCover,
-								AspectRatio: linebot.FlexImageAspectRatioType4to3,
+								Type:       linebot.FlexComponentTypeImage,
+								URL:        prof.ImageUrl,
+								Size:       linebot.FlexImageSizeTypeFull,
+								AspectMode: linebot.FlexImageAspectModeTypeCover,
 							},
 						},
 					},
@@ -239,6 +237,13 @@ func createFlexTextMessage(name string, prof *Profile) *linebot.BubbleContainer 
 										Color:  "#ffffff",
 										Weight: linebot.FlexTextWeightTypeBold,
 									},
+									&linebot.ButtonComponent{
+										Type:   linebot.FlexComponentTypeButton,
+										Action: line.NewSubscribeAction(name),
+										Margin: linebot.FlexComponentMarginTypeMd,
+										Style:  linebot.FlexButtonStyleTypeSecondary,
+										Color:  "#ffffff",
+									},
 								},
 							},
 						},
@@ -257,5 +262,11 @@ func createFlexTextMessage(name string, prof *Profile) *linebot.BubbleContainer 
 			},
 		},
 	}
+
+	generationLabelText := model.MemberToGenerationMap[name] + "期生"
+	generationLabel := line.CreateLabelComponent(generationLabelText, "#ffffff", "#EC3D44")
+	firstBox := container.Body.Contents[0].(*linebot.BoxComponent)
+	firstBox.Contents = append(firstBox.Contents, generationLabel)
+
 	return &container
 }

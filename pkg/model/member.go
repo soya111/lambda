@@ -54,8 +54,8 @@ var (
 	}
 )
 
-// MemberToIdMap is a map of member name to member ID.
 var (
+	// MemberToIdMap is a map of member name to member ID.
 	MemberToIdMap = map[string]string{
 		"潮紗理菜":  "2",
 		"加藤史帆":  "5",
@@ -102,10 +102,11 @@ var (
 	}
 )
 
-// MemberToGenerationMap is a map of member name to member generation.
 var (
+	// MemberToGenerationMap is a map of member name to member generation.
 	MemberToGenerationMap = map[string]string{
 		"潮紗理菜":  "1",
+		"影山優佳":  "1",
 		"加藤史帆":  "1",
 		"齊藤京子":  "1",
 		"佐々木久美": "1",
@@ -120,6 +121,8 @@ var (
 		"丹生明里":  "2",
 		"濱岸ひより": "2",
 		"松田好花":  "2",
+		"宮田愛萌":  "2",
+		"渡邉美穂":  "2",
 		"上村ひなの": "3",
 		"髙橋未来虹": "3",
 		"森本茉莉":  "3",
@@ -150,6 +153,42 @@ var (
 	}
 )
 
+// NicknameToMemberMap is a map of nickname to member.
+var nicknameToMemberMap = map[string][]string{
+	"潮紗理菜":  {"潮くん", "なっちょ", "サリマカシー", "うしし"},
+	"加藤史帆":  {"かとし", "しし", "としちゃん", "天使"},
+	"齊藤京子":  {"きょんこ", "きょうこにょう"},
+	"佐々木久美": {"くみてん", "ささく", "きくちゃん", "キャプテン"},
+	"佐々木美玲": {"みーぱん", "ささみ"},
+	"高瀬愛奈":  {"まなふぃ", "まなふい"},
+	"高本彩花":  {"おたけ", "あやちぇり", "あやちゃり", "あや"},
+	"東村芽依":  {"めいめい", "めいちご", "やんちゃる", "ちゃる"},
+	"金村美玖":  {"おすし"},
+	"河田陽菜":  {"かわだ", "かわださん", "おひな"},
+	"小坂菜緒":  {"こさかな", "こしゃ"},
+	"富田鈴花":  {"すーじー"},
+	"丹生明里":  {"にぶちゃん", "タルタルチキン"},
+	"濱岸ひより": {"ひよたん"},
+	"松田好花":  {"このちゃん", "だーこの"},
+	"上村ひなの": {"ひなのなの"},
+	"髙橋未来虹": {"みくにん", "みくにちゃん"},
+	"森本茉莉":  {"まりもと", "天才", "まりぃ", "あいつ"},
+	"山口陽世":  {"ぱる", "はるよちゃん"},
+	"石塚瑶季":  {"たまちゃん"},
+	"岸帆夏":   {"岸君", "きしほの", "きしほ"},
+	"小西夏菜実": {"こにしん", "524773"},
+	"清水理央":  {"りおたむ", "ずりお"},
+	"正源司陽子": {"げんちゃん", "しょげこ"},
+	"竹内希来里": {"きらりんちょ", "きらりん"},
+	"平尾帆夏":  {"ひらほー", "ひらほ"},
+	"平岡海月":  {"みっちゃん", "くらげ"},
+	"藤嶌果歩":  {"かほりん", "かほりんこうりん"},
+	"宮地すみれ": {"すみレジェンド", "レジェ", "すみこ"},
+	"山下葉留花": {"はるはる"},
+	"渡辺莉奈":  {"りなし", "べりな"},
+	"ポカ":    {},
+}
+
 var (
 	ErrNonExistentMember = errors.New("日向坂46に存在しないメンバーです。")
 	ErrGraduatedMember   = errors.New("日向坂46の卒業メンバーです。")
@@ -160,6 +199,18 @@ func NormalizeName(name string) string {
 	name = strings.TrimSpace(name)
 	name = strings.ReplaceAll(name, " ", "")
 	return name
+}
+
+// NormalizeNN normalizes a nickname.
+func NormalizeNN(nickname string) string {
+	for member, s := range nicknameToMemberMap {
+		for _, nn := range s {
+			if nn == nickname {
+				return member
+			}
+		}
+	}
+	return nickname
 }
 
 // IsMember returns true if the given text is a member name.

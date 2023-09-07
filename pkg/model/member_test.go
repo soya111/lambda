@@ -29,6 +29,26 @@ func TestNormalizeName(t *testing.T) {
 	}
 }
 
+func TestNormalizeNN(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{"nomal", "なっちょ", "潮紗理菜"},
+		{"NoExist", "たなかくん", "たなかくん"},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			actual := model.NormalizeNN(tt.input)
+			assert.Equal(t, tt.expected, actual)
+		})
+	}
+}
+
 func TestIsMember(t *testing.T) {
 	assert.True(t, model.IsMember("潮紗理菜"))
 	assert.False(t, model.IsMember("非メンバー"))

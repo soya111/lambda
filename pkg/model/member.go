@@ -153,15 +153,15 @@ var (
 	}
 )
 
-// NicknameToMemberMap is a map of nickname to member.
-var nicknameToMemberMap = map[string][]string{
+// memberToNicknameMap is a map of member name to nickname.
+var memberToNicknameMap = map[string][]string{
 	"潮紗理菜":  {"潮くん", "なっちょ", "サリマカシー", "うしし"},
 	"加藤史帆":  {"かとし", "しし", "としちゃん", "天使"},
 	"齊藤京子":  {"きょんこ", "きょうこにょう"},
 	"佐々木久美": {"くみてん", "ささく", "きくちゃん", "キャプテン"},
 	"佐々木美玲": {"みーぱん", "ささみ"},
 	"高瀬愛奈":  {"まなふぃ", "まなふい"},
-	"高本彩花":  {"おたけ", "あやちぇり", "あやちゃり", "あや"},
+	"高本彩花":  {"たけもと", "おたけ", "あやちぇり", "あや"},
 	"東村芽依":  {"めいめい", "めいちご", "やんちゃる", "ちゃる"},
 	"金村美玖":  {"おすし"},
 	"河田陽菜":  {"かわだ", "かわださん", "おひな"},
@@ -201,16 +201,24 @@ func NormalizeName(name string) string {
 	return name
 }
 
-// NormalizeNN normalizes a nickname.
-func NormalizeNN(nickname string) string {
-	for member, s := range nicknameToMemberMap {
-		for _, nn := range s {
-			if nn == nickname {
-				return member
-			}
+// Create a reverse map for memberToNicknameMap for faster lookup.
+var nicknameToMemberMap = make(map[string]string)
+
+func init() {
+	for member, nicknames := range memberToNicknameMap {
+		for _, nickname := range nicknames {
+			nicknameToMemberMap[nickname] = member
 		}
 	}
-	return nickname
+}
+
+// TranslateNN translates a nickname to member name.
+func TranslateNN(nickname string) string {
+	member, exists := nicknameToMemberMap[nickname]
+	if !exists {
+		return nickname
+	}
+	return member
 }
 
 // IsMember returns true if the given text is a member name.

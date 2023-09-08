@@ -199,6 +199,13 @@ func (c *BlogCommand) Execute(ctx context.Context, event *linebot.Event, args []
 	}
 
 	member := args[1]
+	if model.IsGrad(member) {
+		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは卒業メンバーです。", member)); err != nil {
+			return fmt.Errorf("BlogCommand.Execute: %w", err)
+		}
+		return nil
+	}
+
 	if !model.IsMember(member) {
 		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは存在しません。", member)); err != nil {
 			return fmt.Errorf("BlogCommand.Execute: %w", err)
@@ -239,6 +246,13 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 	}
 
 	member := args[1]
+	if model.IsGrad(member) {
+		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは卒業メンバーです。", member)); err != nil {
+			return fmt.Errorf("ProfCommand.Execute: %w", err)
+		}
+		return nil
+	}
+
 	if !model.IsMember(member) {
 		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは存在しません。", member)); err != nil {
 			return fmt.Errorf("ProfCommand.Execute: %w", err)

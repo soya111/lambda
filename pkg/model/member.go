@@ -209,7 +209,7 @@ func init() {
 	}
 }
 
-// TranslateNN translates a nickname to member name.
+// TranslateNN returns the member translated from nickname , or returns the argument if a nickname does not exist.
 func TranslateNN(nickname string) string {
 	member, exists := nicknameToMemberMap[nickname]
 	if !exists {

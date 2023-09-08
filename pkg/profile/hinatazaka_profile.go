@@ -41,11 +41,12 @@ var PokaProfile = &Profile{
 
 // GetProfileSelectionはメンバーごとのプロフィールが記載されたセレクションを取得
 func GetProfileSelection(name string) (*goquery.Selection, error) {
+	// 入力が卒業メンバーである場合
+	if model.IsGrad(name) {
+		return nil, model.ErrGraduatedMember
+	}
 	//入力がメンバー名でない場合
 	if !model.IsMember(name) {
-		if model.IsGrad(name) {
-			return nil, model.ErrGraduatedMember
-		}
 		return nil, model.ErrNonExistentMember
 	}
 

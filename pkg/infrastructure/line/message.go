@@ -52,22 +52,23 @@ func createFlexTextMessage(diary *blog.ScrapedDiary, showNewLabel bool) *linebot
 	container.Body = &linebot.BoxComponent{
 		Type:       linebot.FlexComponentTypeBox,
 		Layout:     linebot.FlexBoxLayoutTypeVertical,
+		Height:     "450px",
 		PaddingAll: "0px",
 		Contents: []linebot.FlexComponent{
 			&linebot.BoxComponent{
 				Type:   linebot.FlexComponentTypeBox,
 				Layout: linebot.FlexBoxLayoutTypeVertical,
+				Height: "70%",
 				Contents: []linebot.FlexComponent{
 					&linebot.BoxComponent{
 						Type:   linebot.FlexComponentTypeBox,
 						Layout: linebot.FlexBoxLayoutTypeHorizontal,
 						Contents: []linebot.FlexComponent{
 							&linebot.ImageComponent{
-								Type:        linebot.FlexComponentTypeImage,
-								URL:         diary.MemberIcon,
-								Size:        linebot.FlexImageSizeTypeFull,
-								AspectMode:  linebot.FlexImageAspectModeTypeCover,
-								AspectRatio: linebot.FlexImageAspectRatioType4to3,
+								Type:       linebot.FlexComponentTypeImage,
+								URL:        diary.MemberIcon,
+								Size:       linebot.FlexImageSizeTypeFull,
+								AspectMode: linebot.FlexImageAspectModeTypeCover,
 							},
 						},
 					},

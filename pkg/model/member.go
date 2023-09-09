@@ -54,8 +54,8 @@ var (
 	}
 )
 
-// MemberToIdMap is a map of member name to member ID.
 var (
+	// MemberToIdMap is a map of member name to member ID.
 	MemberToIdMap = map[string]string{
 		"潮紗理菜":  "2",
 		"加藤史帆":  "5",
@@ -102,8 +102,8 @@ var (
 	}
 )
 
-// MemberToGenerationMap is a map of member name to member generation.
 var (
+	// MemberToGenerationMap is a map of member name to member generation.
 	MemberToGenerationMap = map[string]string{
 		"潮紗理菜":  "1",
 		"加藤史帆":  "1",
@@ -150,6 +150,42 @@ var (
 	}
 )
 
+// memberToNicknameMap is a map of member name to nickname.
+var memberToNicknameMap = map[string][]string{
+	"潮紗理菜":  {"潮くん", "なっちょ", "サリマカシー", "うしし"},
+	"加藤史帆":  {"かとし", "しし", "としちゃん", "天使"},
+	"齊藤京子":  {"きょんこ", "きょうこにょう"},
+	"佐々木久美": {"くみてん", "ささく", "きくちゃん", "キャプテン"},
+	"佐々木美玲": {"みーぱん", "ささみ"},
+	"高瀬愛奈":  {"まなふぃ", "まなふい"},
+	"高本彩花":  {"たけもと", "おたけ", "あやちぇり", "あや"},
+	"東村芽依":  {"めいめい", "めいちご", "やんちゃる", "ちゃる"},
+	"金村美玖":  {"おすし", "ミクティー", "みーきゅん"},
+	"河田陽菜":  {"かわだ", "かわださん", "おひな"},
+	"小坂菜緒":  {"こさかな", "こしゃ"},
+	"富田鈴花":  {"すーじー"},
+	"丹生明里":  {"にぶちゃん", "タルタルチキン"},
+	"濱岸ひより": {"ひよたん"},
+	"松田好花":  {"このちゃん", "だーこの"},
+	"上村ひなの": {"ひなのなの"},
+	"髙橋未来虹": {"みくにん", "みくにちゃん"},
+	"森本茉莉":  {"まりもと", "天才", "まりぃ", "あいつ"},
+	"山口陽世":  {"ぱる", "はるよちゃん"},
+	"石塚瑶季":  {"たまちゃん"},
+	"岸帆夏":   {"岸君", "きしほの", "きしほ"},
+	"小西夏菜実": {"こにしん", "524773"},
+	"清水理央":  {"りおたむ", "ずりお"},
+	"正源司陽子": {"げんちゃん", "しょげこ"},
+	"竹内希来里": {"きらりんちょ", "きらりん"},
+	"平尾帆夏":  {"ひらほー", "ひらほ"},
+	"平岡海月":  {"みっちゃん", "くらげ"},
+	"藤嶌果歩":  {"かほりん", "かほりんこうりん"},
+	"宮地すみれ": {"すみレジェンド", "レジェ", "すみこ"},
+	"山下葉留花": {"はるはる"},
+	"渡辺莉奈":  {"りなし", "べりな"},
+	"ポカ":    {},
+}
+
 var (
 	ErrNonExistentMember = errors.New("日向坂46に存在しないメンバーです。")
 	ErrGraduatedMember   = errors.New("日向坂46の卒業メンバーです。")
@@ -160,6 +196,26 @@ func NormalizeName(name string) string {
 	name = strings.TrimSpace(name)
 	name = strings.ReplaceAll(name, " ", "")
 	return name
+}
+
+// Create a reverse map for memberToNicknameMap for faster lookup.
+var nicknameToMemberMap = make(map[string]string)
+
+func init() {
+	for member, nicknames := range memberToNicknameMap {
+		for _, nickname := range nicknames {
+			nicknameToMemberMap[nickname] = member
+		}
+	}
+}
+
+// TranslateNN returns the member translated from nickname , or returns the argument if a nickname does not exist.
+func TranslateNN(nickname string) string {
+	member, exists := nicknameToMemberMap[nickname]
+	if !exists {
+		return nickname
+	}
+	return member
 }
 
 // IsMember returns true if the given text is a member name.

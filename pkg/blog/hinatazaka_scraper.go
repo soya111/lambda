@@ -102,6 +102,7 @@ func (s *HinatazakaScraper) GetIconURLByID(document *goquery.Document, memberID 
 			iconUrl = strings.TrimSuffix(splittedStyle[1], ");")
 		}
 	}
+	iconUrl = strings.Replace(iconUrl, "200_200", "1000_1000", -1)
 
 	return iconUrl
 }

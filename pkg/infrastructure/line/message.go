@@ -28,9 +28,9 @@ func CreateTextMessages(messages ...string) []linebot.SendingMessage {
 }
 
 // CreateFlexMessages creates flex messages.
-func CreateFlexMessage(diary *blog.ScrapedDiary) linebot.SendingMessage {
+func CreateFlexMessage(diary *blog.ScrapedDiary, showNewLabel bool) linebot.SendingMessage {
 	var container []*linebot.BubbleContainer
-	container = append(container, createFlexTextMessage(diary, true))
+	container = append(container, createFlexTextMessage(diary, showNewLabel))
 
 	container = append(container, createFlexImagesMessage(diary.Images)...)
 

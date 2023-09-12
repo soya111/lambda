@@ -94,7 +94,7 @@ func (n *Notifier) notifySubscriber(ctx context.Context, diary *blog.ScrapedDiar
 		return fmt.Errorf("error getting all by member name: %v", err)
 	}
 
-	message := line.CreateFlexMessage(diary)
+	message := line.CreateFlexMessage(diary, true)
 
 	if err := n.client.PushMessages(ctx, to, message); err != nil {
 		return fmt.Errorf("error pushing messages: %v", err)

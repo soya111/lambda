@@ -150,8 +150,8 @@ var (
 	}
 )
 
-// memberToNicknameMap is a map of member name to nickname.
-var memberToNicknameMap = map[string][]string{
+// MemberToNicknameMap is a map of member name to nickname.
+var MemberToNicknameMap = map[string][]string{
 	"潮紗理菜":  {"潮くん", "なっちょ", "サリマカシー", "うしし"},
 	"加藤史帆":  {"かとし", "しし", "としちゃん", "天使"},
 	"齊藤京子":  {"きょんこ", "きょうこにょう"},
@@ -198,11 +198,11 @@ func NormalizeName(name string) string {
 	return name
 }
 
-// Create a reverse map for memberToNicknameMap for faster lookup.
+// Create a reverse map for Mimport cycle not allowed in testgo listemberToNicknameMap for faster lookup.
 var nicknameToMemberMap = make(map[string]string)
 
 func init() {
-	for member, nicknames := range memberToNicknameMap {
+	for member, nicknames := range MemberToNicknameMap {
 		for _, nickname := range nicknames {
 			nicknameToMemberMap[nickname] = member
 		}

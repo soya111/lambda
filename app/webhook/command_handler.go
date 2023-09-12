@@ -36,6 +36,7 @@ const (
 	CmdHelp   CommandName = "help"
 	CmdBlog   CommandName = "blog"
 	CmdProf   CommandName = "prof"
+	CmdNn     CommandName = "nn"
 	// 新しいコマンドを追加する場合はここに定義する
 )
 
@@ -49,6 +50,7 @@ func (h *Handler) getCommandHandlers() CommandMap {
 		CmdWhoami: &WhoamiCommand{identityService},
 		CmdBlog:   &BlogCommand{h.bot},
 		CmdProf:   &ProfCommand{h.bot},
+		CmdNn:     &NnCommand{h.bot},
 		// 新たに追加するコマンドも同様にここに追加します
 	}
 	cmdMap[CmdHelp] = &HelpCommand{h.bot, cmdMap}
@@ -264,7 +266,7 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 
 	if errors.Is(err, profile.ErrNoUrl) {
 		prof := profile.PokaProfile
-		message := profile.CreateProfileFlexMessage(member, prof)
+		message := line.CreateProfileFlexMessage(member, prof)
 
 		err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
 		if err != nil {
@@ -274,7 +276,7 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 	}
 
 	prof := profile.ScrapeProfile(selection)
-	message := profile.CreateProfileFlexMessage(member, prof)
+	message := line.CreateProfileFlexMessage(member, prof)
 
 	err = c.bot.ReplyMessage(ctx, event.ReplyToken, message)
 	if err != nil {
@@ -285,6 +287,57 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 
 func (c *ProfCommand) Description() string {
 	return "Get the profile of a member. Usage: prof [member]"
+}
+
+// NnCommand is the command that shows the nickname of the specified member.
+type NnCommand struct {
+	bot *line.Linebot
+}
+
+func (c *NnCommand) Execute(ctx context.Context, event *linebot.Event, args []string) error {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Executing NnCommand with args", zap.Any("args", args))
+
+	if len(args) < 2 {
+		return nil
+	}
+
+	member := model.TranslateNN(args[1])
+	if model.IsGrad(member) {
+		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは卒業メンバーです。", member)); err != nil {
+			return fmt.Errorf("NnCommand.Execute: %w", err)
+		}
+		return nil
+	}
+
+	if !model.IsMember(member) {
+		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは存在しません。", member)); err != nil {
+			return fmt.Errorf("NnCommand.Execute: %w", err)
+		}
+		return nil
+	}
+
+	selection, err := profile.GetProfileSelection(member)
+
+	if errors.Is(err, profile.ErrNoUrl) {
+		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sのニックネームは特にありません。", member)); err != nil {
+			return fmt.Errorf("NnCommand.Execute: %w", err)
+		}
+		return nil
+	}
+
+	prof := profile.ScrapeProfile(selection)
+	message := line.CreateNicknameListFlexMessage(member, prof)
+
+	err = c.bot.ReplyMessage(ctx, event.ReplyToken, message)
+	if err != nil {
+		return fmt.Errorf("NnCommand.Execute: %w", err)
+	}
+	return nil
+}
+
+func (c *NnCommand) Description() string {
+	return "Get the nickname of a member. Usage: nn [member]"
 }
 
 // type Subscriber struct {

@@ -166,5 +166,7 @@ func (s *HinatazakaScraper) parseDiaryFromSelection(sl *goquery.Selection) (*Scr
 func IsNewDiary(date string) bool {
 	now := time.Now()
 	timeTypeDate, _ := time.Parse(TimeFmt, date)
-	return timeTypeDate.After(now.Add(time.Hour * -24))
+	judgment := time.Duration(-24)
+
+	return timeTypeDate.After(now.Add(time.Hour * judgment))
 }

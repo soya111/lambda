@@ -161,12 +161,3 @@ func (s *HinatazakaScraper) parseDiaryFromSelection(sl *goquery.Selection) (*Scr
 
 	return diary, nil
 }
-
-// IsNewDiary returns true if diary.Date is whitin 24h
-func IsNewDiary(date string) bool {
-	now := time.Now()
-	timeTypeDate, _ := time.Parse(TimeFmt, date)
-	judgment := time.Duration(-24)
-
-	return timeTypeDate.After(now.Add(time.Hour * judgment))
-}

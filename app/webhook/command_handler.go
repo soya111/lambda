@@ -219,7 +219,7 @@ func (c *BlogCommand) Execute(ctx context.Context, event *linebot.Event, args []
 		return c.bot.ReplyWithError(ctx, event.ReplyToken, "内部エラー", err)
 	}
 
-	message := line.CreateFlexMessage(diary, false)
+	message := line.CreateFlexMessage(diary, blog.IsNewDiary(diary.Date))
 
 	err = c.bot.ReplyMessage(ctx, event.ReplyToken, message)
 	if err != nil {

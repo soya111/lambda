@@ -54,7 +54,7 @@ func createFlexTextMessage(diary *blog.ScrapedDiary) *linebot.BubbleContainer {
 	container.Body = &linebot.BoxComponent{
 		Type:       linebot.FlexComponentTypeBox,
 		Layout:     linebot.FlexBoxLayoutTypeVertical,
-		Height:     "450px",
+		Height:     "400px",
 		PaddingAll: "0px",
 		Contents: []linebot.FlexComponent{
 			&linebot.BoxComponent{
@@ -235,7 +235,7 @@ func createFlexProfileMessage(name string, prof *profile.Profile) *linebot.Bubbl
 	container.Body = &linebot.BoxComponent{
 		Type:       linebot.FlexComponentTypeBox,
 		Layout:     linebot.FlexBoxLayoutTypeVertical,
-		Height:     "450px",
+		Height:     "440px",
 		PaddingAll: "0px",
 		Contents: []linebot.FlexComponent{
 			&linebot.BoxComponent{
@@ -378,16 +378,7 @@ func CreateNicknameListFlexMessage(name string, prof *profile.Profile) linebot.S
 
 func createFlexListMessage(name string, prof *profile.Profile) *linebot.BubbleContainer {
 	container := MegaBubbleContainer
-	components := []linebot.FlexComponent{
-		&linebot.TextComponent{
-			Type:   linebot.FlexComponentTypeText,
-			Size:   linebot.FlexTextSizeTypeMd,
-			Wrap:   true,
-			Text:   fmt.Sprintf("%sの主なニックネーム", name),
-			Color:  "#ffffff",
-			Weight: linebot.FlexTextWeightTypeBold,
-		},
-	}
+	components := []linebot.FlexComponent{}
 	for _, nickname := range model.MemberToNicknameMap[name] {
 		component := &linebot.TextComponent{
 			Type:   linebot.FlexComponentTypeText,
@@ -408,7 +399,7 @@ func createFlexListMessage(name string, prof *profile.Profile) *linebot.BubbleCo
 			&linebot.BoxComponent{
 				Type:   linebot.FlexComponentTypeBox,
 				Layout: linebot.FlexBoxLayoutTypeVertical,
-				Height: "315px",
+				Height: "400px",
 				Contents: []linebot.FlexComponent{
 					&linebot.BoxComponent{
 						Type:   linebot.FlexComponentTypeBox,
@@ -421,23 +412,53 @@ func createFlexListMessage(name string, prof *profile.Profile) *linebot.BubbleCo
 								AspectMode: linebot.FlexImageAspectModeTypeCover,
 							},
 						},
+						PaddingAll: "0px",
 					},
 				},
-				PaddingAll: "0px",
 			},
 			&linebot.BoxComponent{
 				Type:   linebot.FlexComponentTypeBox,
 				Layout: linebot.FlexBoxLayoutTypeVertical,
 				Contents: []linebot.FlexComponent{
-
 					&linebot.BoxComponent{
 						Type:   linebot.FlexComponentTypeBox,
 						Layout: linebot.FlexBoxLayoutTypeVertical,
 						Contents: []linebot.FlexComponent{
 							&linebot.BoxComponent{
-								Type:     linebot.FlexComponentTypeBox,
-								Layout:   linebot.FlexBoxLayoutTypeVertical,
-								Contents: components,
+								Type:   linebot.FlexComponentTypeBox,
+								Layout: linebot.FlexBoxLayoutTypeVertical,
+								Contents: []linebot.FlexComponent{
+									&linebot.TextComponent{
+										Type:   linebot.FlexComponentTypeText,
+										Size:   linebot.FlexTextSizeTypeMd,
+										Wrap:   true,
+										Text:   fmt.Sprintf("%sの主なニックネーム", name),
+										Color:  "#ffffff",
+										Weight: linebot.FlexTextWeightTypeBold,
+									},
+								},
+								Spacing: linebot.FlexComponentSpacingTypeSm,
+							},
+							&linebot.BoxComponent{
+								Type:   linebot.FlexComponentTypeBox,
+								Layout: linebot.FlexBoxLayoutTypeVertical,
+								Contents: []linebot.FlexComponent{
+									&linebot.BoxComponent{
+										Type:   linebot.FlexComponentTypeBox,
+										Layout: linebot.FlexBoxLayoutTypeVertical,
+										Contents: []linebot.FlexComponent{
+											&linebot.BoxComponent{
+												Type:     linebot.FlexComponentTypeBox,
+												Layout:   linebot.FlexBoxLayoutTypeVertical,
+												Contents: components,
+											},
+										},
+									},
+								},
+								PaddingAll:      "13px",
+								BackgroundColor: "#ffffff1A",
+								CornerRadius:    "2px",
+								Margin:          linebot.FlexComponentMarginTypeXl,
 							},
 						},
 					},

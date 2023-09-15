@@ -198,7 +198,7 @@ func NormalizeName(name string) string {
 	return name
 }
 
-// Create a reverse map for Mimport cycle not allowed in testgo listemberToNicknameMap for faster lookup.
+// Create a reverse map for MemberToNicknameMap for faster lookup.
 var nicknameToMemberMap = make(map[string]string)
 
 func init() {

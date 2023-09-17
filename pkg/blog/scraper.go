@@ -25,7 +25,7 @@ type ScrapedDiary struct {
 
 // NewScrapedDiary creates a new ScrapedDiary.
 func NewScrapedDiary(url, title, memberName string, date time.Time, id int, images []string, lead string) *ScrapedDiary {
-	return &ScrapedDiary{url, title, memberName, date.Format(TimeFmt), id, images, lead, ""}
+	return &ScrapedDiary{url, title, memberName, date.Format(model.TimeFmt), id, images, lead, ""}
 }
 
 // SetMemberIcon sets the member icon url.

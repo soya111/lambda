@@ -21,7 +21,7 @@ type Diary struct {
 
 // NewDiary creates a new Diary
 func NewDiary(url string, title string, memberName string, date time.Time, id int) *Diary {
-	return &Diary{url, title, memberName, date.Format("2006.1.2 15:04 (MST)"), id, []string{}}
+	return &Diary{url, title, memberName, date.Format(TimeFmt), id, []string{}}
 }
 
 // DiaryRepository provides an interface for database operations on Diaries
@@ -37,7 +37,7 @@ var ErrDiaryNotFound = errors.New("diary not found")
 func IsNewDiary(date string) bool {
 	timeTypeDate, _ := time.Parse(TimeFmt, date)
 	timeDifference := time.Since(timeTypeDate)
-	judgment := time.Duration(24)
+	judgment := 24 * time.Hour
 
-	return timeDifference <= judgment*time.Hour
+	return timeDifference <= judgment
 }

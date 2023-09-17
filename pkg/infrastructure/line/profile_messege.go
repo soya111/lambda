@@ -10,14 +10,9 @@ import (
 
 // CreateProfileFlexMessageはプロフィールメッセージを生成
 func CreateProfileFlexMessage(name string, prof *profile.Profile) linebot.SendingMessage {
-	container := []*linebot.BubbleContainer{createFlexProfileMessage(name, prof)}
+	content := createFlexProfileMessage(name, prof)
 
-	outerContainer := &linebot.CarouselContainer{
-		Type:     linebot.FlexContainerTypeCarousel,
-		Contents: container,
-	}
-
-	message := linebot.NewFlexMessage(name+"のプロフィール", outerContainer).WithSender(linebot.NewSender(name, prof.ImageUrl))
+	message := linebot.NewFlexMessage(name+"のプロフィール", content).WithSender(linebot.NewSender(name, prof.ImageUrl))
 
 	return message
 }

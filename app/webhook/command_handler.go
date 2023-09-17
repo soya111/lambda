@@ -29,14 +29,14 @@ type CommandName string
 type CommandMap map[CommandName]Command
 
 const (
-	CmdReg    CommandName = "reg"
-	CmdUnreg  CommandName = "unreg"
-	CmdList   CommandName = "list"
-	CmdWhoami CommandName = "whoami"
-	CmdHelp   CommandName = "help"
-	CmdBlog   CommandName = "blog"
-	CmdProf   CommandName = "prof"
-	CmdNn     CommandName = "nn"
+	CmdReg       CommandName = "reg"
+	CmdUnreg     CommandName = "unreg"
+	CmdList      CommandName = "list"
+	CmdWhoami    CommandName = "whoami"
+	CmdHelp      CommandName = "help"
+	CmdBlog      CommandName = "blog"
+	CmdProf      CommandName = "prof"
+	CmdNickaname CommandName = "name"
 	// 新しいコマンドを追加する場合はここに定義する
 )
 
@@ -44,13 +44,13 @@ func (h *Handler) getCommandHandlers() CommandMap {
 	subscriptionService := service.NewSubscriptionService(h.bot, h.subscriber)
 	identityService := service.NewIdentityService(h.bot)
 	cmdMap := CommandMap{
-		CmdReg:    &RegCommand{subscriptionService},
-		CmdUnreg:  &UnregCommand{subscriptionService},
-		CmdList:   &ListCommand{subscriptionService},
-		CmdWhoami: &WhoamiCommand{identityService},
-		CmdBlog:   &BlogCommand{h.bot},
-		CmdProf:   &ProfCommand{h.bot},
-		CmdNn:     &NnCommand{h.bot},
+		CmdReg:       &RegCommand{subscriptionService},
+		CmdUnreg:     &UnregCommand{subscriptionService},
+		CmdList:      &ListCommand{subscriptionService},
+		CmdWhoami:    &WhoamiCommand{identityService},
+		CmdBlog:      &BlogCommand{h.bot},
+		CmdProf:      &ProfCommand{h.bot},
+		CmdNickaname: &NicknameCommand{h.bot},
 		// 新たに追加するコマンドも同様にここに追加します
 	}
 	cmdMap[CmdHelp] = &HelpCommand{h.bot, cmdMap}
@@ -289,14 +289,14 @@ func (c *ProfCommand) Description() string {
 	return "Get the profile of a member. Usage: prof [member]"
 }
 
-// NnCommand is the command that shows the nickname of the specified member.
-type NnCommand struct {
+// NicknameCommand is the command that shows the nickname of the specified member.
+type NicknameCommand struct {
 	bot *line.Linebot
 }
 
-func (c *NnCommand) Execute(ctx context.Context, event *linebot.Event, args []string) error {
+func (c *NicknameCommand) Execute(ctx context.Context, event *linebot.Event, args []string) error {
 	logger := logging.LoggerFromContext(ctx)
-	logger.Info("Executing NnCommand with args", zap.Any("args", args))
+	logger.Info("Executing NicknameCommand with args", zap.Any("args", args))
 
 	if len(args) < 2 {
 		return nil
@@ -305,14 +305,14 @@ func (c *NnCommand) Execute(ctx context.Context, event *linebot.Event, args []st
 	member := model.TranslateNN(args[1])
 	if model.IsGrad(member) {
 		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは卒業メンバーです。", member)); err != nil {
-			return fmt.Errorf("NnCommand.Execute: %w", err)
+			return fmt.Errorf("NicknameCommand.Execute: %w", err)
 		}
 		return nil
 	}
 
 	if !model.IsMember(member) {
 		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは存在しません。", member)); err != nil {
-			return fmt.Errorf("NnCommand.Execute: %w", err)
+			return fmt.Errorf("NicknameCommand.Execute: %w", err)
 		}
 		return nil
 	}
@@ -321,7 +321,7 @@ func (c *NnCommand) Execute(ctx context.Context, event *linebot.Event, args []st
 
 	if errors.Is(err, profile.ErrNoUrl) {
 		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sのニックネームは特にありません。", member)); err != nil {
-			return fmt.Errorf("NnCommand.Execute: %w", err)
+			return fmt.Errorf("NicknameCommand.Execute: %w", err)
 		}
 		return nil
 	}
@@ -331,12 +331,12 @@ func (c *NnCommand) Execute(ctx context.Context, event *linebot.Event, args []st
 
 	err = c.bot.ReplyMessage(ctx, event.ReplyToken, message)
 	if err != nil {
-		return fmt.Errorf("NnCommand.Execute: %w", err)
+		return fmt.Errorf("NicknameCommand.Execute: %w", err)
 	}
 	return nil
 }
 
-func (c *NnCommand) Description() string {
+func (c *NicknameCommand) Description() string {
 	return "Get the nickname of a member. Usage: nn [member]"
 }
 

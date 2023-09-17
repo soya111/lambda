@@ -10,14 +10,9 @@ import (
 
 // CreateNicknameListFlexMessageはニックネームリストを生成
 func CreateNicknameListFlexMessage(name string, prof *profile.Profile) linebot.SendingMessage {
-	container := []*linebot.BubbleContainer{createFlexListMessage(name, prof)}
+	content := createFlexListMessage(name, prof)
 
-	outerContainer := &linebot.CarouselContainer{
-		Type:     linebot.FlexContainerTypeCarousel,
-		Contents: container,
-	}
-
-	message := linebot.NewFlexMessage(name+"のニックネーム", outerContainer).WithSender(linebot.NewSender(name, prof.ImageUrl))
+	message := linebot.NewFlexMessage(name+"のニックネーム", content).WithSender(linebot.NewSender(name, prof.ImageUrl))
 
 	return message
 }

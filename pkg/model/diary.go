@@ -32,12 +32,3 @@ type DiaryRepository interface {
 
 // ErrDiaryNotFound is returned when the requested diary is not found
 var ErrDiaryNotFound = errors.New("diary not found")
-
-// IsNewDiary returns true if diary.Date is within 24h
-func IsNewDiary(date string) bool {
-	timeTypeDate, _ := time.Parse(TimeFmt, date)
-	timeDifference := time.Since(timeTypeDate)
-	judgment := 24 * time.Hour
-
-	return timeDifference <= judgment
-}

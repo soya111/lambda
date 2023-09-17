@@ -3,7 +3,6 @@ package line
 import (
 	"fmt"
 	"notify/pkg/blog"
-	"notify/pkg/model"
 	"strconv"
 	"unicode/utf8"
 
@@ -147,7 +146,7 @@ func createFlexTextMessage(diary *blog.ScrapedDiary) *linebot.BubbleContainer {
 		},
 	}
 
-	if model.IsNewDiary(diary.Date) {
+	if diary.IsNewDiary() {
 		// バッチのコンポーネント
 		newLabel := CreateLabelComponent("NEW", "#ffffff", "#EC3D44")
 		firstBox := container.Body.Contents[0].(*linebot.BoxComponent)

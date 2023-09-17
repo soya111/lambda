@@ -79,7 +79,7 @@ func (c *RegCommand) Execute(ctx context.Context, event *linebot.Event, args []s
 	if len(args) < 2 {
 		return nil
 	}
-	member := model.TranslateNN(args[1])
+	member := model.TranslateNicknametoMember(args[1])
 	if !model.IsMember(member) {
 		return nil
 	}
@@ -106,7 +106,7 @@ func (c *UnregCommand) Execute(ctx context.Context, event *linebot.Event, args [
 	if len(args) < 2 {
 		return nil
 	}
-	member := model.TranslateNN(args[1])
+	member := model.TranslateNicknametoMember(args[1])
 	if !model.IsMember(member) {
 		return nil
 	}
@@ -200,7 +200,7 @@ func (c *BlogCommand) Execute(ctx context.Context, event *linebot.Event, args []
 		return nil
 	}
 
-	member := model.TranslateNN(args[1])
+	member := model.TranslateNicknametoMember(args[1])
 	if model.IsGrad(member) {
 		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは卒業メンバーです。", member)); err != nil {
 			return fmt.Errorf("BlogCommand.Execute: %w", err)
@@ -247,7 +247,7 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 		return nil
 	}
 
-	member := model.TranslateNN(args[1])
+	member := model.TranslateNicknametoMember(args[1])
 	if model.IsGrad(member) {
 		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは卒業メンバーです。", member)); err != nil {
 			return fmt.Errorf("ProfCommand.Execute: %w", err)
@@ -302,7 +302,7 @@ func (c *NicknameCommand) Execute(ctx context.Context, event *linebot.Event, arg
 		return nil
 	}
 
-	member := model.TranslateNN(args[1])
+	member := model.TranslateNicknametoMember(args[1])
 	if model.IsGrad(member) {
 		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは卒業メンバーです。", member)); err != nil {
 			return fmt.Errorf("NicknameCommand.Execute: %w", err)
@@ -320,7 +320,7 @@ func (c *NicknameCommand) Execute(ctx context.Context, event *linebot.Event, arg
 	selection, err := profile.GetProfileSelection(member)
 
 	if errors.Is(err, profile.ErrNoUrl) {
-		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sのニックネームは特にありません。", member)); err != nil {
+		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sにニックネームはありません。", member)); err != nil {
 			return fmt.Errorf("NicknameCommand.Execute: %w", err)
 		}
 		return nil
@@ -337,7 +337,7 @@ func (c *NicknameCommand) Execute(ctx context.Context, event *linebot.Event, arg
 }
 
 func (c *NicknameCommand) Description() string {
-	return "Get the nickname of a member. Usage: nn [member]"
+	return "Get the nickname of a member. Usage: name [member]"
 }
 
 // type Subscriber struct {

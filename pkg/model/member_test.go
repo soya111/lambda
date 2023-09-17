@@ -29,7 +29,7 @@ func TestNormalizeName(t *testing.T) {
 	}
 }
 
-func TestTranslateNN(t *testing.T) {
+func TestTranslateNicknametoMember(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
@@ -43,7 +43,7 @@ func TestTranslateNN(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			actual := model.TranslateNN(tt.input)
+			actual := model.TranslateNicknametoMember(tt.input)
 			assert.Equal(t, tt.expected, actual)
 		})
 	}

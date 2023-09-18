@@ -33,8 +33,8 @@ func (sd *ScrapedDiary) SetMemberIcon(iconUrl string) {
 	sd.MemberIcon = iconUrl
 }
 
-// IsNewDiary returns true if Date is within 24h
-func (sd *ScrapedDiary) IsNewDiary() bool {
+// IsNewDiary returns true if Date is within 24h.
+func (sd *ScrapedDiary) IsNew() bool {
 	timeTypeDate, _ := time.Parse(model.TimeFmt, sd.Date)
 	timeDifference := time.Since(timeTypeDate)
 	judgment := 24 * time.Hour

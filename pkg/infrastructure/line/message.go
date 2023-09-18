@@ -146,7 +146,7 @@ func createFlexTextMessage(diary *blog.ScrapedDiary) *linebot.BubbleContainer {
 		},
 	}
 
-	if diary.IsNewDiary() {
+	if diary.IsNew() {
 		// バッチのコンポーネント
 		newLabel := CreateLabelComponent("NEW", "#ffffff", "#EC3D44")
 		firstBox := container.Body.Contents[0].(*linebot.BoxComponent)

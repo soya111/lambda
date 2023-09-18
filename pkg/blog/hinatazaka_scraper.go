@@ -17,7 +17,6 @@ import (
 
 const (
 	RootURL = "https://www.hinatazaka46.com"
-	TimeFmt = "2006.1.2 15:04 (MST)"
 )
 
 // HinatazakaScraper scrapes Hinatazaka46's blog
@@ -139,7 +138,7 @@ func (s *HinatazakaScraper) parseDiaryFromSelection(sl *goquery.Selection) (*Scr
 	name := strings.TrimSpace(sl.Find(".c-blog-article__name").Text())
 	diaryId := s.getIdFromHref(href)
 
-	date, err := time.Parse(TimeFmt, strings.TrimSpace(sl.Find(".c-blog-article__date").Text())+" (JST)")
+	date, err := time.Parse(model.TimeFmt, strings.TrimSpace(sl.Find(".c-blog-article__date").Text())+" (JST)")
 	if err != nil {
 		fmt.Println(err)
 	}

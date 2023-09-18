@@ -30,7 +30,7 @@ func CreateTextMessages(messages ...string) []linebot.SendingMessage {
 // CreateFlexMessages creates flex messages.
 func CreateFlexMessage(diary *blog.ScrapedDiary) linebot.SendingMessage {
 	var container []*linebot.BubbleContainer
-	container = append(container, createFlexTextMessage(diary, true))
+	container = append(container, createFlexTextMessage(diary))
 
 	container = append(container, createFlexImagesMessage(diary.Images)...)
 
@@ -46,7 +46,7 @@ func CreateFlexMessage(diary *blog.ScrapedDiary) linebot.SendingMessage {
 	return message
 }
 
-func createFlexTextMessage(diary *blog.ScrapedDiary, showNewLabel bool) *linebot.BubbleContainer {
+func createFlexTextMessage(diary *blog.ScrapedDiary) *linebot.BubbleContainer {
 	container := MegaBubbleContainer
 
 	container.Body = &linebot.BoxComponent{
@@ -146,7 +146,7 @@ func createFlexTextMessage(diary *blog.ScrapedDiary, showNewLabel bool) *linebot
 		},
 	}
 
-	if showNewLabel {
+	if diary.IsNew() {
 		// バッチのコンポーネント
 		newLabel := CreateLabelComponent("NEW", "#ffffff", "#EC3D44")
 		firstBox := container.Body.Contents[0].(*linebot.BoxComponent)

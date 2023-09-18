@@ -5,6 +5,10 @@ import (
 	"time"
 )
 
+const (
+	TimeFmt = "2006.1.2 15:04 (MST)"
+)
+
 // Diary represents a diary
 type Diary struct {
 	Url        string   `dynamo:"url" json:"url"`
@@ -17,7 +21,7 @@ type Diary struct {
 
 // NewDiary creates a new Diary
 func NewDiary(url string, title string, memberName string, date time.Time, id int) *Diary {
-	return &Diary{url, title, memberName, date.Format("2006.1.2 15:04 (MST)"), id, []string{}}
+	return &Diary{url, title, memberName, date.Format(TimeFmt), id, []string{}}
 }
 
 // DiaryRepository provides an interface for database operations on Diaries

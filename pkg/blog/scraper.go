@@ -25,12 +25,21 @@ type ScrapedDiary struct {
 
 // NewScrapedDiary creates a new ScrapedDiary.
 func NewScrapedDiary(url, title, memberName string, date time.Time, id int, images []string, lead string) *ScrapedDiary {
-	return &ScrapedDiary{url, title, memberName, date.Format(TimeFmt), id, images, lead, ""}
+	return &ScrapedDiary{url, title, memberName, date.Format(model.TimeFmt), id, images, lead, ""}
 }
 
 // SetMemberIcon sets the member icon url.
 func (sd *ScrapedDiary) SetMemberIcon(iconUrl string) {
 	sd.MemberIcon = iconUrl
+}
+
+// IsNew returns true if Date is within 24h.
+func (sd *ScrapedDiary) IsNew() bool {
+	timeTypeDate, _ := time.Parse(model.TimeFmt, sd.Date)
+	timeDifference := time.Since(timeTypeDate)
+	judgment := 24 * time.Hour
+
+	return timeDifference <= judgment
 }
 
 // ConvertScrapedDiaryToDiary converts ScrapedDiary to Diary.

@@ -15,6 +15,7 @@ import (
 
 // プロフィールのstruct
 type Profile struct {
+	Name       string
 	Birthday   string
 	Age        string
 	Sign       string
@@ -28,6 +29,7 @@ var ErrNoUrl = errors.New("ポカは日向坂46の一員ですが、URLが存在
 
 // ポカのプロフィール
 var PokaProfile = &Profile{
+	"ポカ",
 	"2019年12月25日",
 	calcAge(time.Date(2019, 12, 25, 0, 0, 0, 0, time.Local), time.Now()),
 	"やぎ座",
@@ -61,7 +63,7 @@ func GetProfileSelection(name string) (*goquery.Selection, error) {
 }
 
 // newProfileは新しいprofileをつくるコンストラクタ
-func newProfile(birthday, sign, height, birthplace, bloodtype, imageUrl string) (*Profile, error) {
+func newProfile(name, birthday, sign, height, birthplace, bloodtype, imageUrl string) (*Profile, error) {
 	member := new(Profile)
 
 	member.Birthday = birthday
@@ -71,6 +73,8 @@ func newProfile(birthday, sign, height, birthplace, bloodtype, imageUrl string) 
 	} else {
 		member.Age = calcAge(normalizedBirthday, time.Now())
 	}
+
+	member.Name = name
 	member.Sign = sign
 	member.Height = height
 	member.Birthplace = birthplace
@@ -82,6 +86,10 @@ func newProfile(birthday, sign, height, birthplace, bloodtype, imageUrl string) 
 
 // ScrapeProfileはセレクションからスクレイピングしたプロフィールを取得
 func ScrapeProfile(selection *goquery.Selection) *Profile {
+	name := selection.Find(".c-member__name--info").First().Contents().Not(".name_en").Text()
+	name = strings.TrimSpace(name)
+	name = strings.ReplaceAll(name, " ", "")
+
 	texts := make(map[int]string)
 	//セレクタを使って要素を抽出
 	selection.Find(".c-member__info-td__text").Each(func(index int, element *goquery.Selection) {
@@ -93,7 +101,7 @@ func ScrapeProfile(selection *goquery.Selection) *Profile {
 	element := selection.Find("img").First()
 	src, _ := element.Attr("src")
 
-	member, _ := newProfile(texts[0], texts[1], texts[2], texts[3], texts[4], src)
+	member, _ := newProfile(name, texts[0], texts[1], texts[2], texts[3], texts[4], src)
 	return member
 }
 
@@ -121,7 +129,7 @@ func calcAge(birthday time.Time, now time.Time) string {
 }
 
 // CreateProfileMessageはプロフィールメッセージを生成
-func CreateProfileMessage(name string, member *Profile) string {
-	message := fmt.Sprintf("%s\n生年月日:%s\n年齢:%s歳\n星座:%s\n身長:%s\n出身地:%s\n血液型:%s", name, member.Birthday, member.Age, member.Sign, member.Height, member.Birthplace, member.Bloodtype)
+func CreateProfileMessage(member *Profile) string {
+	message := fmt.Sprintf("%s\n生年月日:%s\n年齢:%s歳\n星座:%s\n身長:%s\n出身地:%s\n血液型:%s", member.Name, member.Birthday, member.Age, member.Sign, member.Height, member.Birthplace, member.Bloodtype)
 	return message
 }

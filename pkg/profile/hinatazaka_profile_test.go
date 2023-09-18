@@ -31,6 +31,7 @@ func TestGetProfileSelection(t *testing.T) {
 
 func TestScrapeProfile(t *testing.T) {
 	var ushiosarinaProfile = Profile{
+		"潮紗理菜",
 		"1997年12月26日",
 		calcAge(time.Date(1997, 12, 26, 0, 0, 0, 0, time.Local), time.Now()),
 		"やぎ座",
@@ -112,6 +113,7 @@ func Test_calcAge(t *testing.T) {
 
 func TestCreateProfileMessage(t *testing.T) {
 	var ushiosarinaProfile = &Profile{
+		"潮紗理菜",
 		"1997年12月26日",
 		calcAge(time.Date(1997, 12, 26, 0, 0, 0, 0, time.Local), time.Now()),
 		"やぎ座",
@@ -123,19 +125,18 @@ func TestCreateProfileMessage(t *testing.T) {
 
 	tests := []struct {
 		name         string
-		inputname    string
 		inputprofile *Profile
 		expected     string
 	}{
-		{"Nornal", "潮紗理菜", ushiosarinaProfile, "潮紗理菜\n生年月日:1997年12月26日\n年齢:25歳\n星座:やぎ座\n身長:157.5cm\n出身地:神奈川県\n血液型:O型"},
-		{"ポカ", "ポカ", PokaProfile, "ポカ\n生年月日:2019年12月25日\n年齢:3歳\n星座:やぎ座\n身長:???\n出身地:???\n血液型:???"},
+		{"Nornal", ushiosarinaProfile, "潮紗理菜\n生年月日:1997年12月26日\n年齢:25歳\n星座:やぎ座\n身長:157.5cm\n出身地:神奈川県\n血液型:O型"},
+		{"ポカ", PokaProfile, "ポカ\n生年月日:2019年12月25日\n年齢:3歳\n星座:やぎ座\n身長:???\n出身地:???\n血液型:???"},
 	}
 
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			actual := CreateProfileMessage(tt.inputname, tt.inputprofile)
+			actual := CreateProfileMessage(tt.inputprofile)
 			assert.Equal(t, tt.expected, actual)
 		})
 	}

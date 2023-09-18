@@ -9,15 +9,15 @@ import (
 )
 
 // CreateProfileFlexMessageはプロフィールメッセージを生成
-func CreateProfileFlexMessage(name string, prof *profile.Profile) linebot.SendingMessage {
-	content := createFlexProfileMessage(name, prof)
+func CreateProfileFlexMessage(prof *profile.Profile) linebot.SendingMessage {
+	content := createFlexProfileMessage(prof)
 
-	message := linebot.NewFlexMessage(name+"のプロフィール", content).WithSender(linebot.NewSender(name, prof.ImageUrl))
+	message := linebot.NewFlexMessage(prof.Name+"のプロフィール", content).WithSender(linebot.NewSender(prof.Name, prof.ImageUrl))
 
 	return message
 }
 
-func createFlexProfileMessage(name string, prof *profile.Profile) *linebot.BubbleContainer {
+func createFlexProfileMessage(prof *profile.Profile) *linebot.BubbleContainer {
 	container := MegaBubbleContainer
 
 	container.Body = &linebot.BoxComponent{
@@ -63,7 +63,7 @@ func createFlexProfileMessage(name string, prof *profile.Profile) *linebot.Bubbl
 										Type:   linebot.FlexComponentTypeText,
 										Size:   linebot.FlexTextSizeTypeSm,
 										Wrap:   true,
-										Text:   name,
+										Text:   prof.Name,
 										Color:  "#ffffff",
 										Weight: linebot.FlexTextWeightTypeBold,
 									},
@@ -117,7 +117,7 @@ func createFlexProfileMessage(name string, prof *profile.Profile) *linebot.Bubbl
 									},
 									&linebot.ButtonComponent{
 										Type:   linebot.FlexComponentTypeButton,
-										Action: NewSubscribeAction(name),
+										Action: NewSubscribeAction(prof.Name),
 										Margin: linebot.FlexComponentMarginTypeMd,
 										Style:  linebot.FlexButtonStyleTypeSecondary,
 										Color:  "#ffffff",
@@ -131,7 +131,7 @@ func createFlexProfileMessage(name string, prof *profile.Profile) *linebot.Bubbl
 				BackgroundColor: "#464F69",
 				Action: &linebot.URIAction{
 					Label: "action",
-					URI:   "https://www.hinatazaka46.com/s/official/artist/" + model.MemberToIdMap[name] + "?ima=0000",
+					URI:   "https://www.hinatazaka46.com/s/official/artist/" + model.MemberToIdMap[prof.Name] + "?ima=0000",
 				},
 				Position:     linebot.FlexComponentPositionTypeAbsolute,
 				OffsetBottom: "0px",
@@ -141,7 +141,7 @@ func createFlexProfileMessage(name string, prof *profile.Profile) *linebot.Bubbl
 		},
 	}
 
-	generationLabelText := model.MemberToGenerationMap[name] + "期生"
+	generationLabelText := model.MemberToGenerationMap[prof.Name] + "期生"
 	generationLabel := CreateLabelComponent(generationLabelText, "#ffffff", "#EC3D44")
 	firstBox := container.Body.Contents[0].(*linebot.BoxComponent)
 	firstBox.Contents = append(firstBox.Contents, generationLabel)

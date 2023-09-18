@@ -9,18 +9,18 @@ import (
 )
 
 // CreateNicknameListFlexMessageはニックネームリストを生成
-func CreateNicknameListFlexMessage(name string, prof *profile.Profile) linebot.SendingMessage {
-	content := createFlexListMessage(name, prof)
+func CreateNicknameListFlexMessage(prof *profile.Profile) linebot.SendingMessage {
+	content := createFlexListMessage(prof)
 
-	message := linebot.NewFlexMessage(name+"のニックネーム", content).WithSender(linebot.NewSender(name, prof.ImageUrl))
+	message := linebot.NewFlexMessage(prof.Name+"のニックネーム", content).WithSender(linebot.NewSender(prof.Name, prof.ImageUrl))
 
 	return message
 }
 
-func createFlexListMessage(name string, prof *profile.Profile) *linebot.BubbleContainer {
+func createFlexListMessage(prof *profile.Profile) *linebot.BubbleContainer {
 	container := MegaBubbleContainer
 	components := []linebot.FlexComponent{}
-	for _, nickname := range model.MemberToNicknameMap[name] {
+	for _, nickname := range model.MemberToNicknameMap[prof.Name] {
 		component := &linebot.TextComponent{
 			Type:   linebot.FlexComponentTypeText,
 			Size:   linebot.FlexTextSizeTypeSm,
@@ -73,7 +73,7 @@ func createFlexListMessage(name string, prof *profile.Profile) *linebot.BubbleCo
 										Type:   linebot.FlexComponentTypeText,
 										Size:   linebot.FlexTextSizeTypeMd,
 										Wrap:   true,
-										Text:   fmt.Sprintf("%sの主なニックネーム", name),
+										Text:   fmt.Sprintf("%sの主なニックネーム", prof.Name),
 										Color:  "#ffffff",
 										Weight: linebot.FlexTextWeightTypeBold,
 									},
@@ -114,7 +114,7 @@ func createFlexListMessage(name string, prof *profile.Profile) *linebot.BubbleCo
 		},
 	}
 
-	generationLabelText := model.MemberToGenerationMap[name] + "期生"
+	generationLabelText := model.MemberToGenerationMap[prof.Name] + "期生"
 	generationLabel := CreateLabelComponent(generationLabelText, "#ffffff", "#EC3D44")
 	firstBox := container.Body.Contents[0].(*linebot.BoxComponent)
 	firstBox.Contents = append(firstBox.Contents, generationLabel)

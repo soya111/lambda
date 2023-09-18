@@ -266,7 +266,7 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 
 	if errors.Is(err, profile.ErrNoUrl) {
 		prof := profile.PokaProfile
-		message := line.CreateProfileFlexMessage(member, prof)
+		message := line.CreateProfileFlexMessage(prof)
 
 		err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
 		if err != nil {
@@ -276,7 +276,7 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 	}
 
 	prof := profile.ScrapeProfile(selection)
-	message := line.CreateProfileFlexMessage(member, prof)
+	message := line.CreateProfileFlexMessage(prof)
 
 	err = c.bot.ReplyMessage(ctx, event.ReplyToken, message)
 	if err != nil {
@@ -327,7 +327,7 @@ func (c *NicknameCommand) Execute(ctx context.Context, event *linebot.Event, arg
 	}
 
 	prof := profile.ScrapeProfile(selection)
-	message := line.CreateNicknameListFlexMessage(member, prof)
+	message := line.CreateNicknameListFlexMessage(prof)
 
 	err = c.bot.ReplyMessage(ctx, event.ReplyToken, message)
 	if err != nil {

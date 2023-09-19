@@ -89,7 +89,7 @@ func ScrapeProfile(name string) (*Profile, error) {
 	selection, err := getProfileSelection(name)
 
 	if errors.Is(err, ErrNoUrl) {
-		return PokaProfile, err
+		return PokaProfile, nil
 	}
 	if err != nil {
 		return nil, err

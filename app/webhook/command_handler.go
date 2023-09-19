@@ -2,7 +2,6 @@ package webhook
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"notify/pkg/blog"
 	"notify/pkg/infrastructure/line"
@@ -262,21 +261,11 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 		return nil
 	}
 
-	prof, err := profile.ScrapeProfile(member)
-
-	if errors.Is(err, profile.ErrNoUrl) {
-		message := line.CreateProfileFlexMessage(prof)
-
-		err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
-		if err != nil {
-			return fmt.Errorf("ProfCommand.Execute: %w", err)
-		}
-		return nil
-	}
+	prof, _ := profile.ScrapeProfile(member)
 
 	message := line.CreateProfileFlexMessage(prof)
 
-	err = c.bot.ReplyMessage(ctx, event.ReplyToken, message)
+	err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
 	if err != nil {
 		return fmt.Errorf("ProfCommand.Execute: %w", err)
 	}
@@ -315,18 +304,18 @@ func (c *NicknameCommand) Execute(ctx context.Context, event *linebot.Event, arg
 		return nil
 	}
 
-	prof, err := profile.ScrapeProfile(member)
-
-	if errors.Is(err, profile.ErrNoUrl) {
+	if member == "ポカ" {
 		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sにニックネームはありません。", member)); err != nil {
 			return fmt.Errorf("NicknameCommand.Execute: %w", err)
 		}
 		return nil
 	}
 
+	prof, _ := profile.ScrapeProfile(member)
+
 	message := line.CreateNicknameListFlexMessage(prof)
 
-	err = c.bot.ReplyMessage(ctx, event.ReplyToken, message)
+	err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
 	if err != nil {
 		return fmt.Errorf("NicknameCommand.Execute: %w", err)
 	}

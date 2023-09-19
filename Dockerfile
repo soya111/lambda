@@ -1,22 +1,18 @@
-# Build stage
-FROM golang:1.21-alpine3.18 AS build
+FROM golang:1.21-alpine AS base
 
 WORKDIR /app
-
+COPY go.mod go.sum ./
+RUN go mod download
 COPY . .
 
-# Download dependencies and build the application
-RUN go mod download
-RUN go build -o create-tables ./scripts
+FROM base AS webhook-receiver
+CMD ["go", "run", "./cmd/webhook_receiver/main.go"]
 
-# Runtime stage
-FROM alpine:3.18
+FROM base AS hinatazaka-blog-notifier
+RUN apk add --no-cache bash
+COPY ./cmd/hinatazaka_blog_notifier/script.sh /script.sh
+RUN chmod +x /script.sh
+CMD ["/script.sh"]
 
-# If there are any runtime dependencies, install them here
-
-WORKDIR /app
-
-# Copy only the compiled application from the build stage
-COPY --from=build /app/create-tables ./create-tables
-
-CMD ["./create-tables"]
+FROM base AS create-tables
+CMD ["go", "run", "./scripts/create_tables.go"]

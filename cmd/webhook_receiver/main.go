@@ -22,7 +22,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/guregu/dynamo"
 	"github.com/hashicorp/go-multierror"
-	"github.com/joho/godotenv"
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 	"go.uber.org/zap"
 )
@@ -39,7 +38,6 @@ var (
 
 func init() {
 	var err error
-	_ = godotenv.Load(".env")
 	channelSecret := os.Getenv("CHANNEL_SECRET")
 	channelToken := os.Getenv("CHANNEL_TOKEN")
 	bot, err = line.NewLinebot(channelSecret, channelToken)

@@ -23,6 +23,8 @@ services:
       dockerfile: Dockerfile
       target: webhook-receiver
     image: webhook-receiver
+    env_file:
+      - .env
     ports:
       - "8080:8080"
     depends_on:

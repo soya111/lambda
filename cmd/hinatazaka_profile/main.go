@@ -22,18 +22,16 @@ func inputName() string {
 
 func main() {
 	name := inputName()
-	selection, err := profile.GetProfileSelection(name)
+	member, err := profile.ScrapeProfile(name)
 
 	if err != nil {
 		if errors.Is(err, profile.ErrNoUrl) {
-			fmt.Println(profile.CreateProfileMessage(profile.PokaProfile))
+			fmt.Println(profile.CreateProfileMessage(member))
 		} else {
 			fmt.Println(err)
 		}
 		return
 	}
-
-	member := profile.ScrapeProfile(selection)
 
 	fmt.Println(profile.CreateProfileMessage(member))
 }

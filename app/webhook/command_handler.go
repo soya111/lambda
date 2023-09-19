@@ -262,10 +262,9 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 		return nil
 	}
 
-	selection, err := profile.GetProfileSelection(member)
+	prof, err := profile.ScrapeProfile(member)
 
 	if errors.Is(err, profile.ErrNoUrl) {
-		prof := profile.PokaProfile
 		message := line.CreateProfileFlexMessage(prof)
 
 		err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
@@ -275,7 +274,6 @@ func (c *ProfCommand) Execute(ctx context.Context, event *linebot.Event, args []
 		return nil
 	}
 
-	prof := profile.ScrapeProfile(selection)
 	message := line.CreateProfileFlexMessage(prof)
 
 	err = c.bot.ReplyMessage(ctx, event.ReplyToken, message)
@@ -317,7 +315,7 @@ func (c *NicknameCommand) Execute(ctx context.Context, event *linebot.Event, arg
 		return nil
 	}
 
-	selection, err := profile.GetProfileSelection(member)
+	prof, err := profile.ScrapeProfile(member)
 
 	if errors.Is(err, profile.ErrNoUrl) {
 		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sにニックネームはありません。", member)); err != nil {
@@ -326,7 +324,6 @@ func (c *NicknameCommand) Execute(ctx context.Context, event *linebot.Event, arg
 		return nil
 	}
 
-	prof := profile.ScrapeProfile(selection)
 	message := line.CreateNicknameListFlexMessage(prof)
 
 	err = c.bot.ReplyMessage(ctx, event.ReplyToken, message)

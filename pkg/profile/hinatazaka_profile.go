@@ -39,8 +39,8 @@ var PokaProfile = &Profile{
 	"https://cdn.hinatazaka46.com/images/14/8e6/b044f0e534295d2d91700d8613270/1000_1000_102400.jpg",
 }
 
-// GetProfileSelectionはメンバーごとのプロフィールが記載されたセレクションを取得
-func GetProfileSelection(name string) (*goquery.Selection, error) {
+// getProfileSelectionはメンバーごとのプロフィールが記載されたセレクションを取得
+func getProfileSelection(name string) (*goquery.Selection, error) {
 	// 入力が卒業メンバーである場合
 	if model.IsGrad(name) {
 		return nil, model.ErrGraduatedMember
@@ -85,10 +85,16 @@ func newProfile(name, birthday, sign, height, birthplace, bloodtype, imageUrl st
 }
 
 // ScrapeProfileはセレクションからスクレイピングしたプロフィールを取得
-func ScrapeProfile(selection *goquery.Selection) *Profile {
-	name := selection.Find(".c-member__name--info").First().Contents().Not(".name_en").Text()
-	name = strings.TrimSpace(name)
-	name = strings.ReplaceAll(name, " ", "")
+func ScrapeProfile(name string) (*Profile, error) {
+	selection, err := getProfileSelection(name)
+	if err != nil {
+		if errors.Is(err, ErrNoUrl) {
+			return PokaProfile, err
+		} else {
+			var member *Profile
+			return member, err
+		}
+	}
 
 	texts := make(map[int]string)
 	//セレクタを使って要素を抽出
@@ -102,7 +108,7 @@ func ScrapeProfile(selection *goquery.Selection) *Profile {
 	src, _ := element.Attr("src")
 
 	member, _ := newProfile(name, texts[0], texts[1], texts[2], texts[3], texts[4], src)
-	return member
+	return member, nil
 }
 
 // normalizeDateは"YYYY年MM月DD日"を標準化したtime.Time型で出力

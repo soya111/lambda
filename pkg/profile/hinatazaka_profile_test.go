@@ -23,7 +23,7 @@ func TestGetProfileSelection(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			_, actual := GetProfileSelection(tt.input)
+			_, actual := getProfileSelection(tt.input)
 			assert.Equal(t, tt.expectederror, actual)
 		})
 	}
@@ -53,8 +53,7 @@ func TestScrapeProfile(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			selection, _ := GetProfileSelection(tt.input)
-			actual := ScrapeProfile(selection)
+			actual, _ := ScrapeProfile(tt.input)
 			assert.Equal(t, tt.expected, *actual)
 		})
 	}

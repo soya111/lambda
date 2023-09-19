@@ -12,5 +12,5 @@ vscodeのパネルからポートに移動し、"Forward a Port"を選択する�
 ## 3. サーバーを起動
 
 ```bash
-go run ./cmd/webhook_receiver/main.go
+docker compose up webhook-receiver dynamodb-local -d
 ```

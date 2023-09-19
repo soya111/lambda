@@ -12,6 +12,7 @@ import (
 	"notify/pkg/logging"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -28,7 +29,6 @@ import (
 
 var (
 	executeFn func()
-	parser    line.RequestParser
 	r         *gin.Engine
 	bot       *line.Linebot
 	db        *dynamo.DB
@@ -37,6 +37,9 @@ var (
 )
 
 func init() {
+	// set timezone
+	time.Local = time.FixedZone("JST", 9*60*60)
+
 	var err error
 	channelSecret := os.Getenv("CHANNEL_SECRET")
 	channelToken := os.Getenv("CHANNEL_TOKEN")
@@ -51,11 +54,13 @@ func init() {
 
 	r = initEngine()
 
-	if os.Getenv("IS_LOCAL") != "" {
+	_, isLocal := os.LookupEnv("IS_LOCAL")
+
+	if isLocal {
 		const (
 			// local dynamodb settings
 			AWS_REGION      = "ap-northeast-1"
-			DYNAMO_ENDPOINT = "http://localhost:8000"
+			DYNAMO_ENDPOINT = "http://dynamodb-local:8000"
 		)
 		db = dynamo.New(sess, &aws.Config{
 			Region:      aws.String(AWS_REGION),
@@ -63,12 +68,10 @@ func init() {
 			Credentials: credentials.NewStaticCredentials("dummy", "dummy", "dummy"),
 		})
 		executeFn = runAsServer
-		parser = &line.LocalParser{}
 	} else {
 		db = dynamo.New(sess)
 		ginLambda = ginadapter.New(r)
 		executeFn = runAsLambda
-		parser = bot
 	}
 }
 
@@ -85,7 +88,7 @@ func main() {
 }
 
 func runAsLambda() {
-	lambda.Start(handler)
+	lambda.Start(lambdaHandler)
 }
 
 func runAsServer() {
@@ -94,7 +97,7 @@ func runAsServer() {
 	}
 }
 
-func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func lambdaHandler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	return ginLambda.ProxyWithContext(ctx, request)
 }
 
@@ -104,7 +107,7 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 
 	logger.Info("request", zap.String("ip", ip), zap.String("method", method), zap.String("path", "/webhook"))
 
-	events, err := parser.ParseRequest(r)
+	events, err := bot.ParseRequest(r)
 
 	if err != nil {
 		if err == linebot.ErrInvalidSignature {

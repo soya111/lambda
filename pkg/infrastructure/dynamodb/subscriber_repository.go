@@ -17,7 +17,7 @@ type SubscriberRepository struct {
 }
 
 // NewSubscriberRepository receives a DynamoDB instance and returns a new SubscriberRepository.
-func NewSubscriberRepository(db *dynamo.DB) model.SubscriberRepository {
+func NewSubscriberRepository(db *dynamo.DB) *SubscriberRepository {
 	table := db.Table(subscriberTableName)
 	return &SubscriberRepository{db, table}
 }

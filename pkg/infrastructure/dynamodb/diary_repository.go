@@ -13,7 +13,7 @@ type DiaryRepository struct {
 }
 
 // NewDiaryRepository receives a DynamoDB instance and a table name, and returns a new DiaryRepository.
-func NewDiaryRepository(db *dynamo.DB, tableName string) model.DiaryRepository {
+func NewDiaryRepository(db *dynamo.DB, tableName string) *DiaryRepository {
 	table := db.Table(tableName)
 	return &DiaryRepository{
 		db:    db,

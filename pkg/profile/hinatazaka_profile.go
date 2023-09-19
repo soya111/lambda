@@ -63,7 +63,7 @@ func getProfileSelection(name string) (*goquery.Selection, error) {
 }
 
 // newProfileは新しいprofileをつくるコンストラクタ
-func newProfile(name, birthday, sign, height, birthplace, bloodtype, imageUrl string) (*Profile, error) {
+func newProfile(name, birthday, sign, height, birthplace, bloodtype, imageUrl string) *Profile {
 	member := new(Profile)
 
 	member.Birthday = birthday
@@ -81,19 +81,18 @@ func newProfile(name, birthday, sign, height, birthplace, bloodtype, imageUrl st
 	member.Bloodtype = bloodtype
 	member.ImageUrl = imageUrl
 
-	return member, err
+	return member
 }
 
 // ScrapeProfileはセレクションからスクレイピングしたプロフィールを取得
 func ScrapeProfile(name string) (*Profile, error) {
 	selection, err := getProfileSelection(name)
+
+	if errors.Is(err, ErrNoUrl) {
+		return PokaProfile, err
+	}
 	if err != nil {
-		if errors.Is(err, ErrNoUrl) {
-			return PokaProfile, err
-		} else {
-			var member *Profile
-			return member, err
-		}
+		return nil, err
 	}
 
 	texts := make(map[int]string)
@@ -107,7 +106,7 @@ func ScrapeProfile(name string) (*Profile, error) {
 	element := selection.Find("img").First()
 	src, _ := element.Attr("src")
 
-	member, _ := newProfile(name, texts[0], texts[1], texts[2], texts[3], texts[4], src)
+	member := newProfile(name, texts[0], texts[1], texts[2], texts[3], texts[4], src)
 	return member, nil
 }
 

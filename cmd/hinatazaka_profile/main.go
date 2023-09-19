@@ -24,12 +24,12 @@ func main() {
 	name := inputName()
 	member, err := profile.ScrapeProfile(name)
 
+	if errors.Is(err, profile.ErrNoUrl) {
+		fmt.Println(profile.CreateProfileMessage(member))
+		return
+	}
 	if err != nil {
-		if errors.Is(err, profile.ErrNoUrl) {
-			fmt.Println(profile.CreateProfileMessage(member))
-		} else {
-			fmt.Println(err)
-		}
+		fmt.Println(err)
 		return
 	}
 

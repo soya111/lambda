@@ -20,9 +20,7 @@ const (
 )
 
 // HinatazakaScraper scrapes Hinatazaka46's blog
-type HinatazakaScraper struct {
-	Scraper
-}
+type HinatazakaScraper struct{}
 
 // NewHinatazakaScraper returns a new HinatazakaScraper
 func NewHinatazakaScraper() *HinatazakaScraper {

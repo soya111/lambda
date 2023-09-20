@@ -12,6 +12,30 @@ services:
   create-tables:
     build:
       context: .
+      dockerfile: Dockerfile
+      target: create-tables
     depends_on:
       - dynamodb-local
     restart: "no"
+  webhook-receiver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: webhook-receiver
+    image: webhook-receiver
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - dynamodb-local
+  hinatazaka-blog-notifier:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: hinatazaka-blog-notifier
+    image: hinatazaka-blog-notifier
+    env_file:
+      - .env
+    depends_on:
+      - dynamodb-local

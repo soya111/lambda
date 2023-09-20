@@ -304,7 +304,7 @@ func (c *NicknameCommand) Execute(ctx context.Context, event *linebot.Event, arg
 		return nil
 	}
 
-	if member == "ポカ" {
+	if member == model.Poka {
 		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sにニックネームはありません。", member)); err != nil {
 			return fmt.Errorf("NicknameCommand.Execute: %w", err)
 		}

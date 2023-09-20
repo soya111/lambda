@@ -51,7 +51,7 @@ func getProfileSelection(name string) (*goquery.Selection, error) {
 	}
 
 	//入力がポカである場合
-	if model.MemberToIdMap[name] == "000" {
+	if name == model.Poka {
 		return nil, ErrNoUrl
 	}
 

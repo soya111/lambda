@@ -191,6 +191,8 @@ var (
 	ErrGraduatedMember   = errors.New("日向坂46の卒業メンバーです。")
 )
 
+const Poka = "ポカ"
+
 // NormalizeName normalizes a member name.
 func NormalizeName(name string) string {
 	name = strings.TrimSpace(name)

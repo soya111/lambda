@@ -52,7 +52,7 @@ func createFlexTextMessage(diary *blog.ScrapedDiary) *linebot.BubbleContainer {
 	container.Body = &linebot.BoxComponent{
 		Type:       linebot.FlexComponentTypeBox,
 		Layout:     linebot.FlexBoxLayoutTypeVertical,
-		Height:     "450px",
+		Height:     "400px",
 		PaddingAll: "0px",
 		Contents: []linebot.FlexComponent{
 			&linebot.BoxComponent{

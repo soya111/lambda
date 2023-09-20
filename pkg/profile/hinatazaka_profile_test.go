@@ -8,11 +8,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetProfileSelection(t *testing.T) {
+func Test_getProfileSelection(t *testing.T) {
 	tests := []struct {
-		name          string
-		input         string
-		expectederror error
+		name        string
+		input       string
+		expectedErr error
 	}{
 		{"ExistentMember", "潮紗理菜", nil},
 		{"NonExistentMember", "白石麻衣", model.ErrNonExistentMember},
@@ -23,14 +23,19 @@ func TestGetProfileSelection(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			_, actual := GetProfileSelection(tt.input)
-			assert.Equal(t, tt.expectederror, actual)
+			selection, err := getProfileSelection(tt.input)
+			if tt.expectedErr != nil {
+				assert.Equal(t, tt.expectedErr, err)
+			} else {
+				assert.NotNil(t, selection)
+			}
 		})
 	}
 }
 
 func TestScrapeProfile(t *testing.T) {
 	var ushiosarinaProfile = Profile{
+		"潮紗理菜",
 		"1997年12月26日",
 		calcAge(time.Date(1997, 12, 26, 0, 0, 0, 0, time.Local), time.Now()),
 		"やぎ座",
@@ -52,9 +57,9 @@ func TestScrapeProfile(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			selection, _ := GetProfileSelection(tt.input)
-			actual := ScrapeProfile(selection)
-			assert.Equal(t, tt.expected, *actual)
+			profile, err := ScrapeProfile(tt.input)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, *profile)
 		})
 	}
 }
@@ -63,8 +68,8 @@ func Test_normalizeDate(t *testing.T) {
 	tests := []struct {
 		name         string
 		input        string
-		expecteddate time.Time
-		expectederr  bool
+		expectedDate time.Time
+		expectedErr  bool
 	}{
 		{"YYYY年MM月DD日", "2000年12月12日", time.Date(2000, 12, 12, 0, 0, 0, 0, time.UTC), false},
 		{"YYYY年M月DD日", "2000年2月12日", time.Date(2000, 2, 12, 0, 0, 0, 0, time.UTC), false},
@@ -77,12 +82,12 @@ func Test_normalizeDate(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			actual, err := normalizeDate(tt.input)
-			if tt.expectederr {
+			date, err := normalizeDate(tt.input)
+			if tt.expectedErr {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.Equal(t, tt.expecteddate, actual)
+				assert.Equal(t, tt.expectedDate, date)
 			}
 		})
 	}
@@ -91,8 +96,8 @@ func Test_normalizeDate(t *testing.T) {
 func Test_calcAge(t *testing.T) {
 	tests := []struct {
 		name          string
-		inputbirthday time.Time
-		inputnow      time.Time
+		inputBirthday time.Time
+		inputNow      time.Time
 		expected      string
 	}{
 		{"BeforeBirthday", time.Date(2000, 12, 15, 0, 0, 0, 0, time.Local), time.Date(2020, 8, 15, 0, 0, 0, 0, time.Local), "19"},
@@ -104,7 +109,7 @@ func Test_calcAge(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			actual := calcAge(tt.inputbirthday, tt.inputnow)
+			actual := calcAge(tt.inputBirthday, tt.inputNow)
 			assert.Equal(t, tt.expected, actual)
 		})
 	}
@@ -112,6 +117,7 @@ func Test_calcAge(t *testing.T) {
 
 func TestCreateProfileMessage(t *testing.T) {
 	var ushiosarinaProfile = &Profile{
+		"潮紗理菜",
 		"1997年12月26日",
 		calcAge(time.Date(1997, 12, 26, 0, 0, 0, 0, time.Local), time.Now()),
 		"やぎ座",
@@ -123,19 +129,18 @@ func TestCreateProfileMessage(t *testing.T) {
 
 	tests := []struct {
 		name         string
-		inputname    string
-		inputprofile *Profile
+		inputProfile *Profile
 		expected     string
 	}{
-		{"Nornal", "潮紗理菜", ushiosarinaProfile, "潮紗理菜\n生年月日:1997年12月26日\n年齢:25歳\n星座:やぎ座\n身長:157.5cm\n出身地:神奈川県\n血液型:O型"},
-		{"ポカ", "ポカ", PokaProfile, "ポカ\n生年月日:2019年12月25日\n年齢:3歳\n星座:やぎ座\n身長:???\n出身地:???\n血液型:???"},
+		{"Nornal", ushiosarinaProfile, "潮紗理菜\n生年月日:1997年12月26日\n年齢:25歳\n星座:やぎ座\n身長:157.5cm\n出身地:神奈川県\n血液型:O型"},
+		{"ポカ", PokaProfile, "ポカ\n生年月日:2019年12月25日\n年齢:3歳\n星座:やぎ座\n身長:???\n出身地:???\n血液型:???"},
 	}
 
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			actual := CreateProfileMessage(tt.inputname, tt.inputprofile)
+			actual := CreateProfileMessage(tt.inputProfile)
 			assert.Equal(t, tt.expected, actual)
 		})
 	}

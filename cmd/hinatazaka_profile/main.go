@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 
@@ -22,18 +21,12 @@ func inputName() string {
 
 func main() {
 	name := inputName()
-	selection, err := profile.GetProfileSelection(name)
+	member, err := profile.ScrapeProfile(name)
 
 	if err != nil {
-		if errors.Is(err, profile.ErrNoUrl) {
-			fmt.Println(profile.CreateProfileMessage(name, profile.PokaProfile))
-		} else {
-			fmt.Println(err)
-		}
+		fmt.Println(err)
 		return
 	}
 
-	member := profile.ScrapeProfile(selection)
-
-	fmt.Println(profile.CreateProfileMessage(name, member))
+	fmt.Println(profile.CreateProfileMessage(member))
 }

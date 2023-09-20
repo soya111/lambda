@@ -7,22 +7,21 @@ import (
 	"strings"
 	"time"
 
-	"notify/pkg/infrastructure/line"
 	"notify/pkg/infrastructure/scrape"
 	"notify/pkg/model"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
 // プロフィールのstruct
 type Profile struct {
-	birthday   string
-	age        string
-	sign       string
-	height     string
-	birthplace string
-	bloodtype  string
+	Name       string
+	Birthday   string
+	Age        string
+	Sign       string
+	Height     string
+	Birthplace string
+	Bloodtype  string
 	ImageUrl   string
 }
 
@@ -30,6 +29,7 @@ var ErrNoUrl = errors.New("ポカは日向坂46の一員ですが、URLが存在
 
 // ポカのプロフィール
 var PokaProfile = &Profile{
+	"ポカ",
 	"2019年12月25日",
 	calcAge(time.Date(2019, 12, 25, 0, 0, 0, 0, time.Local), time.Now()),
 	"やぎ座",
@@ -39,8 +39,8 @@ var PokaProfile = &Profile{
 	"https://cdn.hinatazaka46.com/images/14/8e6/b044f0e534295d2d91700d8613270/1000_1000_102400.jpg",
 }
 
-// GetProfileSelectionはメンバーごとのプロフィールが記載されたセレクションを取得
-func GetProfileSelection(name string) (*goquery.Selection, error) {
+// getProfileSelectionはメンバーごとのプロフィールが記載されたセレクションを取得
+func getProfileSelection(name string) (*goquery.Selection, error) {
 	// 入力が卒業メンバーである場合
 	if model.IsGrad(name) {
 		return nil, model.ErrGraduatedMember
@@ -51,7 +51,7 @@ func GetProfileSelection(name string) (*goquery.Selection, error) {
 	}
 
 	//入力がポカである場合
-	if model.MemberToIdMap[name] == "000" {
+	if name == model.Poka {
 		return nil, ErrNoUrl
 	}
 
@@ -63,27 +63,38 @@ func GetProfileSelection(name string) (*goquery.Selection, error) {
 }
 
 // newProfileは新しいprofileをつくるコンストラクタ
-func newProfile(birthday, sign, height, birthplace, bloodtype, imageUrl string) (*Profile, error) {
+func newProfile(name, birthday, sign, height, birthplace, bloodtype, imageUrl string) *Profile {
 	member := new(Profile)
 
-	member.birthday = birthday
-	normalizedBirthday, err := normalizeDate(member.birthday)
+	member.Birthday = birthday
+	normalizedBirthday, err := normalizeDate(member.Birthday)
 	if err != nil {
-		member.age = "???"
+		member.Age = "???"
 	} else {
-		member.age = calcAge(normalizedBirthday, time.Now())
+		member.Age = calcAge(normalizedBirthday, time.Now())
 	}
-	member.sign = sign
-	member.height = height
-	member.birthplace = birthplace
-	member.bloodtype = bloodtype
+
+	member.Name = name
+	member.Sign = sign
+	member.Height = height
+	member.Birthplace = birthplace
+	member.Bloodtype = bloodtype
 	member.ImageUrl = imageUrl
 
-	return member, err
+	return member
 }
 
 // ScrapeProfileはセレクションからスクレイピングしたプロフィールを取得
-func ScrapeProfile(selection *goquery.Selection) *Profile {
+func ScrapeProfile(name string) (*Profile, error) {
+	selection, err := getProfileSelection(name)
+
+	if errors.Is(err, ErrNoUrl) {
+		return PokaProfile, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
 	texts := make(map[int]string)
 	//セレクタを使って要素を抽出
 	selection.Find(".c-member__info-td__text").Each(func(index int, element *goquery.Selection) {
@@ -95,8 +106,8 @@ func ScrapeProfile(selection *goquery.Selection) *Profile {
 	element := selection.Find("img").First()
 	src, _ := element.Attr("src")
 
-	member, _ := newProfile(texts[0], texts[1], texts[2], texts[3], texts[4], src)
-	return member
+	member := newProfile(name, texts[0], texts[1], texts[2], texts[3], texts[4], src)
+	return member, nil
 }
 
 // normalizeDateは"YYYY年MM月DD日"を標準化したtime.Time型で出力
@@ -123,154 +134,7 @@ func calcAge(birthday time.Time, now time.Time) string {
 }
 
 // CreateProfileMessageはプロフィールメッセージを生成
-func CreateProfileMessage(name string, member *Profile) string {
-	message := fmt.Sprintf("%s\n生年月日:%s\n年齢:%s歳\n星座:%s\n身長:%s\n出身地:%s\n血液型:%s", name, member.birthday, member.age, member.sign, member.height, member.birthplace, member.bloodtype)
+func CreateProfileMessage(member *Profile) string {
+	message := fmt.Sprintf("%s\n生年月日:%s\n年齢:%s歳\n星座:%s\n身長:%s\n出身地:%s\n血液型:%s", member.Name, member.Birthday, member.Age, member.Sign, member.Height, member.Birthplace, member.Bloodtype)
 	return message
-}
-
-// CreateProfileFlexMessageはプロフィールメッセージを生成
-func CreateProfileFlexMessage(name string, prof *Profile) linebot.SendingMessage {
-	var container []*linebot.BubbleContainer
-	container = append(container, createFlexTextMessage(name, prof))
-
-	outerContainer := &linebot.CarouselContainer{
-		Type:     linebot.FlexContainerTypeCarousel,
-		Contents: container,
-	}
-
-	message := linebot.NewFlexMessage(name+"のプロフィール", outerContainer).WithSender(linebot.NewSender(name, prof.ImageUrl))
-
-	return message
-}
-
-func createFlexTextMessage(name string, prof *Profile) *linebot.BubbleContainer {
-	container := line.MegaBubbleContainer
-
-	container.Body = &linebot.BoxComponent{
-		Type:       linebot.FlexComponentTypeBox,
-		Layout:     linebot.FlexBoxLayoutTypeVertical,
-		Height:     "450px",
-		PaddingAll: "0px",
-		Contents: []linebot.FlexComponent{
-			&linebot.BoxComponent{
-				Type:   linebot.FlexComponentTypeBox,
-				Layout: linebot.FlexBoxLayoutTypeVertical,
-				Height: "70%",
-				Contents: []linebot.FlexComponent{
-					&linebot.BoxComponent{
-						Type:   linebot.FlexComponentTypeBox,
-						Layout: linebot.FlexBoxLayoutTypeHorizontal,
-						Contents: []linebot.FlexComponent{
-							&linebot.ImageComponent{
-								Type:       linebot.FlexComponentTypeImage,
-								URL:        prof.ImageUrl,
-								Size:       linebot.FlexImageSizeTypeFull,
-								AspectMode: linebot.FlexImageAspectModeTypeCover,
-							},
-						},
-					},
-				},
-				PaddingAll: "0px",
-			},
-			&linebot.BoxComponent{
-				Type:   linebot.FlexComponentTypeBox,
-				Layout: linebot.FlexBoxLayoutTypeVertical,
-				Contents: []linebot.FlexComponent{
-
-					&linebot.BoxComponent{
-						Type:   linebot.FlexComponentTypeBox,
-						Layout: linebot.FlexBoxLayoutTypeVertical,
-						Contents: []linebot.FlexComponent{
-							&linebot.BoxComponent{
-								Type:   linebot.FlexComponentTypeBox,
-								Layout: linebot.FlexBoxLayoutTypeVertical,
-								Contents: []linebot.FlexComponent{
-									&linebot.TextComponent{
-										Type:   linebot.FlexComponentTypeText,
-										Size:   linebot.FlexTextSizeTypeSm,
-										Wrap:   true,
-										Text:   name,
-										Color:  "#ffffff",
-										Weight: linebot.FlexTextWeightTypeBold,
-									},
-									&linebot.TextComponent{
-										Type:   linebot.FlexComponentTypeText,
-										Size:   linebot.FlexTextSizeTypeSm,
-										Wrap:   true,
-										Text:   fmt.Sprintf("生年月日:%s", prof.birthday),
-										Color:  "#ffffff",
-										Weight: linebot.FlexTextWeightTypeBold,
-									},
-									&linebot.TextComponent{
-										Type:   linebot.FlexComponentTypeText,
-										Size:   linebot.FlexTextSizeTypeSm,
-										Wrap:   true,
-										Text:   fmt.Sprintf("年齢:%s歳", prof.age),
-										Color:  "#ffffff",
-										Weight: linebot.FlexTextWeightTypeBold,
-									},
-									&linebot.TextComponent{
-										Type:   linebot.FlexComponentTypeText,
-										Size:   linebot.FlexTextSizeTypeSm,
-										Wrap:   true,
-										Text:   fmt.Sprintf("星座:%s", prof.sign),
-										Color:  "#ffffff",
-										Weight: linebot.FlexTextWeightTypeBold,
-									},
-									&linebot.TextComponent{
-										Type:   linebot.FlexComponentTypeText,
-										Size:   linebot.FlexTextSizeTypeSm,
-										Wrap:   true,
-										Text:   fmt.Sprintf("身長:%s", prof.height),
-										Color:  "#ffffff",
-										Weight: linebot.FlexTextWeightTypeBold,
-									},
-									&linebot.TextComponent{
-										Type:   linebot.FlexComponentTypeText,
-										Size:   linebot.FlexTextSizeTypeSm,
-										Wrap:   true,
-										Text:   fmt.Sprintf("出身地:%s", prof.birthplace),
-										Color:  "#ffffff",
-										Weight: linebot.FlexTextWeightTypeBold,
-									},
-									&linebot.TextComponent{
-										Type:   linebot.FlexComponentTypeText,
-										Size:   linebot.FlexTextSizeTypeSm,
-										Wrap:   true,
-										Text:   fmt.Sprintf("血液型:%s", prof.bloodtype),
-										Color:  "#ffffff",
-										Weight: linebot.FlexTextWeightTypeBold,
-									},
-									&linebot.ButtonComponent{
-										Type:   linebot.FlexComponentTypeButton,
-										Action: line.NewSubscribeAction(name),
-										Margin: linebot.FlexComponentMarginTypeMd,
-										Style:  linebot.FlexButtonStyleTypeSecondary,
-										Color:  "#ffffff",
-									},
-								},
-							},
-						},
-					},
-				},
-				PaddingAll:      "20px",
-				BackgroundColor: "#464F69",
-				Action: &linebot.URIAction{
-					Label: "action",
-					URI:   "https://www.hinatazaka46.com/s/official/artist/" + model.MemberToIdMap[name] + "?ima=0000",
-				},
-				Position:     linebot.FlexComponentPositionTypeAbsolute,
-				OffsetBottom: "0px",
-				OffsetStart:  "0px",
-				OffsetEnd:    "0px",
-			},
-		},
-	}
-
-	generationLabelText := model.MemberToGenerationMap[name] + "期生"
-	generationLabel := line.CreateLabelComponent(generationLabelText, "#ffffff", "#EC3D44")
-	firstBox := container.Body.Contents[0].(*linebot.BoxComponent)
-	firstBox.Contents = append(firstBox.Contents, generationLabel)
-
-	return &container
 }

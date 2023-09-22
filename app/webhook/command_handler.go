@@ -36,6 +36,7 @@ const (
 	CmdBlog      CommandName = "blog"
 	CmdProf      CommandName = "prof"
 	CmdNickaname CommandName = "name"
+	CmdMenu      CommandName = "menu"
 	// 新しいコマンドを追加する場合はここに定義する
 )
 
@@ -50,6 +51,7 @@ func (h *Handler) getCommandHandlers() CommandMap {
 		CmdBlog:      &BlogCommand{h.bot},
 		CmdProf:      &ProfCommand{h.bot},
 		CmdNickaname: &NicknameCommand{h.bot},
+		CmdMenu:      &MenuCommand{h.bot},
 		// 新たに追加するコマンドも同様にここに追加します
 	}
 	cmdMap[CmdHelp] = &HelpCommand{h.bot, cmdMap}
@@ -323,6 +325,48 @@ func (c *NicknameCommand) Execute(ctx context.Context, event *linebot.Event, arg
 }
 
 func (c *NicknameCommand) Description() string {
+	return "Get the nickname of a member. Usage: name [member]"
+}
+
+// MenuCommand is the command that shows some command buttons of the specified member.
+type MenuCommand struct {
+	bot *line.Linebot
+}
+
+func (c *MenuCommand) Execute(ctx context.Context, event *linebot.Event, args []string) error {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Executing MenuCommand with args", zap.Any("args", args))
+
+	if len(args) < 2 {
+		return nil
+	}
+
+	member := model.TranslateNicknametoMember(args[1])
+	if model.IsGrad(member) {
+		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは卒業メンバーです。", member)); err != nil {
+			return fmt.Errorf("NicknameCommand.Execute: %w", err)
+		}
+		return nil
+	}
+
+	if !model.IsMember(member) {
+		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは存在しません。", member)); err != nil {
+			return fmt.Errorf("NicknameCommand.Execute: %w", err)
+		}
+		return nil
+	}
+
+	prof, _ := profile.ScrapeProfile(member)
+	message := line.CreateMenuFlexMessage(prof)
+
+	err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
+	if err != nil {
+		return fmt.Errorf("NicknameCommand.Execute: %w", err)
+	}
+	return nil
+}
+
+func (c *MenuCommand) Description() string {
 	return "Get the nickname of a member. Usage: name [member]"
 }
 

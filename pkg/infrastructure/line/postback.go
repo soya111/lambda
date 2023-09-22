@@ -19,6 +19,9 @@ type PostbackAction string
 const (
 	PostbackActionRegister   PostbackAction = "reg"
 	PostbackActionUnregister PostbackAction = "unreg"
+	PostbackActionBlog       PostbackAction = "blog"
+	PostbackActionProfile    PostbackAction = "prof"
+	PostbackActionNickname   PostbackAction = "name"
 )
 
 const MemberKey = "member"
@@ -57,6 +60,9 @@ const (
 	ThumbDownLabel   = "👎"
 	SubscribeLabel   = "購読する"
 	UnsubscribeLabel = "解除する"
+	BlogLabel        = "最新のブログ"
+	ProfileLabel     = "プロフィール"
+	NickanameLabel   = "ニックネーム"
 )
 
 func NewSubscribeAction(diaryMemberName string) *linebot.PostbackAction {
@@ -81,4 +87,40 @@ func newUnsubscribeAction(diaryMemberName string) *linebot.PostbackAction {
 		return nil
 	}
 	return NewPostbackAction(UnsubscribeLabel, dataString, UnsubscribeLabel)
+}
+
+func NewBlogAction(diaryMemberName string) *linebot.PostbackAction {
+	postBackMap := map[string]string{
+		MemberKey: model.NormalizeName(diaryMemberName),
+	}
+	dataString, err := NewPostbackDataString(PostbackActionBlog, postBackMap)
+	if err != nil {
+		fmt.Printf("NewBlogAction: %v\n", err)
+		return nil
+	}
+	return NewPostbackAction(BlogLabel, dataString, BlogLabel)
+}
+
+func NewProfileAction(diaryMemberName string) *linebot.PostbackAction {
+	postBackMap := map[string]string{
+		MemberKey: model.NormalizeName(diaryMemberName),
+	}
+	dataString, err := NewPostbackDataString(PostbackActionProfile, postBackMap)
+	if err != nil {
+		fmt.Printf("NewBlogAction: %v\n", err)
+		return nil
+	}
+	return NewPostbackAction(ProfileLabel, dataString, ProfileLabel)
+}
+
+func NewNicknameAction(diaryMemberName string) *linebot.PostbackAction {
+	postBackMap := map[string]string{
+		MemberKey: model.NormalizeName(diaryMemberName),
+	}
+	dataString, err := NewPostbackDataString(PostbackActionNickname, postBackMap)
+	if err != nil {
+		fmt.Printf("NewBlogAction: %v\n", err)
+		return nil
+	}
+	return NewPostbackAction(NickanameLabel, dataString, NickanameLabel)
 }

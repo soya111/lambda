@@ -328,7 +328,7 @@ func (c *NicknameCommand) Description() string {
 	return "Get the nickname of a member. Usage: name [member]"
 }
 
-// MenuCommand is the command that shows some command buttons of the specified member.
+// MenuCommand is the command that shows the menu of member selection, or the menu of the specified member if accompanied by the member name.
 type MenuCommand struct {
 	bot *line.Linebot
 }
@@ -338,6 +338,12 @@ func (c *MenuCommand) Execute(ctx context.Context, event *linebot.Event, args []
 	logger.Info("Executing MenuCommand with args", zap.Any("args", args))
 
 	if len(args) < 2 {
+		message := line.CreateMenuFlexMessage()
+
+		err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
+		if err != nil {
+			return fmt.Errorf("NicknameCommand.Execute: %w", err)
+		}
 		return nil
 	}
 
@@ -357,7 +363,7 @@ func (c *MenuCommand) Execute(ctx context.Context, event *linebot.Event, args []
 	}
 
 	prof, _ := profile.ScrapeProfile(member)
-	message := line.CreateMenuFlexMessage(prof)
+	message := line.CreateMemberMenuFlexMessage(prof)
 
 	err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
 	if err != nil {

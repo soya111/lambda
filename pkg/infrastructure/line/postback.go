@@ -22,9 +22,11 @@ const (
 	PostbackActionBlog       PostbackAction = "blog"
 	PostbackActionProfile    PostbackAction = "prof"
 	PostbackActionNickname   PostbackAction = "name"
+	PostbackActionSelect     PostbackAction = "select"
 )
 
 const MemberKey = "member"
+const ActionKey = "action"
 
 // ParsePostbackData parses the postback data.
 func ParsePostbackData(event *linebot.Event) (*PostbackData, error) {
@@ -62,7 +64,7 @@ const (
 	UnsubscribeLabel = "解除する"
 	BlogLabel        = "最新のブログ"
 	ProfileLabel     = "プロフィール"
-	NickanameLabel   = "ニックネーム"
+	NicknameLabel    = "ニックネーム"
 )
 
 func NewSubscribeAction(diaryMemberName string) *linebot.PostbackAction {
@@ -122,5 +124,17 @@ func NewNicknameAction(diaryMemberName string) *linebot.PostbackAction {
 		fmt.Printf("NewBlogAction: %v\n", err)
 		return nil
 	}
-	return NewPostbackAction(NickanameLabel, dataString, NickanameLabel)
+	return NewPostbackAction(NicknameLabel, dataString, NicknameLabel)
+}
+
+func NewSelectAction(action string) *linebot.PostbackAction {
+	postBackMap := map[string]string{
+		ActionKey: action,
+	}
+	dataString, err := NewPostbackDataString(PostbackActionSelect, postBackMap)
+	if err != nil {
+		fmt.Printf("NewBlogAction: %v\n", err)
+		return nil
+	}
+	return NewPostbackAction(action, dataString, action)
 }

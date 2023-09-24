@@ -1,4 +1,4 @@
-module notify
+module zephyr
 
 go 1.21
 

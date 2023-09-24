@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 
-	"notify/pkg/profile"
+	"zephyr/pkg/profile"
 )
 
 var name string

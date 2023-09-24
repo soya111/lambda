@@ -1,8 +1,8 @@
 package dynamodb
 
 import (
-	"notify/pkg/model"
 	"testing"
+	"zephyr/pkg/model"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"

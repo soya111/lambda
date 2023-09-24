@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"notify/pkg/infrastructure/scrape"
-	"notify/pkg/model"
+	"zephyr/pkg/infrastructure/scrape"
+	"zephyr/pkg/model"
 
 	"github.com/PuerkitoBio/goquery"
 )

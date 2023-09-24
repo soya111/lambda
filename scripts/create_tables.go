@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"notify/pkg/model"
+	"zephyr/pkg/model"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"

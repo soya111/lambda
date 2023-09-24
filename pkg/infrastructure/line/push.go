@@ -2,7 +2,7 @@ package line
 
 import (
 	"context"
-	"notify/pkg/logging"
+	"zephyr/pkg/logging"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/line/line-bot-sdk-go/v7/linebot"

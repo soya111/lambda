@@ -1,8 +1,8 @@
 package line_test
 
 import (
-	"notify/pkg/infrastructure/line"
 	"testing"
+	"zephyr/pkg/infrastructure/line"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 	"github.com/stretchr/testify/assert"

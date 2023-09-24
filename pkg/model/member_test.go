@@ -1,8 +1,8 @@
 package model_test
 
 import (
-	"notify/pkg/model"
 	"testing"
+	"zephyr/pkg/model"
 
 	"github.com/stretchr/testify/assert"
 )

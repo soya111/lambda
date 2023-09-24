@@ -3,7 +3,7 @@ package dynamodb
 import (
 	"fmt"
 
-	"notify/pkg/model"
+	"zephyr/pkg/model"
 
 	"github.com/guregu/dynamo"
 )

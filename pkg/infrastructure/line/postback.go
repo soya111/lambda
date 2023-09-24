@@ -3,7 +3,7 @@ package line
 import (
 	"encoding/json"
 	"fmt"
-	"notify/pkg/model"
+	"zephyr/pkg/model"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )

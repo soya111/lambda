@@ -3,8 +3,8 @@ package blog
 import (
 	"context"
 	"fmt"
-	"notify/pkg/infrastructure/scrape"
-	"notify/pkg/model"
+	"zephyr/pkg/infrastructure/scrape"
+	"zephyr/pkg/model"
 
 	"os"
 	"slices"

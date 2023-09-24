@@ -1,7 +1,7 @@
 package dynamodb
 
 import (
-	"notify/pkg/model"
+	"zephyr/pkg/model"
 
 	"github.com/guregu/dynamo"
 )

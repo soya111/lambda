@@ -2,8 +2,8 @@ package blog
 
 import (
 	"context"
-	"notify/pkg/model"
 	"time"
+	"zephyr/pkg/model"
 )
 
 // Scraper is an interface for scraping blogs.

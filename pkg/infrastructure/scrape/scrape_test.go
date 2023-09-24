@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"notify/pkg/infrastructure/scrape"
+	"zephyr/pkg/infrastructure/scrape"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/stretchr/testify/assert"

@@ -1,8 +1,8 @@
 package webhook
 
 import (
-	"notify/pkg/infrastructure/line"
-	"notify/pkg/model"
+	"zephyr/pkg/infrastructure/line"
+	"zephyr/pkg/model"
 )
 
 // Handler is a struct that handles webhook events.

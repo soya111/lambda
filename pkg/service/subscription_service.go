@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
-	"notify/pkg/infrastructure/line"
-	"notify/pkg/logging"
-	"notify/pkg/model"
+	"zephyr/pkg/infrastructure/line"
+	"zephyr/pkg/logging"
+	"zephyr/pkg/model"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 	"go.uber.org/zap"

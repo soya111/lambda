@@ -3,10 +3,10 @@ package webhook
 import (
 	"context"
 	"fmt"
-	"notify/pkg/infrastructure/line"
-	"notify/pkg/logging"
-	"notify/pkg/model"
-	"notify/pkg/service"
+	"zephyr/pkg/infrastructure/line"
+	"zephyr/pkg/logging"
+	"zephyr/pkg/model"
+	"zephyr/pkg/service"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )

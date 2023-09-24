@@ -5,11 +5,11 @@ import (
 	"os"
 	"testing"
 
-	"notify/pkg/blog"
-	"notify/pkg/infrastructure/dynamodb"
-	"notify/pkg/infrastructure/line"
-	"notify/pkg/logging"
-	"notify/pkg/model"
+	"zephyr/pkg/blog"
+	"zephyr/pkg/infrastructure/dynamodb"
+	"zephyr/pkg/infrastructure/line"
+	"zephyr/pkg/logging"
+	"zephyr/pkg/model"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"

@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
-	"notify/pkg/infrastructure/line"
-	"notify/pkg/logging"
+	"zephyr/pkg/infrastructure/line"
+	"zephyr/pkg/logging"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )

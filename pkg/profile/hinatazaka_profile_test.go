@@ -1,9 +1,9 @@
 package profile
 
 import (
-	"notify/pkg/model"
 	"testing"
 	"time"
+	"zephyr/pkg/model"
 
 	"github.com/stretchr/testify/assert"
 )

@@ -3,7 +3,7 @@ package line
 import (
 	"context"
 	"fmt"
-	"notify/pkg/logging"
+	"zephyr/pkg/logging"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 	"go.uber.org/zap"

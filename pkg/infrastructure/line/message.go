@@ -212,6 +212,7 @@ func createFlexImagesMessage(urls []string) []*linebot.BubbleContainer {
 	return contents
 }
 
+// CreateLabelComponent creates label component.
 func CreateLabelComponent(text, textcolor, backgroundcolor string) *linebot.BoxComponent {
 	return &linebot.BoxComponent{
 		Type:   linebot.FlexComponentTypeBox,

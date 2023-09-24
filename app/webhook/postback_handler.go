@@ -180,20 +180,20 @@ type PostbackCommandSelect struct {
 	bot *line.Linebot
 }
 
-var actionToMessageMap = map[string]linebot.SendingMessage{
-	line.SubscribeLabel: line.CreateMemberSelectFlexMessage(line.NewSubscribeAction),
-	line.BlogLabel:      line.CreateMemberSelectFlexMessage(line.NewBlogAction),
-	line.ProfileLabel:   line.CreateMemberSelectFlexMessage(line.NewProfileAction),
-	line.NicknameLabel:  line.CreateMemberSelectFlexMessage(line.NewNicknameAction),
+var labelToActionMap = map[string]line.PostbackActionGenerator{
+	line.SubscribeLabel: line.NewSubscribeAction,
+	line.BlogLabel:      line.NewBlogAction,
+	line.ProfileLabel:   line.NewProfileAction,
+	line.NicknameLabel:  line.NewNicknameAction,
 }
 
 func (c *PostbackCommandSelect) Execute(ctx context.Context, event *linebot.Event, data *line.PostbackData) error {
 	logger := logging.LoggerFromContext(ctx)
 	logger.Info("Start executing postback command select")
 
-	action := data.Params[line.ActionKey]
+	label := data.Params[line.ActionKey]
 
-	message := actionToMessageMap[action]
+	message := line.CreateMemberSelectFlexMessage(labelToActionMap[label])
 
 	err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
 	if err != nil {

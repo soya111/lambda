@@ -119,10 +119,10 @@ func createFlexMenuMessage() *linebot.BubbleContainer {
 	return &container
 }
 
-type Action func(string) *linebot.PostbackAction
+type PostbackActionGenerator func(string) *linebot.PostbackAction
 
 // CreateMemberSelectFlexMessageはメンバー選択画面を生成
-func CreateMemberSelectFlexMessage(action Action) linebot.SendingMessage {
+func CreateMemberSelectFlexMessage(action PostbackActionGenerator) linebot.SendingMessage {
 	container := createFlexMemberSelectMessage(action)
 
 	outerContainer := &linebot.CarouselContainer{
@@ -135,7 +135,7 @@ func CreateMemberSelectFlexMessage(action Action) linebot.SendingMessage {
 	return message
 }
 
-func createFlexMemberSelectMessage(action Action) []*linebot.BubbleContainer {
+func createFlexMemberSelectMessage(action PostbackActionGenerator) []*linebot.BubbleContainer {
 	contents := []*linebot.BubbleContainer{}
 	groupSize := 8
 

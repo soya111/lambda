@@ -133,14 +133,14 @@ func NewNicknameAction(diaryMemberName string) *linebot.PostbackAction {
 }
 
 // NewSelectAction is the postback action that shows the selectmenu of the member.
-func NewSelectAction(action string) *linebot.PostbackAction {
+func NewSelectAction(label string) *linebot.PostbackAction {
 	postBackMap := map[string]string{
-		ActionKey: action,
+		ActionKey: label,
 	}
 	dataString, err := NewPostbackDataString(PostbackActionSelect, postBackMap)
 	if err != nil {
 		fmt.Printf("NewSelectAction: %v\n", err)
 		return nil
 	}
-	return NewPostbackAction(action, dataString, action)
+	return NewPostbackAction(label, dataString, label)
 }

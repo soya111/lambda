@@ -147,6 +147,7 @@ func createFlexProfileMessage(prof *profile.Profile) *linebot.BubbleContainer {
 	return &container
 }
 
+// CreateGenerationLabel creates generation label component of specified member.
 func CreateGenerationLabel(name, textcolor, backgroundcolor string) *linebot.BoxComponent {
 	generationText := model.MemberToGenerationMap[name] + "期生"
 	generationLabel := CreateLabelComponent(generationText, textcolor, backgroundcolor)

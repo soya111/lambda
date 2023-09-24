@@ -2,8 +2,8 @@ package line
 
 import (
 	"fmt"
-	"notify/pkg/model"
-	"notify/pkg/profile"
+	"zephyr/pkg/model"
+	"zephyr/pkg/profile"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
 )

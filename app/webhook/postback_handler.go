@@ -193,7 +193,12 @@ func (c *PostbackCommandSelect) Execute(ctx context.Context, event *linebot.Even
 
 	label := data.Params[line.ActionKey]
 
-	message := line.CreateMemberSelectFlexMessage(labelToActionMap[label])
+	messageFunc, ok := labelToActionMap[label]
+	if !ok {
+		return nil
+	}
+
+	message := line.CreateMemberSelectFlexMessage(messageFunc)
 
 	err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
 	if err != nil {

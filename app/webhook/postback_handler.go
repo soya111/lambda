@@ -11,6 +11,7 @@ import (
 	"zephyr/pkg/service"
 
 	"github.com/line/line-bot-sdk-go/v7/linebot"
+	"go.uber.org/zap"
 )
 
 type PostbackCommand interface {
@@ -195,6 +196,7 @@ func (c *PostbackCommandSelect) Execute(ctx context.Context, event *linebot.Even
 
 	messageFunc, ok := labelToActionMap[label]
 	if !ok {
+		logger.Warn("Unknown label", zap.String("label", label))
 		return nil
 	}
 

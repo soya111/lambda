@@ -356,9 +356,6 @@ func (c *MenuCommand) Execute(ctx context.Context, event *linebot.Event, args []
 	}
 
 	if !model.IsMember(member) {
-		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは存在しません。", member)); err != nil {
-			return fmt.Errorf("NicknameCommand.Execute: %w", err)
-		}
 		return nil
 	}
 
@@ -373,7 +370,7 @@ func (c *MenuCommand) Execute(ctx context.Context, event *linebot.Event, args []
 }
 
 func (c *MenuCommand) Description() string {
-	return "Get the nickname of a member. Usage: name [member]"
+	return "Get the general menu or the specified member menu. Usage: menu or menu [member]"
 }
 
 // type Subscriber struct {

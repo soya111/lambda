@@ -67,18 +67,20 @@ const (
 	NicknameLabel    = "ニックネーム"
 )
 
+// NewSubscribeAction is the postback action that registers a member.
 func NewSubscribeAction(diaryMemberName string) *linebot.PostbackAction {
 	postBackMap := map[string]string{
 		MemberKey: model.NormalizeName(diaryMemberName),
 	}
 	dataString, err := NewPostbackDataString(PostbackActionRegister, postBackMap)
 	if err != nil {
-		fmt.Printf("newSubscribeAction: %v\n", err)
+		fmt.Printf("NewSubscribeAction: %v\n", err)
 		return nil
 	}
 	return NewPostbackAction(SubscribeLabel, dataString, SubscribeLabel)
 }
 
+// newUnsubscribeAction is the postback action that unregisters a member.
 func newUnsubscribeAction(diaryMemberName string) *linebot.PostbackAction {
 	postBackMap := map[string]string{
 		MemberKey: model.NormalizeName(diaryMemberName),
@@ -91,6 +93,7 @@ func newUnsubscribeAction(diaryMemberName string) *linebot.PostbackAction {
 	return NewPostbackAction(UnsubscribeLabel, dataString, UnsubscribeLabel)
 }
 
+// NewBlogAction is the postback action that shows the latest blog entry of the specified member.
 func NewBlogAction(diaryMemberName string) *linebot.PostbackAction {
 	postBackMap := map[string]string{
 		MemberKey: model.NormalizeName(diaryMemberName),
@@ -103,37 +106,40 @@ func NewBlogAction(diaryMemberName string) *linebot.PostbackAction {
 	return NewPostbackAction(BlogLabel, dataString, BlogLabel)
 }
 
+// NewProfileAction is the postback action that shows the profile of the specified member.
 func NewProfileAction(diaryMemberName string) *linebot.PostbackAction {
 	postBackMap := map[string]string{
 		MemberKey: model.NormalizeName(diaryMemberName),
 	}
 	dataString, err := NewPostbackDataString(PostbackActionProfile, postBackMap)
 	if err != nil {
-		fmt.Printf("NewBlogAction: %v\n", err)
+		fmt.Printf("NewProfileAction: %v\n", err)
 		return nil
 	}
 	return NewPostbackAction(ProfileLabel, dataString, ProfileLabel)
 }
 
+// NewNicknameAction is the postback action that shows the nickname of the specified member.
 func NewNicknameAction(diaryMemberName string) *linebot.PostbackAction {
 	postBackMap := map[string]string{
 		MemberKey: model.NormalizeName(diaryMemberName),
 	}
 	dataString, err := NewPostbackDataString(PostbackActionNickname, postBackMap)
 	if err != nil {
-		fmt.Printf("NewBlogAction: %v\n", err)
+		fmt.Printf("NewNicknameAction: %v\n", err)
 		return nil
 	}
 	return NewPostbackAction(NicknameLabel, dataString, NicknameLabel)
 }
 
+// NewSelectAction is the postback action that shows the selectmenu of the member.
 func NewSelectAction(action string) *linebot.PostbackAction {
 	postBackMap := map[string]string{
 		ActionKey: action,
 	}
 	dataString, err := NewPostbackDataString(PostbackActionSelect, postBackMap)
 	if err != nil {
-		fmt.Printf("NewBlogAction: %v\n", err)
+		fmt.Printf("NewSelectAction: %v\n", err)
 		return nil
 	}
 	return NewPostbackAction(action, dataString, action)

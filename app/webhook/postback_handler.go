@@ -125,7 +125,7 @@ type PostbackCommandProfile struct {
 
 func (c *PostbackCommandProfile) Execute(ctx context.Context, event *linebot.Event, data *line.PostbackData) error {
 	logger := logging.LoggerFromContext(ctx)
-	logger.Info("Start executing postback command blog")
+	logger.Info("Start executing postback command profile")
 
 	member := data.Params[line.MemberKey]
 	if !model.IsMember(member) {
@@ -150,7 +150,7 @@ type PostbackCommandNickname struct {
 
 func (c *PostbackCommandNickname) Execute(ctx context.Context, event *linebot.Event, data *line.PostbackData) error {
 	logger := logging.LoggerFromContext(ctx)
-	logger.Info("Start executing postback command blog")
+	logger.Info("Start executing postback command nickname")
 
 	member := data.Params[line.MemberKey]
 	if !model.IsMember(member) {
@@ -180,46 +180,24 @@ type PostbackCommandSelect struct {
 	bot *line.Linebot
 }
 
+var actionToMessageMap = map[string]linebot.SendingMessage{
+	line.SubscribeLabel: line.CreateMemberSelectFlexMessage(line.NewSubscribeAction),
+	line.BlogLabel:      line.CreateMemberSelectFlexMessage(line.NewBlogAction),
+	line.ProfileLabel:   line.CreateMemberSelectFlexMessage(line.NewProfileAction),
+	line.NicknameLabel:  line.CreateMemberSelectFlexMessage(line.NewNicknameAction),
+}
+
 func (c *PostbackCommandSelect) Execute(ctx context.Context, event *linebot.Event, data *line.PostbackData) error {
 	logger := logging.LoggerFromContext(ctx)
-	logger.Info("Start executing postback command blog")
+	logger.Info("Start executing postback command select")
 
 	action := data.Params[line.ActionKey]
 
-	if action == line.SubscribeLabel {
-		message := line.CreateMemberSelectFlexMessage(line.NewSubscribeAction)
+	message := actionToMessageMap[action]
 
-		err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
-		if err != nil {
-			return fmt.Errorf("PostbackCommandSelect.Execute: %w", err)
-		}
-	}
-
-	if action == line.BlogLabel {
-		message := line.CreateMemberSelectFlexMessage(line.NewBlogAction)
-
-		err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
-		if err != nil {
-			return fmt.Errorf("PostbackCommandSelect.Execute: %w", err)
-		}
-	}
-
-	if action == line.ProfileLabel {
-		message := line.CreateMemberSelectFlexMessage(line.NewProfileAction)
-
-		err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
-		if err != nil {
-			return fmt.Errorf("PostbackCommandSelect.Execute: %w", err)
-		}
-	}
-
-	if action == line.NicknameLabel {
-		message := line.CreateMemberSelectFlexMessage(line.NewNicknameAction)
-
-		err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
-		if err != nil {
-			return fmt.Errorf("PostbackCommandSelect.Execute: %w", err)
-		}
+	err := c.bot.ReplyMessage(ctx, event.ReplyToken, message)
+	if err != nil {
+		return fmt.Errorf("PostbackCommandSelect.Execute: %w", err)
 	}
 
 	return nil

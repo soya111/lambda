@@ -42,7 +42,7 @@ func TestScrapeProfile(t *testing.T) {
 		"157.5cm",
 		"神奈川県",
 		"O型",
-		"https://cdn.hinatazaka46.com/images/14/9d4/dc3eef1e11944f0ee69459463a4cb/1000_1000_102400.jpg",
+		"https://cdn.hinatazaka46.com/images/14/bb8/60972360af21e201cd8fc36813faa/1000_1000_102400.jpg",
 	}
 
 	tests := []struct {

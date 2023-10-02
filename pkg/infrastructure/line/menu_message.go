@@ -147,6 +147,7 @@ func createFlexMemberSelectMessage(action PostbackActionGenerator) []*linebot.Bu
 		if end > len(model.MemberList) {
 			end = len(model.MemberList)
 		}
+
 		group := model.MemberList[i:end]
 
 		for _, member := range group {
@@ -180,7 +181,6 @@ func createFlexMemberSelectMessage(action PostbackActionGenerator) []*linebot.Bu
 		content.Body = &linebot.BoxComponent{
 			Type:       linebot.FlexComponentTypeBox,
 			Layout:     linebot.FlexBoxLayoutTypeVertical,
-			Height:     "410px",
 			PaddingAll: "0px",
 			Contents: []linebot.FlexComponent{
 				&linebot.BoxComponent{
@@ -189,16 +189,17 @@ func createFlexMemberSelectMessage(action PostbackActionGenerator) []*linebot.Bu
 					Contents:        components,
 					PaddingAll:      "20px",
 					BackgroundColor: "#464F69",
-					Position:        linebot.FlexComponentPositionTypeAbsolute,
+					Position:        linebot.FlexComponentPositionTypeRelative,
+					JustifyContent:  linebot.FlexComponentJustifyContentTypeFlexStart,
 					OffsetBottom:    "0px",
 					OffsetStart:     "0px",
 					OffsetEnd:       "0px",
 				},
 			},
+			BackgroundColor: "#464F69",
 		}
 		contents = append(contents, &content)
 	}
-
 	return contents
 }
 

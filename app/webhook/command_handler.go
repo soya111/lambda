@@ -188,7 +188,7 @@ func (c *HelpCommand) Description() string {
 	return "Show the list of available commands. Usage: help"
 }
 
-// BlogCommand is the command that shows the latest blog entry of the specified member.
+// BlogCommand is the command that shows the latest blog entry of the specified member or shows the specific blog from blog id.
 type BlogCommand struct {
 	bot *line.Linebot
 }

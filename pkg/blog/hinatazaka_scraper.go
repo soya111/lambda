@@ -2,7 +2,9 @@ package blog
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"regexp"
 	"zephyr/pkg/infrastructure/scrape"
 	"zephyr/pkg/model"
 
@@ -155,6 +157,69 @@ func (s *HinatazakaScraper) parseDiaryFromSelection(sl *goquery.Selection) (*Scr
 	}
 
 	diary := NewScrapedDiary(RootURL+href, title, name, date, diaryId, images, lead)
+
+	return diary, nil
+}
+
+// GetSpecificDiaryById returns the specific diary from blog id.
+func (s *HinatazakaScraper) GetSpecificDiaryById(blogId string) (*ScrapedDiary, error) {
+	pattern := `^\d{5}$`
+	regex := regexp.MustCompile(pattern)
+
+	if !regex.MatchString(blogId) {
+		err := errors.New("invalid blog id")
+		return nil, err
+	}
+
+	url := "https://www.hinatazaka46.com/s/official/diary/detail/" + blogId + "?ima=0000&cd=member"
+
+	document, err := scrape.GetDocumentFromURL(url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get document from url %s: %w", url, err)
+	}
+
+	article := document.Find(".p-blog-article").First()
+
+	diary, err := s.parseSpecificDiaryFromSelection(blogId, article)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse diary from selection: %w", err)
+	}
+
+	memberId, err := model.GetMemberId(diary.MemberName)
+	if err != nil {
+		return nil, err
+	}
+
+	diary.SetMemberIcon(s.GetIconURLByID(document, memberId))
+
+	return diary, nil
+}
+
+func (s *HinatazakaScraper) parseSpecificDiaryFromSelection(blogId string, sl *goquery.Selection) (*ScrapedDiary, error) {
+	url := "https://www.hinatazaka46.com/s/official/diary/detail/" + blogId + "?ima=0000&cd=member"
+	title := strings.TrimSpace(sl.Find(".c-blog-article__title").Text())
+	name := strings.TrimSpace(sl.Find(".c-blog-article__name").Text())
+	diaryId, _ := strconv.Atoi(blogId)
+
+	date, err := time.Parse(model.TimeFmt, strings.TrimSpace(sl.Find(".c-blog-article__date").Text())+" (JST)")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	images := s.GetImages(&goquery.Document{Selection: sl})
+
+	opt := scrape.TextExtractionOptions{
+		MaxLength:       50,
+		IncludeNewlines: false,
+		AppendEllipsis:  true,
+	}
+
+	lead, err := scrape.ExtractAndFormatTextFromElement(&goquery.Document{Selection: sl}, ".c-blog-article__text", opt)
+	if err != nil {
+		fmt.Printf("error extracting text from element: %v\n", err)
+	}
+
+	diary := NewScrapedDiary(url, title, name, date, diaryId, images, lead)
 
 	return diary, nil
 }

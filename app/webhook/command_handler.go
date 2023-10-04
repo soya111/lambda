@@ -210,7 +210,18 @@ func (c *BlogCommand) Execute(ctx context.Context, event *linebot.Event, args []
 	}
 
 	if !model.IsMember(member) {
-		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは存在しません。", member)); err != nil {
+		scraper := blog.NewHinatazakaScraper()
+		diary, err := scraper.GetSpecificDiaryById(member)
+		if err != nil {
+			if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは存在しません。", member)); err != nil {
+				return fmt.Errorf("BlogCommand.Execute: %w", err)
+			}
+			return nil
+		}
+		message := line.CreateFlexMessage(diary)
+
+		err = c.bot.ReplyMessage(ctx, event.ReplyToken, message)
+		if err != nil {
 			return fmt.Errorf("BlogCommand.Execute: %w", err)
 		}
 		return nil

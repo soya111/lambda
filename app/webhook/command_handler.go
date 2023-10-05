@@ -3,6 +3,7 @@ package webhook
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"zephyr/pkg/blog"
 	"zephyr/pkg/infrastructure/line"
@@ -37,6 +38,7 @@ const (
 	CmdProf      CommandName = "prof"
 	CmdNickaname CommandName = "name"
 	CmdMenu      CommandName = "menu"
+	CmdId        CommandName = "id"
 	// 新しいコマンドを追加する場合はここに定義する
 )
 
@@ -52,6 +54,7 @@ func (h *Handler) getCommandHandlers() CommandMap {
 		CmdProf:      &ProfCommand{h.bot},
 		CmdNickaname: &NicknameCommand{h.bot},
 		CmdMenu:      &MenuCommand{h.bot},
+		CmdId:        &IdCommand{h.bot},
 		// 新たに追加するコマンドも同様にここに追加します
 	}
 	cmdMap[CmdHelp] = &HelpCommand{h.bot, cmdMap}
@@ -188,7 +191,7 @@ func (c *HelpCommand) Description() string {
 	return "Show the list of available commands. Usage: help"
 }
 
-// BlogCommand is the command that shows the latest blog entry of the specified member or shows the specific blog from blog id.
+// BlogCommand is the command that shows the latest blog entry of the specified member.
 type BlogCommand struct {
 	bot *line.Linebot
 }
@@ -210,18 +213,7 @@ func (c *BlogCommand) Execute(ctx context.Context, event *linebot.Event, args []
 	}
 
 	if !model.IsMember(member) {
-		scraper := blog.NewHinatazakaScraper()
-		diary, err := scraper.GetSpecificDiaryById(member)
-		if err != nil {
-			if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは存在しません。", member)); err != nil {
-				return fmt.Errorf("BlogCommand.Execute: %w", err)
-			}
-			return nil
-		}
-		message := line.CreateFlexMessage(diary)
-
-		err = c.bot.ReplyMessage(ctx, event.ReplyToken, message)
-		if err != nil {
+		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, fmt.Sprintf("%sは存在しません。", member)); err != nil {
 			return fmt.Errorf("BlogCommand.Execute: %w", err)
 		}
 		return nil
@@ -382,6 +374,51 @@ func (c *MenuCommand) Execute(ctx context.Context, event *linebot.Event, args []
 
 func (c *MenuCommand) Description() string {
 	return "Get the general menu or the specified member menu. Usage: menu or menu [member]"
+}
+
+// IdCommandis the command that shows the specific blog from blog id.
+type IdCommand struct {
+	bot *line.Linebot
+}
+
+func (c *IdCommand) Execute(ctx context.Context, event *linebot.Event, args []string) error {
+	logger := logging.LoggerFromContext(ctx)
+	logger.Info("Executing IdCommand with args", zap.Any("args", args))
+
+	if len(args) < 2 {
+		return nil
+	}
+
+	blogId := model.TranslateNicknametoMember(args[1])
+
+	pattern := `^\d{5}$`
+	regex := regexp.MustCompile(pattern)
+
+	if !regex.MatchString(blogId) {
+		return nil
+	}
+
+	scraper := blog.NewHinatazakaScraper()
+	diary, err := scraper.GetSpecificDiaryById(blogId)
+
+	if err != nil {
+		if err := c.bot.ReplyTextMessages(ctx, event.ReplyToken, "無効なブログIDです。"); err != nil {
+			return fmt.Errorf("NicknameCommand.Execute: %w", err)
+		}
+		return nil
+	}
+
+	message := line.CreateFlexMessage(diary)
+
+	err = c.bot.ReplyMessage(ctx, event.ReplyToken, message)
+	if err != nil {
+		return fmt.Errorf("IdCommand.Execute: %w", err)
+	}
+	return nil
+}
+
+func (c *IdCommand) Description() string {
+	return "Get the specific blog from blog id. Usage: id [blogId]"
 }
 
 // type Subscriber struct {

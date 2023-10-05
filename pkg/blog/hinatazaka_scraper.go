@@ -2,9 +2,7 @@ package blog
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"regexp"
 	"zephyr/pkg/infrastructure/scrape"
 	"zephyr/pkg/model"
 
@@ -163,14 +161,6 @@ func (s *HinatazakaScraper) parseDiaryFromSelection(sl *goquery.Selection) (*Scr
 
 // GetSpecificDiaryById returns the specific diary from blog id.
 func (s *HinatazakaScraper) GetSpecificDiaryById(blogId string) (*ScrapedDiary, error) {
-	pattern := `^\d{5}$`
-	regex := regexp.MustCompile(pattern)
-
-	if !regex.MatchString(blogId) {
-		err := errors.New("invalid blog id")
-		return nil, err
-	}
-
 	url := "https://www.hinatazaka46.com/s/official/diary/detail/" + blogId + "?ima=0000&cd=member"
 
 	document, err := scrape.GetDocumentFromURL(url)

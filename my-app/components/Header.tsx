@@ -7,6 +7,7 @@ const Header: React.FC = () => {
         <Link href="/">Home</Link>
         <Link href="/api/auth/login">Login</Link>
         <Link href="/api/auth/logout">Logout</Link>
+        <Link href="/profile">Profile</Link>
       </div>
       <style jsx>{`
         header {
@@ -17,6 +18,8 @@ const Header: React.FC = () => {
           max-width: 1200px;
           margin: 0 auto;
           padding: 0 15px;
+          display: flex;
+          justify-content: space-between;
         }
         a {
           color: white;
